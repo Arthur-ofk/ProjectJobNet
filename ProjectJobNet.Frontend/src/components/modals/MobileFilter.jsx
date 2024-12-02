@@ -1,14 +1,26 @@
-'use client'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogBackdrop, DialogPanel} from '@headlessui/react'
+import { useLocation } from "react-router-dom";
+import axios from 'axios';
 
 import Checkbox from '../pageComponents/Checkbox';
 import FormField from "../pageComponents/FormField";
 import Filter from "/src/icons/Filter";
 
 export default function MobileFilter(){
-    const [open, setOpen] = useState(false)
+    const [open, setOpen] = useState(false);
+    const location = useLocation();
+    const [categories, setCategories] = useState([]);
+
+    useEffect(() => {
+       axios.get('https://localhost:6969/api/categories')
+       .then(response => {
+            setCategories(response.data);
+        })
+        .catch(error => {
+            console.error(error);
+        });
+    }, []);
   
     return (
     <>
@@ -38,6 +50,7 @@ export default function MobileFilter(){
                     <div className="px-6 py-4">
                     <form>
                        <div className="overflow-auto h-80">
+                       {location.pathname != "/resumes" && (<>
                        <p className="max-w-2xl text-lg pb-4 font-semibold">Тип зайнятості</p>
                             <Checkbox id="full-time" name="Повна"/>
                             <Checkbox id="part-time" name="Неповна"/>
@@ -45,12 +58,9 @@ export default function MobileFilter(){
                             <FormField id="min" type="number" name="Від" className="pb-4 flex items-center space-x-3 w-72" isRequired = {false}/>
                             <FormField id="max" type="number" name="До" className="pb-4 flex items-center space-x-3 w-72" isRequired = {false}/>
                         <p className="max-w-2xl text-lg py-4 font-semibold">Категорія</p>
-                            <Checkbox />
-                            <Checkbox />
-                            <Checkbox />
-                            <Checkbox />
-                            <Checkbox />
-                            <Checkbox />
+                        </>)}
+                        { categories.map(category => 
+                        ( <Checkbox key={category.id} id={category.id} name={category.categoryName} /> ))}
                         <p className="max-w-2xl text-lg py-4 font-semibold">Особливості</p>
                             <Checkbox id="without-expetience" name="Без досвіду"/>
                             <Checkbox id="without-cv" name="Без резюме"/>

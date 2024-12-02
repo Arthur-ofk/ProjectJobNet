@@ -18,6 +18,7 @@ namespace ProjectJobNet.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<BlogPostDto>>> GetAllBlogPosts()
         {
             var blogPosts = await _blogPostService.GetAllBlogPostsAsync();
@@ -25,6 +26,7 @@ namespace ProjectJobNet.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<BlogPostDto>> GetBlogPostById(Guid id)
         {
             var blogPost = await _blogPostService.GetBlogPostByIdAsync(id);

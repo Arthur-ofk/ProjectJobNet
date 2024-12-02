@@ -1,28 +1,60 @@
+import React, {useEffect, useState} from 'react';
+import axios from 'axios';
 import Vacancy from "src/components/Vacancy.jsx";
 import AddButton from "src/components/AddButton.jsx";
+import { useNavigate } from 'react-router-dom';
 
+const SavedVacancies = () => {
+    const [vacancies, setVacancies] = useState([]);
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-const CreatedVacancies = () => {const vacancies = [
-    { id: 1, title: "Vacancy 1", company: "Company 1", description: "Description 1" },
-    { id: 2, title: "Vacancy 2", company: "Company 2", description: "Description 2" },
-];
+    useEffect(() => {
+        // Fetch vacancies from the backend
+        axios.get("https://localhost:6969/api/jobs") // Replace with your actual API endpoint
+            .then(response => {
+                setVacancies(response.data);
+                setLoading(false);
+            })
+            .catch(error => {
+                console.error("Error fetching vacancies:", error);
+                setError("Failed to load vacancies.");
+                setLoading(false);
+            });
+    }, []);
 
     const containerStyle = {
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",  // Centers the items horizontally
-        gap: "20px",           // Adds space between the items
-        padding: "20px",       // Adds padding around the container
+        alignItems: "center",
+        gap: "20px",
+        padding: "20px",
     };
 
+    const navigate = useNavigate()
     return (
-        <div style={containerStyle}>
-            {vacancies.map((vacancy) => (
-                <Vacancy key={vacancy.id} id={vacancy.id} title={vacancy.title} company={vacancy.company} description={vacancy.description} />
-            ))}
-            <AddButton/>
+        <div>
+            <div style={containerStyle}>
+                {loading ? (
+                    <p>Loading...</p>
+                ) : error ? (
+                    <p>{error}</p>
+                ) : (
+                    vacancies.map((vacancy) => (
+                        <Vacancy
+                            key={vacancy.id}
+                            id={vacancy.id}
+                            title={vacancy.title}
+                            company={vacancy.company}
+                            description={vacancy.description}
+                        />
+                    ))
+                )}
+            </div>
+            <AddButton onClick={() => navigate("/vacancy/create")}/>
         </div>
     );
 };
 
-export default CreatedVacancies;
+export default SavedVacancies;
+

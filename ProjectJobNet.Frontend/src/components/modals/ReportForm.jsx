@@ -1,17 +1,43 @@
 import { useState } from 'react'
 import { Dialog, DialogBackdrop, DialogPanel} from '@headlessui/react'
+import axios from 'axios';
 
-import RadioButton from '../pageComponents/RadioButton';
 import Report from '../../icons/Report';
 
-export default function ReportForm() {
+export default function ReportForm(props) {
     const [open, setOpen] = useState(false)
+
+    const [complaint, setComplaint] = useState({
+        reason: "",
+        comment: ""
+      });
+
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setComplaint({
+      ...complaint,
+      [e.target.name]: value
+    });
+  };    
+
+const handleSubmit = (e) => {
+    e.preventDefault();
+    const userData = {
+        targetPostId: props.id,
+        userId: localStorage.getItem("userId"),
+        description: `Причина: ${complaint.reason} Коментар: ${complaint.comment}!`,
+        status: "Pending review"
+      };
+    axios.post("https://localhost:6969/api/complaints", userData).then((response) => {
+        console.log(response.data);
+      });  
+    }
   
     function otherCheck(){
         if (document.getElementById('other').checked) {
-            document.getElementById('other-input').className="mt-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-0.5";
+            document.getElementById('otherReason').className="mt-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-0.5";
         }
-        else document.getElementById('other-input').className="hidden";
+        else document.getElementById('otherReason').className="hidden";
     }
 
     return (
@@ -37,29 +63,44 @@ export default function ReportForm() {
                         <span className="sr-only">Close modal</span>
                     </button>
                 </div>
-            <div className="py-3 md:py-4 px-5 pb-8">
+            <form className="py-3 md:py-4 px-5 pb-8" onSubmit={handleSubmit}>
                 <fieldset>
                     <p className="mt-1 font-medium">Причина скарги:</p>
                     <div className="my-4 space-y-3">
-                        <RadioButton id="reason1" name="report-reason" text="Причина №1" func={otherCheck}/>
-                        <RadioButton id="reason2" name="report-reason" text="Причина №2" func={otherCheck}/>
-                        <RadioButton id="reason3" name="report-reason" text="Причина №3" func={otherCheck}/>
-                        <RadioButton id="reason4" name="report-reason" text="Причина №4" func={otherCheck}/>
-                        <RadioButton id="reason5" name="report-reason" text="Причина №5" func={otherCheck}/>
                         <div className="flex items-center gap-x-2">
-                            <input id="other" onClick={otherCheck} name="report-reason" type="radio" className="size-4 border-gray-300 text-sky-400 focus:ring-sky-400" />
-                            <label htmlFor="other" className="block text-sm font-semibold text-gray-900">Інше:</label>
-                            <input type="text" id="other-input" />
+                            <input id="reason1" name="reason" value="report-reason-1" onClick={otherCheck} onChange={handleChange} type="radio" className="size-4 border-gray-300 text-sky-400 focus:ring-sky-400" />
+                            <label className="block text-sm font-semibold text-gray-900">Причина №1</label>
+                        </div>
+                        <div className="flex items-center gap-x-2">
+                            <input id="reason2" name="reason" value="report-reason-2" onClick={otherCheck} onChange={handleChange} type="radio" className="size-4 border-gray-300 text-sky-400 focus:ring-sky-400" />
+                            <label className="block text-sm font-semibold text-gray-900">Причина №2</label>
+                        </div>
+                        <div className="flex items-center gap-x-2">
+                            <input id="reason3" name="reason" value="report-reason-3" onClick={otherCheck} onChange={handleChange} type="radio" className="size-4 border-gray-300 text-sky-400 focus:ring-sky-400" />
+                            <label className="block text-sm font-semibold text-gray-900">Причина №3</label>
+                        </div>
+                        <div className="flex items-center gap-x-2">
+                            <input id="reason4" name="reason" value="report-reason-4" onClick={otherCheck} onChange={handleChange} type="radio" className="size-4 border-gray-300 text-sky-400 focus:ring-sky-400" />
+                            <label className="block text-sm font-semibold text-gray-900">Причина №4</label>
+                        </div>
+                        <div className="flex items-center gap-x-2">
+                            <input id="reason5" name="reason" value="report-reason-5" onClick={otherCheck} onChange={handleChange} type="radio" className="size-4 border-gray-300 text-sky-400 focus:ring-sky-400" />
+                            <label className="block text-sm font-semibold text-gray-900">Причина №5</label>
+                        </div>
+                        <div className="flex items-center gap-x-2">
+                            <input id="other" onClick={otherCheck} name="reason" type="radio" className="size-4 border-gray-300 text-sky-400 focus:ring-sky-400" />
+                            <label className="block text-sm font-semibold text-gray-900">Інше:</label>
+                            <input type="text" value={complaint.reason} onChange={handleChange} name="reason" id="otherReason" className="hidden"/>
                         </div>
                     </div>
                 </fieldset>
                 <div>
-                    <label for="message" className="block mb-2 font-medium text-gray-900">Коментар:</label>
-                    <textarea id="message" rows="4" className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-sky-500 focus:border-sky-500" placeholder="Write your thoughts here..."></textarea>
+                    <label className="block mb-2 font-medium text-gray-900">Коментар:</label>
+                    <textarea name="comment" value={complaint.comment} onChange={handleChange} rows="4" className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-sky-500 focus:border-sky-500" placeholder="Write your thoughts here..."></textarea>
                 </div>
                 <button type="submit" 
                     onClick={() => setOpen(false)} className="w-full mt-3 rounded-lg bg-red-600 px-5 py-2.5 text-center font-medium text-white hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300">Поскаржитись</button>
-            </div>
+            </form>
         </DialogPanel>
       </div>
     </div>

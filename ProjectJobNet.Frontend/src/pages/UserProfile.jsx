@@ -5,6 +5,8 @@ import UserInfoIcon from "src/icons/UserInfoIcon.jsx";
 import BlogIcon from "src/icons/BlogIcon.jsx";
 import Quit from "src/icons/Quit.jsx";
 
+import { useNavigate } from "react-router-dom";
+
 const UserProfile = () => {
     const containerStyle = {
         display: 'grid',
@@ -28,21 +30,23 @@ const UserProfile = () => {
     };
 
     const items = [
-        { text: 'Мої резюме', icon: <CVIcon/> },
-        { text: 'Мої послуги', icon: <ServiceIcon/> },
-        { text: 'Збережені вакансії', icon: <HeartOutline width={50} height={50}/> },
-        { text: 'Особисті дані', icon: <UserInfoIcon/> },
-        { text: 'Блог', icon: <BlogIcon/> },
-        { text: 'Вийти', icon: <Quit/> },
+        { text: 'Мої резюме', icon: <CVIcon/> , href:"/user/my-resumes"},
+        { text: 'Мої послуги', icon: <ServiceIcon/>, href: "/user/my-services"},
+        { text: 'Збережені вакансії', icon: <HeartOutline width={50} height={50}/>, href: "/user/saved-vacancies" },
+        { text: 'Особисті дані', icon: <UserInfoIcon/>, href: "/user/personal-info" },
+        { text: 'Блог', icon: <BlogIcon/>, href:"/user/my-blog" },
+        { text: 'Вийти', icon: <Quit/>, href: "/"},
     ];
+
+    const navigate = useNavigate();
 
     return (
         <div style={containerStyle}>
             {items.map((item, index) => (
-                <div key={index} style={cellStyle}>
+                <button key={index} style={cellStyle} onClick={() => {item.text === "Вийти" && localStorage.clear(); navigate(item.href)}}>
                     {item.icon}
                     {item.text}
-                </div>
+                </button>
             ))}
         </div>
     );

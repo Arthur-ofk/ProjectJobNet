@@ -4,6 +4,9 @@ import Telegram from "src/icons/Telegram.jsx";
 import Viber from "src/icons/Viber.jsx";
 import Edit from "src/icons/Edit.jsx";
 
+import { useState, useEffect } from "react";
+import axios from 'axios';
+
 const PersonalInfo = ({
                           name,
                           specialization,
@@ -68,6 +71,17 @@ const PersonalInfo = ({
         lineHeight: "1.5",
     };
 
+    const [userInfo, setUserInfo] = useState([]);
+    useEffect(() => {
+        axios.get(`https://localhost:6969/api/users/${localStorage.getItem("userId")}`)
+        .then(response => {
+            setUserInfo(response.data);
+         })
+         .catch(error => {
+             console.error(error);
+         });
+    }) 
+
     return (
         <div style={containerStyle}>
             {/* Grid Section */}
@@ -75,15 +89,15 @@ const PersonalInfo = ({
                 {/* Left Column */}
                 <div style={leftColumnStyle}>
                     <div style={headerStyle}>
-                        {name}, {specialization}
+                        {userInfo.firstName} {userInfo.lastName}
                         <span style={{ cursor: "pointer" }}>
                             <Edit width={20} height={20} color={"#000000"} />
                         </span>
                     </div>
                     <div style={contactInfoStyle}>
-                        {city}, {region}
+                        {userInfo.address} область
                     </div>
-                    <div style={contactInfoStyle}>{phone}</div>
+                    <div style={contactInfoStyle}>{userInfo.phoneNumber}</div>
                     <div
                         style={{
                             ...contactInfoStyle,

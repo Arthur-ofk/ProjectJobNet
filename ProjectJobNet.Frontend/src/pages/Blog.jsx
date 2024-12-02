@@ -2,6 +2,9 @@ import BlogPost from "src/components/BlogPost.jsx";
 import Pagination from "src/components/pageComponents/Pagination.jsx";
 import Tag from "src/components/Tag.jsx";
 
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+
 export default function Blog() {
     const containerStyle = {
         display: 'grid',
@@ -53,6 +56,19 @@ export default function Blog() {
         justifySelf: 'center', // Centers within its span
         textAlign: 'center',
     };
+
+    const [posts, setPosts] = useState([]);
+
+    useEffect(() => {
+      axios.get('https://localhost:6969/api/posts')
+        .then(response => {
+          setPosts(response.data);
+        })
+        .catch(error => {
+          console.error(error);
+        });  
+      }, []);
+      
 
     return (
         <div style={containerStyle}>

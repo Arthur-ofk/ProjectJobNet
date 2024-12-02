@@ -18,6 +18,7 @@ namespace ProjectJobNet.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<ResumeDto>>> GetAllResumes()
         {
             var resumes = await _resumeService.GetAllResumesAsync();
@@ -25,6 +26,7 @@ namespace ProjectJobNet.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<ResumeDto>> GetResumeById(Guid id)
         {
             var resume = await _resumeService.GetResumeByIdAsync(id);

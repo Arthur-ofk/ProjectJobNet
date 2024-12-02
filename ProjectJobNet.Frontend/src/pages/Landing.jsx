@@ -3,7 +3,40 @@ import SearchBar from "/src/components/pageComponents/SearchBar";
 import ServiceLanding from "/src/components/ServiceLanding";
 import VacancyLanding from "/src/components/VacancyLanding";
 
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+
 export default function Landing() {
+  const [vacancies, setVacancies] = useState([]);
+  const [services, setServices] = useState([]);
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    axios.get('https://localhost:6969/api/jobs')
+      .then(response => {
+           setVacancies(response.data);
+     })
+      .catch(error => {
+           console.error(error);
+      });
+
+    axios.get('https://localhost:6969/api/services')
+      .then(response => {
+        setServices(response.data);
+      })
+      .catch(error => {
+        console.error(error);
+      });
+
+    axios.get('https://localhost:6969/api/posts')
+      .then(response => {
+        setPosts(response.data);
+      })
+      .catch(error => {
+        console.error(error);
+      });  
+    }, []);
+    
     return (
       <>
         <SearchBar />
@@ -12,37 +45,38 @@ export default function Landing() {
           <ShowAllButton url="/vacancies" />
         </div>
         <div className="flex justify-center px-[5em] pb-12 grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-          <VacancyLanding />
-          <VacancyLanding />
-          <VacancyLanding />
+        {vacancies.slice(0, 3).map((vacancy) => (
+                    <VacancyLanding key={vacancy.id} 
+                             id={vacancy.id} title={vacancy.title} salary={vacancy.salary} description={`${vacancy.description.slice(0, 150)}...`}/>
+                ))}
         </div>
         <div className="flex justify-between">
           <Heading text="Одноразові послуги" />
           <ShowAllButton url="/services" />
         </div>
         <div className="flex justify-center px-[5em] pb-12 grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-          <ServiceLanding />
-          <ServiceLanding />
-          <ServiceLanding />
+        {services.slice(0, 3).map((service) => (
+                    <ServiceLanding key={service.id} 
+                        id={service.id} serviceName={service.serviceName} price={service.price} description={`${service.description.slice(0, 150)}...`} />
+                ))}
         </div>
         <Heading text="Про нас" />
         <p className="px-[6em] pb-12 text-center">
           {" "}
           JobNet - це студентський проєкт. <br />
-          Li Europan lingues es membres del sam familie. Lor separat existentie es un myth. Por scientie, musica, sport etc, litot Europa usa li sam vocabular. 
-          Li lingues differe solmen in li grammatica, li pronunciation e li plu commun vocabules. Omnicos directe al desirabilite de un nov lingua franca: 
-          On refusa continuar payar custosi traductores.Li Europan lingues es membres del sam familie. Lor separat existentie es un myth. Por scientie, musica, sport etc, 
-          litot Europa usa li sam vocabular. Li lingues differe solmen in li grammatica.
+          Основна мета проекту – надати користувачам можливість працювати зі ефективним сервісом з інтуїтивним сучасним інтерфейсом, 
+          який допоможе з’єднувати роботодавців з потенційними працівниками. 
+          Крім того, він буде цікавий для людей, які бажають заробити на короткострокових або разових замовленням.
         </p>
         <div className="flex justify-between">
           <Heading text="Блог" />
           <ShowAllButton url="/blog" />
         </div>
         <div className="flex justify-center px-[5em] grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-          <BlogPost />
-          <BlogPost />
-          <BlogPost />
-          <BlogPost />
+        {posts.slice(0, 4).map((post) => (
+                    <BlogPost key={post.id} 
+                        id={post.id} serviceName={post.title} content={`${post.content.slice(0, 70)}...`} />
+                ))}
         </div>
       </>
     );

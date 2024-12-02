@@ -1,8 +1,13 @@
+import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import axios from 'axios';
+
 import PropTypes from "prop-types";
 import Verified from "src/icons/Verified.jsx";
 import Info from "src/icons/Info.jsx";
 import VacancyIcon from "src/icons/VacancyIcon.jsx";
 import BlogIcon from "src/icons/BlogIcon.jsx";
+
 
 const CompanyPage = ({
                          name,
@@ -81,6 +86,18 @@ const CompanyPage = ({
 
     };
 
+    const navigate = useNavigate();
+    const { id } = useParams();
+    const [userInfo, setUserInfo] = useState([]);
+    useEffect(() => {
+        axios.get(`https://localhost:6969/api/users/${id}`)
+        .then(response => {
+            setUserInfo(response.data);
+         })
+         .catch(error => {
+             console.error(error);
+         });
+    }) 
 
     return (
         <>
@@ -92,7 +109,7 @@ const CompanyPage = ({
                 {/* Company Info */}
 
                 <div style={headerStyle}>
-                    {name}
+                    {userInfo.firstName}
                     <Verified width={15} height={15} color={'#000000'}/>
                 </div>
                 <div style={descriptionStyle}>{description}</div>
@@ -104,15 +121,15 @@ const CompanyPage = ({
             </div>
             {/* Buttons */}
             <div style={buttonsContainerStyle}>
-                <button style={buttonStyle}>
+                <button style={buttonStyle} onClick={() => window.open(website, "_blank", "noreferrer")}>
                     <span style={{marginRight: '20px'}}><Info width={'40px'} height={'40px'}/></span>
                     Про компанію
                 </button>
-                <button style={buttonStyle}>
+                <button style={buttonStyle} onClick={() => navigate(`/company/${id}/vacancies`)}>
                     <span style={{marginRight: '20px'}}><VacancyIcon width={'50px'} height={'50px'}/></span>
                     Вакансії
                 </button>
-                <button style={buttonStyle}>
+                <button style={buttonStyle} onClick={() => navigate(`/company/${id}/blog`)} >
                     <span style={{marginRight: '20px'}}><BlogIcon width={'40px'} height={'40px'}/></span>
                     Блог
                 </button>
@@ -132,7 +149,7 @@ CompanyPage.propTypes = {
 CompanyPage.defaultProps = {
     name: "Company Name",
     description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec volutpat cursus ex sit amet lobortis. Nulla malesuada ullamcorper leo, ac porttitor dui tempor mattis.",
-    website: "www.company-website.com",
+    website: "https://www.company-website.com",
     bannerColor: "#f4f4f4",
     verified: true,
 };

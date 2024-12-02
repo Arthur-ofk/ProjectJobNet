@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { Navigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function SignUp(){
+    const navigate = useNavigate();
 
     const [register, setRegisterData] = useState({
         firstName: "",
@@ -28,11 +29,11 @@ export default function SignUp(){
     const handleSubmit = (e) => {
         e.preventDefault();
         const userData = {
-            firstName: register.firstName + " " + register.middleName,
-            lastName: register.lastName,
+            firstName: register.firstName,
+            lastName: `${register.middleName} ${register.lastName}`,
             username: register.username,
             phoneNumber: register.phoneNumber,
-            address: register.city + ", " + register.region,
+            address: `${register.city}, ${register.region}`,
             email: register.email,
             password: register.password
           };
@@ -40,8 +41,12 @@ export default function SignUp(){
             console.log(response.data);
             localStorage.setItem("token", response.data.token);
             localStorage.setItem("userId", response.data.user.id);
-            localStorage.setItem("userRole", "User");
             localStorage.setItem("isLoggedIn", true);
+            axios.get(`https://localhost:6969/api/roles/${response.data.user.roleId}`, 
+                { headers: {"Authorization" : `Bearer ${localStorage.getItem('token')}`}}
+            ).then((response) => 
+                localStorage.setItem("userRole", response.data.roleName))
+            navigate("/");
           });  
     }
 
@@ -67,11 +72,11 @@ export default function SignUp(){
                     </> : <>
                         <div>
                             <label className="block text-sm font-medium text-gray-900 ml-1">Назва компанії</label>
-                            <input type="text" name="companyName" value={register.companyName} onChange={handleChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2" required />
+                            <input type="text" name="firstName" value={register.firstName} onChange={handleChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2" required />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-900 ml-1">Реєстраційний номер</label>
-                            <input type="text" name="number" value={register.number} onChange={handleChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2" required />
+                            <input type="text" name="lastName" value={register.lastName} onChange={handleChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2" required />
                         </div>
                     </> }
                 </div>
@@ -81,7 +86,7 @@ export default function SignUp(){
                         <input type="text" name="middleName" value={register.middleName} onChange={handleChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2" />
                     </div> : <div>
                         <label className="block text-sm font-medium text-gray-900 ml-1">Власник</label>
-                        <input type="text" name="owner" value={register.owner} onChange={handleChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2" required />
+                        <input type="text" name="middleName" value={register.middleName} onChange={handleChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2" required />
                     </div>}
 
                 <div className="grid gap-6 mb-6 md:grid-cols-2">
@@ -94,7 +99,7 @@ export default function SignUp(){
                         <input type="text" name="region" value={register.region} onChange={handleChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2" required />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-900 ml-1">Юзернейм</label>
+                        <label className="block text-sm font-medium text-gray-900 ml-1"> Ім'я користувача/Username</label>
                         <input type="text" name="username" value={register.username} onChange={handleChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2" required />
                     </div>
                     <div>
@@ -116,7 +121,7 @@ export default function SignUp(){
                     </div>
                     <label for="remember" className="ms-2 font-medium text-gray-900">Я погоджуюсь з <a href="#" className="text-sky-500 hover:underline">умовами використання</a>.</label>
                 </div>
-                <button type="submit" onClick={<Navigate to="/"/>} className="text-white bg-sky-400 hover:bg-sky-600 focus:ring-4 focus:outline-none focus:ring-sky-300 font-medium rounded-lg w-full sm:w-auto px-5 py-2.5 text-center">Зареєструватися</button>
+                <button type="submit" className="text-white bg-sky-400 hover:bg-sky-600 focus:ring-4 focus:outline-none focus:ring-sky-300 font-medium rounded-lg w-full sm:w-auto px-5 py-2.5 text-center">Зареєструватися</button>
             
             </form>
         </div>

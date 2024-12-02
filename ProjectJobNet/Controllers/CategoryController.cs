@@ -18,6 +18,7 @@ namespace ProjectJobNet.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAllCategories()
         {
             var categories = await _categoryService.GetAllCategoriesAsync();
@@ -25,6 +26,7 @@ namespace ProjectJobNet.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<CategoryDto>> GetCategoryById(Guid id)
         {
             var category = await _categoryService.GetCategoryByIdAsync(id);
@@ -54,6 +56,8 @@ namespace ProjectJobNet.Controllers
             await _categoryService.DeleteCategoryAsync(id);
             return NoContent();
         }
+
+        [AllowAnonymous]
         [HttpGet("/searchCategories/{paramName}/{value}")]
         public async Task<IActionResult> SearchCategory(string paramName, string value)
         {

@@ -1,9 +1,13 @@
+import { useNavigate } from "react-router-dom";
+
 import BlogPost from "src/components/BlogPost.jsx";
 import Pagination from "src/components/pageComponents/Pagination.jsx";
 import Tag from "src/components/Tag.jsx";
 import AddButton from "src/components/AddButton.jsx";
 
 export default function PersonalBlog() {
+    const navigate = useNavigate();
+
     const containerStyle = {
         display: 'grid',
         gridTemplateColumns: 'repeat(3, auto)', // Three columns
@@ -58,7 +62,7 @@ export default function PersonalBlog() {
     return (
         <div style={containerStyle}>
             <div style={{...boxStyle, ...div1Style}}>
-                <AddButton width={'100%'} height={'100%'}/>
+                <AddButton width={'100%'} height={'100%'} onClick={() => navigate("/post/create")}/>
             </div>
             <div style={{...boxStyle, ...div2Style}}><BlogPost/></div>
             <div style={{...boxStyle, ...div3Style}}>

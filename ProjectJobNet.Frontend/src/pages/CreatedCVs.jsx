@@ -44,6 +44,7 @@ const SavedCVs = () => {
                     ))
                 )}
             </div>
+            <AddButton onClick={() => window.location.href = "/resume/add"} />
         </div>
     );
 };

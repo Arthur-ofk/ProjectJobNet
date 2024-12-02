@@ -5,6 +5,10 @@ import VacancyIcon from "src/icons/VacancyIcon.jsx";
 import BlogIcon from "src/icons/BlogIcon.jsx";
 import HeartOutline from "src/icons/HeartOutline.jsx";
 
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import axios from 'axios';
+
 const CompanyProfile = ({
                          name,
                          description,
@@ -82,6 +86,17 @@ const CompanyProfile = ({
 
     };
 
+    const navigate = useNavigate();
+    const [userInfo, setUserInfo] = useState([]);
+    useEffect(() => {
+        axios.get(`https://localhost:6969/api/users/${localStorage.getItem("userId")}`)
+        .then(response => {
+            setUserInfo(response.data);
+         })
+         .catch(error => {
+             console.error(error);
+         });
+    }) 
 
     return (
         <>
@@ -93,7 +108,7 @@ const CompanyProfile = ({
                 {/* Company Info */}
 
                 <div style={headerStyle}>
-                    {name}
+                    {userInfo.firstName}
                     <Verified width={15} height={15} color={'#000000'}/>
                 </div>
                 <div style={descriptionStyle}>{description}</div>
@@ -105,18 +120,19 @@ const CompanyProfile = ({
             </div>
             {/* Buttons */}
             <div style={buttonsContainerStyle}>
-                <button style={buttonStyle}>
+                <button style={buttonStyle} onClick={() => window.open(website, "_blank", "noreferrer")}>
                     <span style={{marginRight: '20px'}}><Info width={'40px'} height={'40px'}/></span>
                     Про компанію
                 </button>
-                <button style={buttonStyle}>
+                <button style={buttonStyle} onClick={() => navigate("/company/my-vacancies")}>
                     <span style={{marginRight: '20px'}}><VacancyIcon width={'50px'} height={'50px'}/></span>
                     Вакансії
                 </button>
-                <button style={buttonStyle}>
+                <button style={buttonStyle} onClick={() => navigate("/company/my-blog")}>
                     <span style={{marginRight: '20px'}}><BlogIcon width={'40px'} height={'40px'}/></span>
                     Блог
-                </button><button style={buttonStyle}>
+                </button>
+                <button style={buttonStyle} onClick={() => navigate("/company/saved-resumes")}>
                     <span style={{marginRight: '20px'}}><HeartOutline width={'40px'} height={'40px'}/></span>
                     Збережені резюме
                 </button>
@@ -136,7 +152,7 @@ CompanyProfile.propTypes = {
 CompanyProfile.defaultProps = {
     name: "Company Name",
     description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec volutpat cursus ex sit amet lobortis. Nulla malesuada ullamcorper leo, ac porttitor dui tempor mattis.",
-    website: "www.company-website.com",
+    website: "https://www.company-website.com",
     bannerColor: "#f4f4f4",
     verified: true,
 };

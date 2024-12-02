@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { Dialog, DialogBackdrop, DialogPanel} from '@headlessui/react'
+import { useNavigate } from "react-router-dom";
 
 export default function SignIn(){
     const [open, setOpen] = useState(false);
-
+    
     const [login, setLoginData] = useState({
         email: "",
         password: ""
@@ -28,8 +29,12 @@ export default function SignIn(){
         axios.post("https://localhost:6969/api/Auth/login", userData).then((response) => {
             localStorage.setItem("token", response.data.token);
             localStorage.setItem("userId", response.data.user.id);
-            localStorage.setItem("userRole", "User");
             localStorage.setItem("isLoggedIn", true);
+            axios.get(`https://localhost:6969/api/roles/${response.data.user.roleId}`, 
+                { headers: {"Authorization" : `Bearer ${localStorage.getItem('token')}`}}
+            ).then((response) => 
+                localStorage.setItem("userRole", response.data.roleName))
+            setOpen(false);
           });
     }
   
@@ -67,7 +72,7 @@ export default function SignIn(){
                         <input type="password" name="password" value={login.password} onChange={handleChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2" required />
 
                             <a href="#" className="inline-block font-semibold text-sm text-sky-500 hover:underline ">Забули пароль?</a>
-                            <button type="submit" onClick={() => setOpen(false)} className="w-full text-white bg-sky-400 hover:bg-sky-600 focus:ring-4 focus:outline-none focus:ring-sky-300 font-medium rounded-lg px-5 py-2.5 text-center">Увійти</button>
+                            <button type="submit" className="w-full text-white bg-sky-400 hover:bg-sky-600 focus:ring-4 focus:outline-none focus:ring-sky-300 font-medium rounded-lg px-5 py-2.5 text-center">Увійти</button>
                             <div className="text-sm font-medium text-gray-500">
                                 Не зареєстровані? <a href="/signup/user" className="text-sky-700 hover:underline dark:text-sky-500">Створити акаунт</a>
                             </div>

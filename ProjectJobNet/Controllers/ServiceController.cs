@@ -18,6 +18,7 @@ namespace ProjectJobNet.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<ServiceDto>>> GetAllServices()
         {
             var services = await _serviceService.GetAllServicesAsync();
@@ -25,6 +26,7 @@ namespace ProjectJobNet.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<ServiceDto>> GetServiceById(Guid id)
         {
             var service = await _serviceService.GetServiceByIdAsync(id);

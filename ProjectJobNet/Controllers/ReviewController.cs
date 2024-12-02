@@ -18,6 +18,7 @@ namespace ProjectJobNet.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<ReviewDto>>> GetAllReviews()
         {
             var reviews = await _reviewService.GetAllReviewsAsync();
@@ -25,6 +26,7 @@ namespace ProjectJobNet.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<ReviewDto>> GetReviewById(Guid id)
         {
             var review = await _reviewService.GetReviewByIdAsync(id);
