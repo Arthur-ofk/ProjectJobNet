@@ -1,5 +1,4 @@
-﻿
-using BLL.Services.Abstractins;
+﻿using BLL.Services.Abstractins;
 using BLL.Services;
 using DAL.Abstractions;
 using DAL.Context;
@@ -20,25 +19,16 @@ namespace ProjectJobNet
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
-
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy(MyAllowSpecificOrigins,
-                                      policy =>
-                                      {
-                                          policy.WithOrigins("http://localhost:5173")
-                                                              .AllowAnyHeader()
-                                                              .AllowAnyMethod();
-                                      });
-                        options.AddPolicy("AllowFrontend",
-                policy =>
-                {
-                    policy.WithOrigins("http://localhost:3000")
-                          .AllowAnyHeader()
-                          .AllowAnyMethod();
-                });
+                options.AddPolicy("AllowFrontend",
+                    policy =>
+                    {
+                        policy.WithOrigins("http://localhost:3000")
+                              .AllowAnyHeader()
+                              .AllowAnyMethod()
+                              .AllowCredentials();
+                    });
             });
 
             // Add services to the container.
@@ -60,7 +50,8 @@ namespace ProjectJobNet
             builder.Services.AddScoped<IWarningService, WarningService>();
             builder.Services.AddScoped<ILikedPostService, LikedPostService>();
             builder.Services.AddScoped<ISavedJobService, SavedJobService>();
-
+            builder.Services.AddScoped<IOrderService, OrderService>();
+            
 
             builder.Services.AddControllers();
             //Реєстрація UOW і репозиторіїв
@@ -82,6 +73,8 @@ namespace ProjectJobNet
             builder.Services.AddScoped<IWarningRepository, WarningRepository>();
             builder.Services.AddScoped<ILikedPostRepository, LikedPostRepository>();
             builder.Services.AddScoped<ISavedJobRepository, SavedJobRepository>();
+            builder.Services.AddScoped<IServiceVoteRepository, ServiceVoteRepository>();
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
             builder.Services.AddSwaggerGen(options =>
             {
@@ -152,7 +145,6 @@ namespace ProjectJobNet
                 app.UseSwaggerUI();
             }
 
-            app.UseCors(MyAllowSpecificOrigins);
             app.UseCors("AllowFrontend");
 
             app.UseHttpsRedirection();

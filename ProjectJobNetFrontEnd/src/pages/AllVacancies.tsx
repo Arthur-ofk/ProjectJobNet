@@ -1,17 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../store';
+import { RootState, AppDispatch } from '../store.ts';
 import { fetchVacancies } from '../slices/vacanciesSlice.ts';
 import InfoCard from '../components/InfoCard.tsx';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { API_BASE_URL } from '../constants.ts';
 import './AllVacancies.css';
+
+type User = {
+  id: string;
+  userName: string;
+};
 
 function AllVacancies() {
   const dispatch = useDispatch<AppDispatch>();
   const { items, loading, error } = useSelector((state: RootState) => state.vacancies);
+  const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
   const [location, setLocation] = useState('');
-  const [sort, setSort] = useState<'title' | 'salary' | 'location'>('title');
+  const [sort, setSort] = useState<'title' | 'salary' | 'location' | 'author'>('title');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const navigate = useNavigate();
 
@@ -19,7 +26,17 @@ function AllVacancies() {
     dispatch(fetchVacancies());
   }, [dispatch]);
 
-  // Filtering and sorting logic
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/users`)
+      .then(res => res.json())
+      .then(data => setUsers(data));
+  }, []);
+
+  const getUserName = (id: string | number) => {
+    const user = users.find(u => u.id === id);
+    return user ? user.userName : 'Unknown';
+  };
+
   let filtered = items.filter(v =>
     v.title.toLowerCase().includes(search.toLowerCase()) &&
     (location ? v.location.toLowerCase().includes(location.toLowerCase()) : true)
@@ -27,6 +44,10 @@ function AllVacancies() {
   filtered = filtered.sort((a, b) => {
     let valA = a[sort];
     let valB = b[sort];
+    if (sort === 'author') {
+      valA = getUserName(a.userId);
+      valB = getUserName(b.userId);
+    }
     if (typeof valA === 'string' && typeof valB === 'string') {
       return sortDir === 'asc'
         ? valA.localeCompare(valB)
@@ -58,6 +79,7 @@ function AllVacancies() {
           <option value="title">Sort by Title</option>
           <option value="salary">Sort by Salary</option>
           <option value="location">Sort by Location</option>
+          <option value="author">Sort by Author</option>
         </select>
         <button onClick={() => setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))}>
           {sortDir === 'asc' ? 'Asc' : 'Desc'}
@@ -77,7 +99,15 @@ function AllVacancies() {
           >
             <InfoCard
               title={vacancy.title}
-              subtitle={`Location: ${vacancy.location} | Salary: $${vacancy.salary}`}
+              subtitle={
+                <>
+                  <span>
+                    Author: <Link to={`/users/${vacancy.userId}`} onClick={e => e.stopPropagation()}>{getUserName(vacancy.userId)}</Link>
+                  </span>
+                  <span> | Location: {vacancy.location}</span>
+                  <span> | Salary: ${vacancy.salary}</span>
+                </>
+              }
               description={vacancy.description}
             />
           </div>

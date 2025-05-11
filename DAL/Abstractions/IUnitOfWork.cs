@@ -29,8 +29,9 @@ namespace DAL.Abstractions
             IWarningRepository WarningRepository { get; }
             ILikedPostRepository LikedPostRepository { get; }
             ISavedJobRepository SavedJobRepository { get; }
-
-            Task<int> CompleteAsync();
+        IServiceVoteRepository ServiceVoteRepository { get; }
+        IOrderRepository OrderRepository { get; }
+        Task<int> CompleteAsync();
         }
     
 }

@@ -14,5 +14,7 @@ namespace BLL.Services.Abstractins
         Task AddServiceAsync(CreateServiceDto createServiceDto);
         Task UpdateServiceAsync(Guid id, CreateServiceDto updateServiceDto);
         Task DeleteServiceAsync(Guid id);
+       
+        Task<ServiceVoteDto?> GetUserVoteAsync(Guid serviceId, Guid userId);
     }
 }

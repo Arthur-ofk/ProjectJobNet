@@ -4,11 +4,18 @@ import { RootState, AppDispatch } from '../store.ts';
 import { fetchServices, upvoteService, Service } from '../slices/servicesSlice.ts';
 import InfoCard from '../components/InfoCard.tsx';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_BASE_URL } from '../constants.ts';
 import './AllServices.css';
+
+type User = {
+  id: string;
+  userName: string;
+};
 
 function AllServices() {
   const dispatch = useDispatch<AppDispatch>();
   const { items, loading, error } = useSelector((state: RootState) => state.services);
+  const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
   const [provider, setProvider] = useState('');
   const [sort, setSort] = useState<'title' | 'price' | 'providerName' | 'upvotes'>('upvotes');
@@ -19,13 +26,28 @@ function AllServices() {
     dispatch(fetchServices());
   }, [dispatch]);
 
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/users`)
+      .then(res => res.json())
+      .then(data => setUsers(data));
+  }, []);
+
+  const getUserName = (id: string | number) => {
+    const user = users.find(u => u.id === id);
+    return user ? user.userName : 'Unknown';
+  };
+
   let filtered = items.filter(s =>
     (s.title?.toLowerCase() ?? '').includes(search.toLowerCase()) &&
-    (provider ? (s.providerName?.toLowerCase() ?? '').includes(provider.toLowerCase()) : true)
+    (provider ? (getUserName(s.providerId)?.toLowerCase() ?? '').includes(provider.toLowerCase()) : true)
   );
   filtered = filtered.sort((a, b) => {
     let valA = a[sort] ?? '';
     let valB = b[sort] ?? '';
+    if (sort === 'providerName') {
+      valA = getUserName(a.providerId);
+      valB = getUserName(b.providerId);
+    }
     if (typeof valA === 'string' && typeof valB === 'string') {
       return sortDir === 'asc'
         ? valA.localeCompare(valB)
@@ -74,7 +96,6 @@ function AllServices() {
             role="button"
             style={{ cursor: 'pointer', position: 'relative' }}
             onClick={e => {
-              // Prevent upvote button from triggering navigation
               if ((e.target as HTMLElement).closest('.upvote-btn')) return;
               navigate(`/services/${service.id}`);
             }}
@@ -84,14 +105,9 @@ function AllServices() {
               subtitle={
                 <>
                   <span>
-                    Provider: <Link to={`/users/${service.providerId}`} onClick={e => e.stopPropagation()}>{service.providerName}</Link>
+                    Author: <Link to={`/users/${service.providerId}`} onClick={e => e.stopPropagation()}>{getUserName(service.providerId)}</Link>
                   </span>
                   <span> | Price: ${service.price}</span>
-                  <span> | Upvotes: {service.upvotes ?? 0}</span>
-                  {service.rating !== undefined && <span> | Rating: {service.rating.toFixed(1)}</span>}
-                  {service.tags && service.tags.length > 0 && (
-                    <span> | Tags: {service.tags.join(', ')}</span>
-                  )}
                 </>
               }
               description={service.description}
@@ -117,7 +133,7 @@ function AllServices() {
               }}
               title="Upvote"
             >
-              ⬆ {service.upvotes ?? 0}
+              ⬆ {(service.upvotes ?? 0) - (service.downvotes ?? 0)}
             </button>
           </div>
         ))}

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace BLL.Shared.Service
 {
-    public class CreateServiceDto
+    public class UpdateServiceDto
     {
-        public Guid UserId { get; set; }
-        public Guid CategoryId { get; set; }
         public string? ServiceName { get; set; }
         public string? Description { get; set; }
         public decimal Price { get; set; }
-        public int Upvotes { get; set; } = 0; // Added
-        public int Downvotes { get; set; } = 0; // Added
+        public Guid CategoryId { get; set; }
+        public int Upvotes { get; set; } // Added
+        public int Downvotes { get; set; } // Added
+        public DateTime? UpdatedAt { get; set; }
     }
 }

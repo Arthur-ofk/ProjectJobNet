@@ -10,6 +10,7 @@ export type Service = {
   price: number;
   tags?: string[];
   upvotes: number;
+  downvotes?: number;
   rating?: number;
 };
 
@@ -24,6 +25,15 @@ export const upvoteService = createAsyncThunk(
   async (serviceId: string | number) => {
     const res = await fetch(`${API_BASE_URL}/services/${serviceId}/upvote`, { method: 'POST' });
     if (!res.ok) throw new Error('Failed to upvote service');
+    return { serviceId };
+  }
+);
+
+export const downvoteService = createAsyncThunk(
+  'services/downvote',
+  async (serviceId: string | number) => {
+    const res = await fetch(`${API_BASE_URL}/services/${serviceId}/downvote`, { method: 'POST' });
+    if (!res.ok) throw new Error('Failed to downvote service');
     return { serviceId };
   }
 );
@@ -54,6 +64,10 @@ const servicesSlice = createSlice({
       .addCase(upvoteService.fulfilled, (state, action) => {
         const service = state.items.find(s => s.id === action.meta.arg);
         if (service) service.upvotes = (service.upvotes ?? 0) + 1;
+      })
+      .addCase(downvoteService.fulfilled, (state, action) => {
+        const service = state.items.find(s => s.id === action.meta.arg);
+        if (service) service.downvotes = (service.downvotes ?? 0) + 1;
       });
   },
 });

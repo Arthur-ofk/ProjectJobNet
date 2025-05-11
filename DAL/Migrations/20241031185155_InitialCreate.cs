@@ -206,6 +206,8 @@ namespace DAL.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Upvotes = table.Column<int>(type: "int", nullable: false, defaultValue: 0), // Added
+                    Downvotes = table.Column<int>(type: "int", nullable: false, defaultValue: 0), // Added
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -226,36 +228,36 @@ namespace DAL.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-                                migrationBuilder.CreateTable(
-                        name: "Subscriptions",
-                        columns: table => new
-                        {
-                            Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                            UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                            PlanId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                            StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                            EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                            IsActive = table.Column<bool>(type: "bit", nullable: false),
-                            IsExpired = table.Column<bool>(type: "bit", nullable: false),
-                            CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                            UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                        },
-                        constraints: table =>
-                        {
-                            table.PrimaryKey("PK_Subscriptions", x => x.Id);
-                            table.ForeignKey(
-                                name: "FK_Subscriptions_SubscriptionPlans_PlanId",
-                                column: x => x.PlanId,
-                                principalTable: "SubscriptionPlans",
-                                principalColumn: "Id",
-                                onDelete: ReferentialAction.Restrict);
-                            table.ForeignKey(
-                                name: "FK_Subscriptions_Users_UserId",
-                                column: x => x.UserId,
-                                principalTable: "Users",
-                                principalColumn: "Id",
-                                onDelete: ReferentialAction.Restrict);
-                        });
+            migrationBuilder.CreateTable(
+                name: "Subscriptions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PlanId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    IsExpired = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Subscriptions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Subscriptions_SubscriptionPlans_PlanId",
+                        column: x => x.PlanId,
+                        principalTable: "SubscriptionPlans",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Subscriptions_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
 
             migrationBuilder.CreateTable(
                  name: "Complaints",
@@ -384,7 +386,7 @@ namespace DAL.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-                        migrationBuilder.CreateTable(
+            migrationBuilder.CreateTable(
                  name: "Warnings",
                  columns: table => new
                  {

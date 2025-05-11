@@ -36,6 +36,15 @@ namespace ProjectJobNet.Controllers
             return Ok(resume);
         }
 
+        [HttpGet("byUser/{userId}")]
+        public async Task<IActionResult> GetResumesByUser(Guid userId)
+        {
+            var resumes = await _resumeService.GetResumesByUserIdAsync(userId);
+            if (resumes == null || !resumes.Any())
+                return NotFound($"No resumes found for user {userId}");
+            return Ok(resumes);
+        }
+
         [HttpPost]
         public async Task<IActionResult> AddResume([FromBody] CreateResumeDto createResumeDto)
         {

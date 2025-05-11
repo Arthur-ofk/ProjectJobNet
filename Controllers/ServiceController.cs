@@ -1,4 +1,4 @@
-﻿using Bogus;
+using Bogus;
 using DAL.Context;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;

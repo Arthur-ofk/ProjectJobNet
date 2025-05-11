@@ -72,6 +72,14 @@ This document outlines the endpoints and models used in the backend. Each contro
   - **Response:** ServiceDto or 404
 - **POST** `/api/services`
   - **Request:** CreateServiceDto
+    - **Fields:** 
+      - `userId` (Guid, required)
+      - `categoryId` (Guid, required)
+      - `serviceName` (string, required)
+      - `description` (string, required)
+      - `price` (decimal, required)
+      - `upvotes` (int, optional)
+      - `downvotes` (int, optional)
   - **Response:** OK
 - **PUT** `/api/services/{id}`
   - **Request:** CreateServiceDto (for update)

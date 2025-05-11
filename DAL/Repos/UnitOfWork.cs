@@ -29,6 +29,8 @@ namespace DAL.Repos
         private readonly Lazy<IWarningRepository> _warningRepository;
         private readonly Lazy<ILikedPostRepository> _likedPostRepository;
         private readonly Lazy<ISavedJobRepository> _savedJobRepository;
+        private readonly Lazy<IServiceVoteRepository> _serviceVoteRepository;
+        private readonly Lazy<IOrderRepository> _orderRepository;
 
         public UnitOfWork(JobNetContext context)
         {
@@ -50,6 +52,8 @@ namespace DAL.Repos
             _warningRepository = new Lazy<IWarningRepository>(() => new WarningRepository(_context));
             _likedPostRepository = new Lazy<ILikedPostRepository>(() => new LikedPostRepository(_context));
             _savedJobRepository = new Lazy<ISavedJobRepository>(() => new SavedJobRepository(_context));
+            _serviceVoteRepository = new Lazy<IServiceVoteRepository>(() => new ServiceVoteRepository(_context));
+            _orderRepository = new Lazy<IOrderRepository>(() => new OrderRepository(_context));
         }
         public IRoleRepository RoleRepository => _roleRepository.Value;
         public ITagRepository TagRepository => _tagRepository.Value;
@@ -68,6 +72,10 @@ namespace DAL.Repos
         public IWarningRepository WarningRepository => _warningRepository.Value;
         public ILikedPostRepository LikedPostRepository => _likedPostRepository.Value;
         public ISavedJobRepository SavedJobRepository => _savedJobRepository.Value;
+
+        public IServiceVoteRepository ServiceVoteRepository => _serviceVoteRepository.Value;
+
+        public IOrderRepository OrderRepository => _orderRepository.Value;
 
         public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
 

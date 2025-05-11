@@ -14,5 +14,7 @@ namespace BLL.Services.Abstractins
         Task AddResumeAsync(CreateResumeDto createResumeDto);
         Task UpdateResumeAsync(Guid id, CreateResumeDto updateResumeDto);
         Task DeleteResumeAsync(Guid id);
+        Task<IEnumerable<ResumeDto>> GetResumesByUserIdAsync(Guid userId);
+        
     }
 }

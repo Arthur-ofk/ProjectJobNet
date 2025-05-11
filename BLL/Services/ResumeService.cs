@@ -34,11 +34,25 @@ namespace BLL.Services
             return _mapper.Map<ResumeDto>(resume);
         }
 
-        public async Task AddResumeAsync(CreateResumeDto createResumeDto)
+        public async Task<IEnumerable<ResumeDto>> GetResumesByUserIdAsync(Guid userId)
         {
-            var resume = _mapper.Map<Resume>(createResumeDto);
-            resume.CreatedAt = DateTime.Now;
+            var resumes = await _unitOfWork.ResumeRepository.FindAsync(r => r.UserId == userId);
+            return _mapper.Map<IEnumerable<ResumeDto>>(resumes);
+        }
 
+        public async Task AddResumeAsync(CreateResumeDto dto)
+        {
+            var resume = new Resume
+            {
+                Id = Guid.NewGuid(),
+                UserId = dto.UserId,
+                Content = dto.Content,
+                FileContent = dto.FileContent,
+                FileName = dto.FileName,
+                ContentType = dto.ContentType,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
             await _unitOfWork.ResumeRepository.AddAsync(resume);
             await _unitOfWork.CompleteAsync();
         }
@@ -63,5 +77,14 @@ namespace BLL.Services
             _unitOfWork.ResumeRepository.Remove(resume);
             await _unitOfWork.CompleteAsync();
         }
+
+        public async Task<IEnumerable<ResumeDto>> GetResumesByUserAsync(Guid userId)
+        {
+            var resumes= await _unitOfWork.ResumeRepository.FindAsync(r => r.UserId == userId);
+            return _mapper.Map<IEnumerable<ResumeDto>>(resumes);
+
+        }
+
+
     }
 }

@@ -12,6 +12,9 @@ import AllVacancies from './pages/AllVacancies.tsx';
 import AllServices from './pages/AllServices.tsx';
 import VacancyDetail from './pages/VacancyDetail.tsx';
 import ServiceDetail from './pages/ServiceDetail.tsx';
+import Login from './pages/Login.tsx';
+import Register from './pages/Register.tsx';
+import UserProfile from './pages/UserProfile.tsx';
 
 function App() {
   return (
@@ -42,6 +45,9 @@ function App() {
                 <Route path="/services" element={<AllServices />} />
                 <Route path="/vacancies/:id" element={<VacancyDetail />} />
                 <Route path="/services/:id" element={<ServiceDetail />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/profile" element={<UserProfile />} />
               </Routes>
             </main>
             <Footer />

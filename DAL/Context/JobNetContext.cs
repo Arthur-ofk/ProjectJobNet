@@ -29,6 +29,8 @@ namespace DAL.Context
         public DbSet<Warning> Warnings { get; set; }
         public DbSet<LikedPost> LikedPosts { get; set; }
         public DbSet<SavedJob> SavedJobs { get; set; }
+        public DbSet<ServiceVote> ServiceVotes { get; set; }
+        public DbSet<Order> Orders { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

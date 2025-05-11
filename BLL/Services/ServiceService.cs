@@ -39,6 +39,8 @@ namespace BLL.Services
             var service = _mapper.Map<Service>(createServiceDto);
             service.CreatedAt = DateTime.Now;
             service.UpdatedAt = DateTime.Now;
+            service.Upvotes = 0; // Ensure default
+            service.Downvotes = 0; // Ensure default
 
             await _unitOfWork.ServiceRepository.AddAsync(service);
             await _unitOfWork.CompleteAsync();
@@ -51,6 +53,7 @@ namespace BLL.Services
 
             _mapper.Map(updateServiceDto, service);
             service.UpdatedAt = DateTime.Now;
+            // Upvotes/Downvotes will be mapped if present in DTO
 
             _unitOfWork.ServiceRepository.Update(service);
             await _unitOfWork.CompleteAsync();
@@ -64,5 +67,66 @@ namespace BLL.Services
             _unitOfWork.ServiceRepository.Remove(service);
             await _unitOfWork.CompleteAsync();
         }
+
+        
+
+        public async Task<bool> HasUserUsedService(Guid serviceId, Guid userId)
+        {
+            // TODO: Implement real logic
+            await Task.CompletedTask;
+            return true;
+        }
+
+        public async Task<bool> VoteServiceAsync(Guid serviceId, Guid userId, bool isUpvote)
+        {
+            // Check if user has used the service
+            if (!await HasUserUsedService(serviceId, userId))
+                return false;
+
+            var existingVote = (await _unitOfWork.ServiceVoteRepository.FindAsync(v => v.ServiceId == serviceId && v.UserId == userId)).FirstOrDefault();
+            if (existingVote != null)
+            {
+                if (existingVote.IsUpvote == isUpvote)
+                    return false; // Already voted this way
+                existingVote.IsUpvote = isUpvote;
+                existingVote.CreatedAt = DateTime.UtcNow;
+                _unitOfWork.ServiceVoteRepository.Update(existingVote);
+            }
+            else
+            {
+                await _unitOfWork.ServiceVoteRepository.AddAsync(new ServiceVote
+                {
+                    Id = Guid.NewGuid(),
+                    ServiceId = serviceId,
+                    UserId = userId,
+                    IsUpvote = isUpvote,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+            // Recalculate upvotes/downvotes
+            var votes = await _unitOfWork.ServiceVoteRepository.FindAsync(v => v.ServiceId == serviceId);
+            var service = await _unitOfWork.ServiceRepository.GetByIdAsync(serviceId);
+            service.Upvotes = votes.Count(v => v.IsUpvote);
+            service.Downvotes = votes.Count(v => !v.IsUpvote);
+            _unitOfWork.ServiceRepository.Update(service);
+            await _unitOfWork.CompleteAsync();
+            return true;
+        }
+
+        public async Task<ServiceVoteDto?> GetUserVoteAsync(Guid serviceId, Guid userId)
+        {
+            var vote = (await _unitOfWork.ServiceVoteRepository.FindAsync(v => v.ServiceId == serviceId && v.UserId == userId)).FirstOrDefault();
+            if (vote == null) return null;
+            return new ServiceVoteDto
+            {
+                Id = vote.Id,
+                ServiceId = vote.ServiceId,
+                UserId = vote.UserId,
+                IsUpvote = vote.IsUpvote,
+                CreatedAt = vote.CreatedAt
+            };
+        }
+
+       
     }
 }
