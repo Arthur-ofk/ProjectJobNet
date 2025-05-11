@@ -226,61 +226,65 @@ namespace DAL.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Subscriptions",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PlanId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    IsExpired = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Subscriptions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Subscriptions_SubscriptionPlans_PlanId",
-                        column: x => x.PlanId,
-                        principalTable: "SubscriptionPlans",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Subscriptions_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
+                                migrationBuilder.CreateTable(
+                        name: "Subscriptions",
+                        columns: table => new
+                        {
+                            Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                            UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                            PlanId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                            StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                            EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                            IsActive = table.Column<bool>(type: "bit", nullable: false),
+                            IsExpired = table.Column<bool>(type: "bit", nullable: false),
+                            CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                            UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                        },
+                        constraints: table =>
+                        {
+                            table.PrimaryKey("PK_Subscriptions", x => x.Id);
+                            table.ForeignKey(
+                                name: "FK_Subscriptions_SubscriptionPlans_PlanId",
+                                column: x => x.PlanId,
+                                principalTable: "SubscriptionPlans",
+                                principalColumn: "Id",
+                                onDelete: ReferentialAction.Restrict);
+                            table.ForeignKey(
+                                name: "FK_Subscriptions_Users_UserId",
+                                column: x => x.UserId,
+                                principalTable: "Users",
+                                principalColumn: "Id",
+                                onDelete: ReferentialAction.Restrict);
+                        });
 
             migrationBuilder.CreateTable(
-                name: "Complaints",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ComplainantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TargetPostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SubmittedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Complaints", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Complaints_BlogPosts_TargetPostId",
-                        column: x => x.TargetPostId,
-                        principalTable: "BlogPosts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Complaints_Users_ComplainantId",
-                        column: x => x.ComplainantId,
-                        principalTable: "Users",
-                        principalColumn: "Id");
-                });
+                 name: "Complaints",
+                 columns: table => new
+                 {
+                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                     ComplainantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                     TargetPostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                     SubmittedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                 },
+                 constraints: table =>
+                 {
+                     table.PrimaryKey("PK_Complaints", x => x.Id);
+                     table.ForeignKey(
+                         name: "FK_Complaints_BlogPosts_TargetPostId",
+                         column: x => x.TargetPostId,
+                         principalTable: "BlogPosts",
+                         principalColumn: "Id",
+                         onDelete: ReferentialAction.Restrict);
+                     table.ForeignKey(
+                         name: "FK_Complaints_Users_ComplainantId",
+                         column: x => x.ComplainantId,
+                         principalTable: "Users",
+                         principalColumn: "Id");
+                 });
 
             migrationBuilder.CreateTable(
                 name: "LikedPosts",
@@ -380,39 +384,41 @@ namespace DAL.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Warnings",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ModeratorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ComplaintId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SentAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Warnings", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Warnings_Complaints_ComplaintId",
-                        column: x => x.ComplaintId,
-                        principalTable: "Complaints",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Warnings_Users_ModeratorId",
-                        column: x => x.ModeratorId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Warnings_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
+                        migrationBuilder.CreateTable(
+                 name: "Warnings",
+                 columns: table => new
+                 {
+                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                     ModeratorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                     ComplaintId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                     Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                     SentAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                 },
+                 constraints: table =>
+                 {
+                     table.PrimaryKey("PK_Warnings", x => x.Id);
+                     table.ForeignKey(
+                         name: "FK_Warnings_Complaints_ComplaintId",
+                         column: x => x.ComplaintId,
+                         principalTable: "Complaints",
+                         principalColumn: "Id",
+                         onDelete: ReferentialAction.Restrict);
+                     table.ForeignKey(
+                         name: "FK_Warnings_Users_ModeratorId",
+                         column: x => x.ModeratorId,
+                         principalTable: "Users",
+                         principalColumn: "Id",
+                         onDelete: ReferentialAction.Restrict);
+                     table.ForeignKey(
+                         name: "FK_Warnings_Users_UserId",
+                         column: x => x.UserId,
+                         principalTable: "Users",
+                         principalColumn: "Id",
+                         onDelete: ReferentialAction.Restrict);
+                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_BlogPosts_UserId",

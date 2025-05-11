@@ -9,13 +9,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using BLL.Seeding;
 
 namespace ProjectJobNet
 {
     public class Program
     {
 
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -130,7 +131,12 @@ namespace ProjectJobNet
            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             var app = builder.Build();
 
-           
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<JobNetContext>();
+                await context.Database.MigrateAsync();
+                await DatabaseSeeder.SeedAsync(context);
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
