@@ -284,6 +284,9 @@ FakesAssemblies/
 # GhostDoc plugin setting file
 *.GhostDoc.xml
 
+# Ignore the public directory since index.html is now in src
+/public/
+
 # Node.js Tools for Visual Studio
 .ntvs_analysis.dat
 node_modules/

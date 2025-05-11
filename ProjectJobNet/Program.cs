@@ -32,6 +32,13 @@ namespace ProjectJobNet
                                                               .AllowAnyHeader()
                                                               .AllowAnyMethod();
                                       });
+                        options.AddPolicy("AllowFrontend",
+                policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
             });
 
             // Add services to the container.
@@ -131,12 +138,12 @@ namespace ProjectJobNet
            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             var app = builder.Build();
 
-            using (var scope = app.Services.CreateScope())
-            {
-                var context = scope.ServiceProvider.GetRequiredService<JobNetContext>();
-                await context.Database.MigrateAsync();
-                await DatabaseSeeder.SeedAsync(context);
-            }
+            //using (var scope = app.Services.CreateScope())
+            //{
+            //    var context = scope.ServiceProvider.GetRequiredService<JobNetContext>();
+            //    await context.Database.MigrateAsync();
+            //    await DatabaseSeeder.SeedAsync(context);
+            //}
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -146,6 +153,7 @@ namespace ProjectJobNet
             }
 
             app.UseCors(MyAllowSpecificOrigins);
+            app.UseCors("AllowFrontend");
 
             app.UseHttpsRedirection();
 

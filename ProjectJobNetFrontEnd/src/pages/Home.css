@@ -1,0 +1,106 @@
+.main-cards-container {
+  display: flex;
+  gap: 64px; /* increased gap */
+  justify-content: center;
+  align-items: stretch;
+  margin: 56px 0 0 0;
+  flex-wrap: wrap;
+}
+
+.main-card {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 6px 24px rgba(36, 94, 160, 0.10);
+  padding: 56px 48px; /* increased padding */
+  min-width: 400px;   /* increased min width */
+  max-width: 520px;   /* increased max width */
+  flex: 1 1 480px;    /* increased flex basis */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.2s, transform 0.2s;
+  margin-bottom: 32px;
+}
+
+.main-card:hover {
+  box-shadow: 0 12px 32px rgba(36, 94, 160, 0.18);
+  transform: translateY(-6px) scale(1.04);
+}
+
+.main-card h3 {
+  margin-bottom: 28px;
+  color: #245ea0;
+  font-size: 2rem;
+}
+
+.subblocks {
+  display: flex;
+  gap: 36px; /* increased gap */
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.subblock {
+  background: #eaf4fb;
+  border-radius: 16px;
+  padding: 32px 28px; /* increased padding */
+  flex: 1 1 200px;    /* increased flex basis and min width */
+  min-width: 200px;
+  margin: 8px 0;
+  box-shadow: 0 3px 12px rgba(36, 94, 160, 0.08);
+  transition: background 0.2s, box-shadow 0.2s;
+  font-size: 1.1rem;
+}
+
+.subblock:hover {
+  background: #d0e7fa;
+  box-shadow: 0 6px 24px rgba(36, 94, 160, 0.14);
+}
+
+.subblock h5 {
+  margin-bottom: 12px;
+  color: #245ea0;
+  font-size: 1.15rem;
+}
+
+.clickable:hover {
+  background: #cbe0f7;
+  box-shadow: 0 8px 24px rgba(36, 94, 160, 0.18);
+  transition: background 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+@media (max-width: 1200px) {
+  .main-cards-container {
+    gap: 32px;
+  }
+  .main-card {
+    min-width: 320px;
+    max-width: 100%;
+    padding: 36px 16px;
+  }
+  .subblocks {
+    gap: 18px;
+  }
+  .subblock {
+    min-width: 140px;
+    padding: 20px 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .main-cards-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+  }
+  .main-card {
+    width: 100%;
+    max-width: 700px;
+  }
+  .subblocks {
+    flex-direction: column;
+    gap: 18px;
+  }
+}

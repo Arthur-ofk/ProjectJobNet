@@ -1,0 +1,46 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #245ea0; /* Slightly darker than the logo color */
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.logo-image {
+  height: 40px; /* Adjust size as needed */
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px; /* Rounded corners */
+  background-color: #4a80c2; /* Slightly lighter blue */
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.btn:hover {
+  background-color: #7ab3f5; /* Lighter blue on hover */
+  transform: scale(1.05); /* Slight zoom animation */
+}
+
+.btn-primary {
+  background-color: #4a80c2; /* Orange for Sign Up */
+}
+
+.btn-primary:hover {
+  background-color: #4a80c2; /* Lighter orange on hover */
+}
