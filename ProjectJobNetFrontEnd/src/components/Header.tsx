@@ -1,6 +1,6 @@
 import React from 'react';
 import './Header.css';
-import logo from '../media/logos/logo.svg';
+import logo from '../media/logos/logo.svg'; // Make sure the file exists and use .svg extension
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store.ts';

@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { API_BASE_URL } from '../constants.ts';
 
 export type Service = {
@@ -14,62 +14,58 @@ export type Service = {
   rating?: number;
 };
 
-export const fetchServices = createAsyncThunk('services/fetchAll', async () => {
-  const res = await fetch(`${API_BASE_URL}/services`);
-  if (!res.ok) throw new Error('Failed to fetch services');
-  return (await res.json()) as Service[];
-});
+type ServicesState = {
+  items: Service[];
+  loading: boolean;
+  error: string | null;
+};
 
-export const upvoteService = createAsyncThunk(
-  'services/upvote',
-  async (serviceId: string | number) => {
-    const res = await fetch(`${API_BASE_URL}/services/${serviceId}/upvote`, { method: 'POST' });
-    if (!res.ok) throw new Error('Failed to upvote service');
-    return { serviceId };
-  }
-);
-
-export const downvoteService = createAsyncThunk(
-  'services/downvote',
-  async (serviceId: string | number) => {
-    const res = await fetch(`${API_BASE_URL}/services/${serviceId}/downvote`, { method: 'POST' });
-    if (!res.ok) throw new Error('Failed to downvote service');
-    return { serviceId };
-  }
-);
+const initialState: ServicesState = {
+  items: [],
+  loading: false,
+  error: null,
+};
 
 const servicesSlice = createSlice({
   name: 'services',
-  initialState: {
-    items: [] as Service[],
-    loading: false,
-    error: null as string | null,
-  },
-  reducers: {},
-  extraReducers: builder => {
-    builder
-      .addCase(fetchServices.pending, state => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchServices.fulfilled, (state, action) => {
-        // Sort by upvotes descending by default
-        state.items = action.payload.sort((a, b) => (b.upvotes ?? 0) - (a.upvotes ?? 0));
-        state.loading = false;
-      })
-      .addCase(fetchServices.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to fetch services';
-      })
-      .addCase(upvoteService.fulfilled, (state, action) => {
-        const service = state.items.find(s => s.id === action.meta.arg);
-        if (service) service.upvotes = (service.upvotes ?? 0) + 1;
-      })
-      .addCase(downvoteService.fulfilled, (state, action) => {
-        const service = state.items.find(s => s.id === action.meta.arg);
-        if (service) service.downvotes = (service.downvotes ?? 0) + 1;
-      });
+  initialState,
+  reducers: {
+    fetchServicesRequest(state) {
+      state.loading = true;
+      state.error = null;
+    },
+    fetchServicesSuccess(state, action: PayloadAction<Service[]>) {
+      state.items = action.payload.sort((a, b) => (b.upvotes ?? 0) - (a.upvotes ?? 0));
+      state.loading = false;
+    },
+    fetchServicesFailure(state, action: PayloadAction<string>) {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    upvoteServiceRequested(state, action: PayloadAction<string | number>) {
+      // no change needed here; saga will process
+    },
+    upvoteServiceSuccess(state, action: PayloadAction<{ serviceId: string | number }>) {
+      const service = state.items.find(s => s.id === action.payload.serviceId);
+      if (service) service.upvotes = (service.upvotes ?? 0) + 1;
+    },
+    downvoteServiceRequested(state, action: PayloadAction<string | number>) {
+      // no change needed here; saga will process
+    },
+    downvoteServiceSuccess(state, action: PayloadAction<{ serviceId: string | number }>) {
+      const service = state.items.find(s => s.id === action.payload.serviceId);
+      if (service) service.downvotes = (service.downvotes ?? 0) + 1;
+    },
   },
 });
 
+export const {
+  fetchServicesRequest,
+  fetchServicesSuccess,
+  fetchServicesFailure,
+  upvoteServiceRequested,
+  upvoteServiceSuccess,
+  downvoteServiceRequested,
+  downvoteServiceSuccess,
+} = servicesSlice.actions;
 export default servicesSlice.reducer;

@@ -56,5 +56,11 @@ namespace ProjectJobNet.Controllers
             await _serviceService.DeleteServiceAsync(id);
             return NoContent();
         }
+         [HttpGet("{id}/hasUsed")]
+        public async Task<ActionResult<bool>> HasUserUsedService(Guid id, [FromQuery] Guid userId)
+        {
+            bool hasUsed = await _serviceService.HasUserUsedService(id, userId);
+            return Ok(hasUsed);
+        }
     }
 }

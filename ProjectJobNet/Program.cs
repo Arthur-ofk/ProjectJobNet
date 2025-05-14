@@ -15,7 +15,9 @@ namespace ProjectJobNet
     public class Program
     {
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public static async Task Main(string[] args)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -112,6 +114,7 @@ namespace ProjectJobNet
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
+#pragma warning disable CS8604 // Possible null reference argument.
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -122,6 +125,7 @@ namespace ProjectJobNet
                     ValidAudience = builder.Configuration["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]))
                 };
+#pragma warning restore CS8604 // Possible null reference argument.
             });
 
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -131,14 +135,7 @@ namespace ProjectJobNet
            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             var app = builder.Build();
 
-            //using (var scope = app.Services.CreateScope())
-            //{
-            //    var context = scope.ServiceProvider.GetRequiredService<JobNetContext>();
-            //    await context.Database.MigrateAsync();
-            //    await DatabaseSeeder.SeedAsync(context);
-            //}
-
-            // Configure the HTTP request pipeline.
+            
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

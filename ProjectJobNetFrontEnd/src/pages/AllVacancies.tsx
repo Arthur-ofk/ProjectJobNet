@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store.ts';
-import { fetchVacancies } from '../slices/vacanciesSlice.ts';
+import { fetchVacanciesRequest } from '../slices/vacanciesSlice.ts';
 import InfoCard from '../components/InfoCard.tsx';
 import { useNavigate, Link } from 'react-router-dom';
 import { API_BASE_URL } from '../constants.ts';
@@ -23,7 +23,7 @@ function AllVacancies() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    dispatch(fetchVacancies());
+    dispatch(fetchVacanciesRequest());
   }, [dispatch]);
 
   useEffect(() => {

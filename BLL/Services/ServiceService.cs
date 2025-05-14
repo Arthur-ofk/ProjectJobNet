@@ -68,13 +68,14 @@ namespace BLL.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        
-
         public async Task<bool> HasUserUsedService(Guid serviceId, Guid userId)
         {
-            // TODO: Implement real logic
-            await Task.CompletedTask;
-            return true;
+            // Query the Order repository for an order where this user (as customer) has a finished order for the service
+            var orders = await _unitOfWork.OrderRepository.FindAsync(o =>
+                             o.ServiceId == serviceId &&
+                             o.CustomerId == userId &&
+                             o.Status.ToLower() == "finished");
+            return orders.Any();
         }
 
         public async Task<bool> VoteServiceAsync(Guid serviceId, Guid userId, bool isUpvote)
@@ -126,7 +127,5 @@ namespace BLL.Services
                 CreatedAt = vote.CreatedAt
             };
         }
-
-       
     }
 }

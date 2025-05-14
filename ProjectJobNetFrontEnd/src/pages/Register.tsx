@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { register } from '../slices/authSlice.ts';
+// Change import from register to registerRequest
+import { registerRequest } from '../slices/authSlice.ts';
 import { RootState, AppDispatch } from '../store.ts';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,7 +22,7 @@ function Register() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(register({
+    dispatch(registerRequest({
       email,
       password,
       username: userName,

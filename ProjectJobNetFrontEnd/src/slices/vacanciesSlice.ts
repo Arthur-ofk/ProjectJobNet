@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { API_BASE_URL } from '../constants.ts';
 
 export type Vacancy = {
@@ -13,35 +13,36 @@ export type Vacancy = {
   updatedAt: string;
 };
 
-export const fetchVacancies = createAsyncThunk('vacancies/fetchAll', async () => {
-  const res = await fetch(`${API_BASE_URL}/jobs`);
-  if (!res.ok) throw new Error('Failed to fetch vacancies');
-  return (await res.json()) as Vacancy[];
-});
+type VacanciesState = {
+  items: Vacancy[];
+  loading: boolean;
+  error: string | null;
+};
+
+const initialState: VacanciesState = {
+  items: [],
+  loading: false,
+  error: null,
+};
 
 const vacanciesSlice = createSlice({
   name: 'vacancies',
-  initialState: {
-    items: [] as Vacancy[],
-    loading: false,
-    error: null as string | null,
-  },
-  reducers: {},
-  extraReducers: builder => {
-    builder
-      .addCase(fetchVacancies.pending, state => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchVacancies.fulfilled, (state, action) => {
-        state.items = action.payload;
-        state.loading = false;
-      })
-      .addCase(fetchVacancies.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to fetch vacancies';
-      });
+  initialState,
+  reducers: {
+    fetchVacanciesRequest(state) {
+      state.loading = true;
+      state.error = null;
+    },
+    fetchVacanciesSuccess(state, action: PayloadAction<Vacancy[]>) {
+      state.items = action.payload;
+      state.loading = false;
+    },
+    fetchVacanciesFailure(state, action: PayloadAction<string>) {
+      state.loading = false;
+      state.error = action.payload;
+    },
   },
 });
 
+export const { fetchVacanciesRequest, fetchVacanciesSuccess, fetchVacanciesFailure } = vacanciesSlice.actions;
 export default vacanciesSlice.reducer;

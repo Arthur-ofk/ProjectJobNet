@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { API_BASE_URL } from '../constants.ts';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store.ts';
+import { RootState, AppDispatch } from '../store.ts';
 import InfoCard from '../components/InfoCard.tsx';
 import { logout } from '../slices/authSlice.ts';
+import { Notification, fetchNotificationsRequest } from '../slices/notificationsSlice.ts';
 
 type Resume = {
   id: string;
@@ -66,8 +67,8 @@ function UserProfile() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderActionStatus, setOrderActionStatus] = useState<string | null>(null);
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const dispatch = useDispatch();
+  const notifications = useSelector((state: RootState) => state.notifications.items) as Notification[];
+  const dispatch = useDispatch<AppDispatch>();
 
   // Add Service Form State
   const [showAddService, setShowAddService] = useState(false);
@@ -172,23 +173,17 @@ function UserProfile() {
       .then(res => res.json())
       .then(setOrders)
       .catch(() => setOrders([]));
-    // Fetch notifications
-    fetch(`${API_BASE_URL}/order/notifications/${user.id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => setNotifications(data));
   }, [user, token]);
 
   useEffect(() => {
-    fetchNotifications();
-    // Poll for updates if on notifications tab
-    if (tab === 'notifications') {
-      const interval = setInterval(fetchNotifications, POLL_INTERVAL);
+    if (user && token) {
+      dispatch(fetchNotificationsRequest({ userId: user.id, token: token! }));
+      const interval = setInterval(() => {
+        dispatch(fetchNotificationsRequest({ userId: user.id, token: token! }));
+      }, 3000);
       return () => clearInterval(interval);
     }
-  // eslint-disable-next-line
-  }, [user, token, tab]);
+  }, [user, token, dispatch]);
 
   // Helper to get auth headers if token exists
   const getAuthHeaders = () => {
@@ -424,7 +419,6 @@ function UserProfile() {
     });
     if (res.ok) {
       setOrderActionStatus('Order confirmed successfully.');
-      fetchNotifications(); // Refresh immediately after confirming
     } else {
       setOrderActionStatus('Failed to confirm order.');
     }
@@ -434,16 +428,6 @@ function UserProfile() {
   const handleRateService = (serviceId: string) => {
     // Redirect to rating/review page or open modal
     window.location.href = `/services/${serviceId}`; // or open a modal for rating
-  };
-
-  const fetchNotifications = () => {
-    if (user && token) {
-      fetch(`${API_BASE_URL}/order/notifications/${user.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => res.json())
-        .then(data => setNotifications(data));
-    }
   };
 
   // --- Button Styles ---
@@ -704,7 +688,7 @@ function UserProfile() {
                 {user && user.id === n.customerId && n.status === 'Finished' && (
                   <button
                     style={{ marginLeft: 8, padding: '4px 8px', background: '#eaf4fb', color: '#245ea0', borderRadius: 6, border: '1px solid #245ea0' }}
-                    onClick={() => handleRateService(n.serviceId)}
+                    onClick={() => handleRateService(n.serviceId!)}
                   >
                     Rate Service
                   </button>

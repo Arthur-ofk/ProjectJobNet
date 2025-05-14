@@ -16,5 +16,6 @@ namespace BLL.Services.Abstractins
         Task DeleteServiceAsync(Guid id);
        
         Task<ServiceVoteDto?> GetUserVoteAsync(Guid serviceId, Guid userId);
+        Task<bool> HasUserUsedService(Guid id, Guid userId);
     }
 }

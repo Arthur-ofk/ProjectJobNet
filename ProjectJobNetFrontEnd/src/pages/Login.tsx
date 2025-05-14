@@ -1,26 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { login } from '../slices/authSlice.ts';
+// Change import from login to loginRequest
+import { loginRequest } from '../slices/authSlice.ts';
 import { RootState, AppDispatch } from '../store.ts';
 import { useNavigate } from 'react-router-dom';
 
 function Login() {
   const dispatch = useDispatch<AppDispatch>();
-  const { loading, error, token } = useSelector((state: RootState) => state.auth);
+  const { loading, error, token, user } = useSelector((state: RootState) => state.auth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(login({ email, password }));
+    dispatch(loginRequest({ email, password }));
   };
 
   useEffect(() => {
     if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
       navigate('/');
     }
-  }, [token, navigate]);
+  }, [token, user, navigate]);
 
   return (
     <div style={{ maxWidth: 400, margin: '40px auto', background: '#fff', borderRadius: 16, padding: 32 }}>
