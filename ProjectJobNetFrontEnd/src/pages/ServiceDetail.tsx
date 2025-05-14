@@ -38,6 +38,22 @@ type Review = {
   createdAt: string;
 };
 
+// A simple StarRating component
+const StarRating: React.FC<{ value: number; onChange: (val: number) => void }> = ({ value, onChange }) => {
+  const stars = [1,2,3,4,5];
+  return (
+    <div style={{ display: 'flex', gap: 4 }}>
+      {stars.map(star => (
+        <span key={star} 
+              style={{ cursor: 'pointer', fontSize: '1.5rem', color: star <= value ? '#ffb400' : '#ccc' }}
+              onClick={() => onChange(star)}>
+          ★
+        </span>
+      ))}
+    </div>
+  );
+};
+
 function ServiceDetail() {
   const { id } = useParams();
   const [service, setService] = useState<Service | null>(null);
@@ -144,6 +160,11 @@ function ServiceDetail() {
       .then(data => setService(data));
   };
 
+  const handleReport = () => {
+    // Redirect to a report page or open modal; for simplicity, alert.
+    alert('Report functionality is not implemented yet.');
+  };
+
   const handlePlaceOrder = async () => {
     if (!user || !token || !service) return;
     const res = await fetch(`${API_BASE_URL}/order`, {
@@ -219,10 +240,10 @@ function ServiceDetail() {
                 background: '#eaf4fb',
                 color: '#245ea0',
                 padding: '2px 8px',
-                cursor: !hasOrdered ? 'not-allowed' : (voteStatus === 'up' ? 'not-allowed' : 'pointer')
+                cursor: hasOrdered ? 'pointer' : 'not-allowed'
               }}
               onClick={() => handleVote(true)}
-              disabled={!hasOrdered || voteStatus === 'up'}
+              disabled={!hasOrdered}
             >
               ⬆ Upvote
             </button>
@@ -234,16 +255,29 @@ function ServiceDetail() {
                 background: '#ffeaea',
                 color: '#b71c1c',
                 padding: '2px 8px',
-                cursor: !hasOrdered ? 'not-allowed' : (voteStatus === 'down' ? 'not-allowed' : 'pointer')
+                cursor: hasOrdered ? 'pointer' : 'not-allowed'
               }}
               onClick={() => handleVote(false)}
-              disabled={!hasOrdered || voteStatus === 'down'}
+              disabled={!hasOrdered}
             >
               ⬇ Downvote
+            </button>
+            <button
+              style={{ marginLeft: 8, borderRadius: 8, border: 'none', background: '#ccc', color: '#333', padding: '4px 12px', cursor: 'pointer' }}
+              onClick={handleReport}
+              title="Report Service"
+            >
+              Report
             </button>
           </>
         )}
       </div>
+      {/* Display current vote status */}
+      {user && hasOrdered && voteStatus !== 'none' && (
+        <div style={{ marginTop: 8, fontWeight: 600 }}>
+          You voted: {voteStatus === 'up' ? 'Upvoted' : 'Downvoted'}
+        </div>
+      )}
       {user && !hasOrdered && (
         <div style={{ fontSize: '0.9em', color: '#888', marginTop: 4 }}>
           You can vote after you have used the service.
@@ -251,6 +285,12 @@ function ServiceDetail() {
       )}
       {error && <div style={{ color: 'red', marginTop: 8 }}>{error}</div>}
       <div style={{ marginTop: 16 }}><b>Description:</b> {service.description}</div>
+      {/* Modified: Display categoryId instead of service.categoryName */}
+      {service.categoryId && (
+        <div style={{ marginTop: 8 }}>
+          <b>Category:</b> {service.categoryId}
+        </div>
+      )}
       {user && user.id !== service.userId && (
         <button
           style={{ marginTop: 16, borderRadius: 8, padding: '8px 20px', background: '#245ea0', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer' }}
@@ -261,90 +301,39 @@ function ServiceDetail() {
       )}
       {orderStatus && <div style={{ marginTop: 8, color: '#245ea0' }}>{orderStatus}</div>}
 
+      {/* Write review section above others */}
+      {user && (
+        <div style={{ marginTop: 32, padding: 16, background: '#eaf4fb', borderRadius: 8 }}>
+          <h3>Write a Review</h3>
+          <div style={{ marginBottom: 8 }}>
+            <StarRating value={reviewRating} onChange={setReviewRating} />
+          </div>
+          <textarea
+            value={reviewText}
+            onChange={e => setReviewText(e.target.value)}
+            placeholder="Write your review..."
+            style={{ width: '100%', height: 80, borderRadius: 8, padding: 8, borderColor: '#ccc' }}
+          />
+          <div style={{ marginTop: 8 }}>
+            <button
+              onClick={handleSubmitReview}
+              style={{ borderRadius: 8, padding: '8px 16px', background: '#245ea0', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+            >
+              Submit Review
+            </button>
+          </div>
+        </div>
+      )}
       {/* Reviews Section */}
       <h3 style={{ marginTop: 32 }}>Reviews</h3>
       {reviews.length === 0 && <div>No reviews yet.</div>}
       {reviews.map(r => (
         <div key={r.id} style={{ background: '#f5f5f5', borderRadius: 8, padding: 16, marginTop: 12 }}>
-          <div><b>Rating:</b> {r.rating}</div>
+          <div><b>Rating:</b> {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
           <div><b>Review:</b> {r.reviewText}</div>
           <div style={{ fontSize: '0.9em', color: '#888' }}>{new Date(r.createdAt).toLocaleString()}</div>
         </div>
       ))}
-      {!showReviewForm && user && (
-        <button
-          onClick={() => setShowReviewForm(true)}
-          style={{
-            marginTop: 16,
-            borderRadius: 8,
-            padding: '8px 16px',
-            background: '#008CBA',
-            color: '#fff',
-            border: 'none',
-            fontWeight: 600,
-            cursor: 'pointer'
-          }}
-        >
-          Write Review
-        </button>
-      )}
-      {showReviewForm && (
-        <form onSubmit={handleSubmitReview} style={{ marginTop: 16, background: '#eaf4fb', padding: 16, borderRadius: 8 }}>
-          <div>
-            <label style={{ marginRight: 8 }}><b>Rating:</b></label>
-            <input
-              type="number"
-              min="1"
-              max="5"
-              value={reviewRating}
-              onChange={e => setReviewRating(Number(e.target.value))}
-              required
-              style={{ width: 50, marginRight: 16 }}
-            />
-          </div>
-          <div style={{ marginTop: 8 }}>
-            <label style={{ display: 'block', marginBottom: 4 }}><b>Review:</b></label>
-            <textarea
-              value={reviewText}
-              onChange={e => setReviewText(e.target.value)}
-              required
-              style={{ width: '100%', height: 80, borderRadius: 8, padding: 8, borderColor: '#ccc' }}
-            />
-          </div>
-          <div style={{ marginTop: 12 }}>
-            <button
-              type="submit"
-              style={{
-                marginRight: 8,
-                borderRadius: 8,
-                padding: '8px 16px',
-                background: '#245ea0',
-                color: '#fff',
-                border: 'none',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              Submit Review
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowReviewForm(false)}
-              style={{
-                borderRadius: 8,
-                padding: '8px 16px',
-                background: '#ffeaea',
-                color: '#b71c1c',
-                border: 'none',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
     </div>
   );
 }

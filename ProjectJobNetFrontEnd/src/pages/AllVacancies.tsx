@@ -15,12 +15,17 @@ type User = {
 function AllVacancies() {
   const dispatch = useDispatch<AppDispatch>();
   const { items, loading, error } = useSelector((state: RootState) => state.vacancies);
+  const { user, token } = useSelector((state: RootState) => state.auth);
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
   const [location, setLocation] = useState('');
   const [sort, setSort] = useState<'title' | 'salary' | 'location' | 'author'>('title');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const navigate = useNavigate();
+
+  // NEW Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
 
   useEffect(() => {
     dispatch(fetchVacanciesRequest());
@@ -59,6 +64,12 @@ function AllVacancies() {
     return 0;
   });
 
+  // NEW Pagination: slice filtered items
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = filtered.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+
   return (
     <div className="cards-list">
       <h2>All Vacancies</h2>
@@ -88,7 +99,7 @@ function AllVacancies() {
       {loading && <div>Loading...</div>}
       {error && <div style={{ color: 'red' }}>{error}</div>}
       <div className="cards-grid">
-        {filtered.map(vacancy => (
+        {currentItems.map(vacancy => (
           <div
             key={vacancy.id}
             className="card clickable"
@@ -110,8 +121,55 @@ function AllVacancies() {
               }
               description={vacancy.description}
             />
+            <div style={{ position: 'absolute', bottom: 8, right: 8 }}>
+              {token && user && (
+                <button 
+                  style={{
+                    padding: '4px 8px',
+                    background: '#eaf4fb',
+                    color: '#245ea0',
+                    border: 'none',
+                    borderRadius: 6,
+                    cursor: 'pointer'
+                  }}
+                  onClick={e => {
+                    e.stopPropagation();
+                    fetch(`${API_BASE_URL}/savedVacancy`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                      body: JSON.stringify({ vacancyId: vacancy.id, userId: user.id })
+                    })
+                      .then(res => {
+                        if (!res.ok) throw new Error('Save failed');
+                        alert('Saved!');
+                      })
+                      .catch(err => alert(err.message));
+                  }}
+                >
+                  Save
+                </button>
+              )}
+            </div>
           </div>
         ))}
+      </div>
+      {/* NEW Pagination Controls */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
+        <div>
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Prev</button>
+          <span style={{ margin: '0 8px' }}>Page {currentPage} of {totalPages}</span>
+          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
+        </div>
+        <div>
+          <label>Show&nbsp;
+            <select value={itemsPerPage} onChange={e => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}>
+              <option value={15}>15</option>
+              <option value={30}>30</option>
+              <option value={50}>50</option>
+            </select>
+            &nbsp;per page
+          </label>
+        </div>
       </div>
     </div>
   );

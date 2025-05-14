@@ -35,8 +35,12 @@ namespace DAL.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Конфігурація для таблиці JobTags (багато-до-багатьох зв'язок між Job і Tag)
+#pragma warning disable IDE0058 // Expression value is never used
+
             modelBuilder.Entity<JobTag>()
                 .HasKey(jt => new { jt.JobId, jt.TagId });
+#pragma warning restore IDE0058 // Expression value is never used
+
 
             modelBuilder.Entity<JobTag>()
                 .HasOne(jt => jt.Job)

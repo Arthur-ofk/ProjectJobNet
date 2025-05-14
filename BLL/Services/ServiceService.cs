@@ -84,17 +84,27 @@ namespace BLL.Services
             if (!await HasUserUsedService(serviceId, userId))
                 return false;
 
-            var existingVote = (await _unitOfWork.ServiceVoteRepository.FindAsync(v => v.ServiceId == serviceId && v.UserId == userId)).FirstOrDefault();
+            var existingVote = (await _unitOfWork.ServiceVoteRepository.FindAsync(v => v.ServiceId == serviceId && v.UserId == userId))
+                                .FirstOrDefault();
+
             if (existingVote != null)
             {
                 if (existingVote.IsUpvote == isUpvote)
-                    return false; // Already voted this way
-                existingVote.IsUpvote = isUpvote;
-                existingVote.CreatedAt = DateTime.UtcNow;
-                _unitOfWork.ServiceVoteRepository.Update(existingVote);
+                {
+                    // Toggle off: remove the existing vote.
+                    _unitOfWork.ServiceVoteRepository.Remove(existingVote);
+                }
+                else
+                {
+                    // Change vote: update the vote.
+                    existingVote.IsUpvote = isUpvote;
+                    existingVote.CreatedAt = DateTime.UtcNow;
+                    _unitOfWork.ServiceVoteRepository.Update(existingVote);
+                }
             }
             else
             {
+                // No vote exists; add a new vote.
                 await _unitOfWork.ServiceVoteRepository.AddAsync(new ServiceVote
                 {
                     Id = Guid.NewGuid(),
@@ -104,7 +114,7 @@ namespace BLL.Services
                     CreatedAt = DateTime.UtcNow
                 });
             }
-            // Recalculate upvotes/downvotes
+            // Recalculate vote counts.
             var votes = await _unitOfWork.ServiceVoteRepository.FindAsync(v => v.ServiceId == serviceId);
             var service = await _unitOfWork.ServiceRepository.GetByIdAsync(serviceId);
             service.Upvotes = votes.Count(v => v.IsUpvote);
@@ -127,5 +137,6 @@ namespace BLL.Services
                 CreatedAt = vote.CreatedAt
             };
         }
+
     }
 }

@@ -8,7 +8,7 @@ type User = {
   firstName?: string;
   lastName?: string;
   email?: string;
-  // add more fields as needed
+  // ...other fields as needed
 };
 
 type Review = {
@@ -40,12 +40,12 @@ function UserDetail() {
   if (loading || !user) return <div>Loading...</div>;
 
   return (
-    <div style={{ background: '#fff', borderRadius: 16, padding: 32, boxShadow: '0 4px 16px rgba(36,94,160,0.08)', maxWidth: 600, margin: '0 auto' }}>
-      <h2>User: {user.userName}</h2>
+    <div style={{ background: '#fff', borderRadius: 16, padding: 32, maxWidth: 600, margin: '0 auto', boxShadow: '0 4px 16px rgba(36,94,160,0.08)' }}>
+      <h2>{user.userName}</h2>
       <div><b>Name:</b> {user.firstName} {user.lastName}</div>
       <div><b>Email:</b> {user.email}</div>
-      {/* Add more public info as needed */}
-      <h3 style={{ marginTop: 32 }}>Reviews about this user</h3>
+      {/* Additional public user info as needed */}
+      <h3 style={{ marginTop: 32 }}>Reviews</h3>
       {reviews.length === 0 && <div>No reviews yet.</div>}
       {reviews.map(r => (
         <div key={r.id} style={{ background: '#f5f5f5', borderRadius: 8, padding: 16, marginTop: 12 }}>

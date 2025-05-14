@@ -15,6 +15,10 @@ import ServiceDetail from './pages/ServiceDetail.tsx';
 import Login from './pages/Login.tsx';
 import Register from './pages/Register.tsx';
 import UserProfile from './pages/UserProfile.tsx';
+import PlaceVacancy from './pages/PlaceVacancy.tsx';
+import PlaceService from './pages/PlaceService.tsx';
+import BlogSection from './pages/BlogSection.tsx';
+import PostDetail from './pages/PostDetail.tsx'; // NEW: Import detailed blog post view
 
 function App() {
   return (
@@ -35,8 +39,9 @@ function App() {
             flexDirection: 'column',
             justifyContent: 'space-between'
           }}>
-            <Header />
-            <main style={{ flex: 1, backgroundColor: '#e9ecef', padding: '32px 0', borderRadius: '24px', marginBottom: '0' }}>
+            
+            <main className="main-container" style={{ flex: 1 }}>
+              <div><Header /></div>
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
@@ -48,9 +53,16 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/profile" element={<UserProfile />} />
+                {/* Updated routes for creating new items */}
+                <Route path="/createVacancy" element={<PlaceVacancy />} />
+                <Route path="/createService" element={<PlaceService />} />
+                <Route path="/blog" element={<BlogSection />} />
+                <Route path="/posts/:id" element={<PostDetail />} /> {/* NEW: Detailed blog post route */}
               </Routes>
+                <div><Footer /></div>
             </main>
-            <Footer />
+            
+           
           </div>
         </div>
       </Router>

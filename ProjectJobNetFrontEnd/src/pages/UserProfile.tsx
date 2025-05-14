@@ -53,7 +53,7 @@ type Order = {
 
 function UserProfile() {
   const { user, token } = useSelector((state: RootState) => state.auth);
-  const [tab, setTab] = useState<'info' | 'resumes' | 'services' | 'notifications' | 'orders'>('info');
+  const [tab, setTab] = useState<'info' | 'resumes' | 'services' | 'notifications' | 'orders' | 'saved'>('info');
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [resumeError, setResumeError] = useState<string | null>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -477,8 +477,11 @@ function UserProfile() {
         <button style={tab === 'info' ? btnPrimary : btnStyle} onClick={() => setTab('info')}>Info</button>
         <button style={tab === 'resumes' ? btnPrimary : btnStyle} onClick={() => setTab('resumes')}>Resumes</button>
         <button style={tab === 'services' ? btnPrimary : btnStyle} onClick={() => setTab('services')}>Services</button>
-        <button style={tab === 'notifications' ? btnPrimary : btnStyle} onClick={() => setTab('notifications')}>Notifications</button>
+        <button style={tab === 'notifications' ? btnPrimary : btnStyle} onClick={() => setTab('notifications')}>
+          Notifications
+        </button>
         <button style={tab === 'orders' ? btnPrimary : btnStyle} onClick={() => setTab('orders')}>My Orders</button>
+        <button style={tab === 'saved' ? btnPrimary : btnStyle} onClick={() => setTab('saved')}>Saved</button>
       </div>
 
       {tab === 'info' && (
@@ -491,15 +494,10 @@ function UserProfile() {
             <b>Phone:</b> {user.phoneNumber}<br />
             <b>Date of Birth:</b> {user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : ''}<br />
             <b>Rating:</b> {rating !== null ? rating.toFixed(2) : 'No reviews yet'}
-            <button style={btnStyle} onClick={() => setShowSettings(s => !s)}>
-              {showSettings ? 'Close Settings' : 'Edit Info'}
-            </button>
           </div>
-          {showSettings && (
-            <form /* ...settings form as before... */>
-              {/* ...settings form fields... */}
-            </form>
-          )}
+          <button style={btnStyle} onClick={() => setShowSettings(s => !s)}>
+            {showSettings ? 'Close Settings' : 'Edit Info'}
+          </button>
           <h3 style={{ marginTop: 32 }}>Your Blog Posts</h3>
           {/* ...blog posts section as before... */}
         </>
@@ -715,6 +713,14 @@ function UserProfile() {
             ))
           )}
         </>
+      )}
+
+      {tab === 'saved' && (
+        <div>
+          <h3>Saved Items</h3>
+          <p>Here you can filter your saved vacancies, resumes, and posts.</p>
+          {/* Placeholder content; implement filtering logic later */}
+        </div>
       )}
     </div>
   );

@@ -16,12 +16,17 @@ type User = {
 function AllServices() {
   const dispatch = useDispatch<AppDispatch>();
   const { items, loading, error } = useSelector((state: RootState) => state.services);
+  const { user, token } = useSelector((state: RootState) => state.auth);
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
   const [provider, setProvider] = useState('');
   const [sort, setSort] = useState<'title' | 'price' | 'providerName' | 'upvotes'>('upvotes');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const navigate = useNavigate();
+
+  // NEW Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
 
   useEffect(() => {
     dispatch(fetchServicesRequest());
@@ -60,6 +65,12 @@ function AllServices() {
     return 0;
   });
 
+  // NEW: Pagination slice
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = filtered.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+
   return (
     <div className="cards-list">
       <h2>All Services</h2>
@@ -89,7 +100,7 @@ function AllServices() {
       {loading && <div>Loading...</div>}
       {error && <div style={{ color: 'red' }}>{error}</div>}
       <div className="cards-grid">
-        {filtered.map((service: Service) => (
+        {currentItems.map((service: Service) => (
           <div
             key={service.id}
             className="card clickable"
@@ -136,8 +147,56 @@ function AllServices() {
             >
               ⬆ {(service.upvotes ?? 0) - (service.downvotes ?? 0)}
             </button>
+            <div style={{ position: 'absolute', bottom: 8, right: 8 }}>
+              {token && (
+                <button 
+                  style={{
+                    padding: '4px 8px',
+                    background: '#eaf4fb',
+                    color: '#245ea0',
+                    border: 'none',
+                    borderRadius: 6,
+                    cursor: 'pointer'
+                  }}
+                  onClick={e => {
+                    e.stopPropagation();
+                    // Call save endpoint; adjust API as needed
+                    fetch(`${API_BASE_URL}/savedService`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                      body: JSON.stringify({ serviceId: service.id, userId: user.id })
+                    })
+                      .then(res => {
+                        if (!res.ok) throw new Error('Save failed');
+                        alert('Saved!');
+                      })
+                      .catch(err => alert(err.message));
+                  }}
+                >
+                  Save
+                </button>
+              )}
+            </div>
           </div>
         ))}
+      </div>
+      {/* NEW Pagination Controls */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
+        <div>
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Prev</button>
+          <span style={{ margin: '0 8px' }}>Page {currentPage} of {totalPages}</span>
+          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
+        </div>
+        <div>
+          <label>Show&nbsp;
+            <select value={itemsPerPage} onChange={e => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}>
+              <option value={15}>15</option>
+              <option value={30}>30</option>
+              <option value={50}>50</option>
+            </select>
+            &nbsp;per page
+          </label>
+        </div>
       </div>
     </div>
   );

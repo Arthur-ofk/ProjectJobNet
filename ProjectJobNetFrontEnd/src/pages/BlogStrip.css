@@ -1,0 +1,67 @@
+.blog-strip-container {
+  background-color: var(--container-bg);
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin: 16px 0;
+}
+
+.blog-card {
+  background-color: var(--block-bg);
+  padding: 16px;
+  margin: 16px 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.2s;
+}
+
+.blog-card:hover {
+  transform: translateY(-4px);
+}
+
+.blog-card h4 {
+  margin-bottom: 8px;
+  color: var(--primary-color);
+}
+
+/* Actions for blog posts */
+.blog-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.btn-vote,
+.btn-comment,
+.btn-save,
+.btn-report {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: 1px solid var(--button-border);
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-vote:hover,
+.btn-comment:hover,
+.btn-save:hover,
+.btn-report:hover {
+  background-color: var(--primary-color);
+  color: var(--primary-text);
+}
+
+@media (max-width: 768px) {
+  .blog-strip-container {
+    padding: 16px;
+  }
+  .blog-card {
+    padding: 12px;
+    margin: 12px 0;
+  }
+  .blog-actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+}

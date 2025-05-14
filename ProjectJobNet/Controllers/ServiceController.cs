@@ -2,6 +2,7 @@
 using BLL.Shared.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ProjectJobNet.Controllers
 {
@@ -61,6 +62,21 @@ namespace ProjectJobNet.Controllers
         {
             bool hasUsed = await _serviceService.HasUserUsedService(id, userId);
             return Ok(hasUsed);
+        }
+        // New endpoint for voting on a service
+        [HttpPost("{id}/vote")]
+        public async Task<IActionResult> VoteService(Guid id, [FromBody] bool isUpvote)
+        {
+            // Extract the current user id from claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized();
+            Guid userId = Guid.Parse(userIdClaim);
+
+            bool result = await _serviceService.VoteServiceAsync(id, userId, isUpvote);
+            if (!result)
+                return BadRequest("Voting failed: either you've already voted this way or you haven't used the service.");
+            return Ok();
         }
     }
 }

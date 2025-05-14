@@ -1,12 +1,13 @@
 import React from 'react';
 import './Header.css';
 import logo from '../media/logos/logo.svg'; // Make sure the file exists and use .svg extension
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store.ts';
 
 function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, token } = useSelector((state: RootState) => state.auth);
 
   const getInitials = () => {
@@ -19,6 +20,10 @@ function Header() {
     return '?';
   };
 
+  const toggleTheme = () => {
+    document.body.classList.toggle('dark-mode');
+  };
+
   return (
     <header className="header">
       <div className="logo" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
@@ -26,6 +31,10 @@ function Header() {
       </div>
       <nav className="nav-buttons">
         <button className="btn" onClick={() => navigate('/blog')}>Blog</button>
+        {/* Quick access buttons styled like other nav buttons */}
+        <button className="btn" onClick={() => navigate('/vacancies')}>Vacancies</button>
+        <button className="btn" onClick={() => navigate('/services')}>Services</button>
+        <button className="btn" onClick={toggleTheme}>🌓</button>
         {!token ? (
           <>
             <button className="btn" onClick={() => navigate('/login')}>Sign In</button>

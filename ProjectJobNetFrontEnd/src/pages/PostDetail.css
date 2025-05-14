@@ -1,0 +1,127 @@
+.post-detail-container {
+  background-color: var(--container-bg);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  max-width: 800px;
+  margin: 32px auto;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.post-detail-container h2 {
+  margin-top: 0;
+  font-size: 2rem;
+  color: var(--primary-color);
+}
+
+.post-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.post-meta .author-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary-color);
+}
+
+.post-content {
+  line-height: 1.6;
+  font-size: 1rem;
+  color: var(--text-color);
+  margin-bottom: 16px;
+}
+
+.post-tags {
+  margin-top: 16px;
+}
+
+.post-tags .tag {
+  display: inline-block;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-right: 8px;
+  font-size: 0.85rem;
+}
+
+.post-interactions {
+  margin-top: 16px;
+  font-size: 1rem;
+  color: var(--primary-color);
+}
+
+.back-btn {
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  background-color: #eaf4fb;
+  color: #245ea0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.back-btn:hover {
+  background-color: #d0e7f8;
+}
+
+.comments-section {
+  margin-top: 32px;
+}
+
+.comment {
+  background-color: var(--block-bg);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  color: var(--text-color);
+}
+
+.comment-author {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.comment-content {
+  margin-top: 4px;
+}
+
+.comment-date {
+  font-size: 0.8rem;
+  color: var(--text-color);
+  margin-top: 4px;
+}
+
+.comment-form textarea {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--button-border);
+  margin-top: 8px;
+  resize: vertical;
+  color: var(--text-color);
+  background-color: var(--container-bg);
+}
+
+.submit-comment-btn {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background-color: var(--primary-color);
+  color: var(--primary-text);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-comment-btn:hover {
+  background-color: var(--button-bg);
+}

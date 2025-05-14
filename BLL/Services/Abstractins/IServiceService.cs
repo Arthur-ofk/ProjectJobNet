@@ -17,5 +17,6 @@ namespace BLL.Services.Abstractins
        
         Task<ServiceVoteDto?> GetUserVoteAsync(Guid serviceId, Guid userId);
         Task<bool> HasUserUsedService(Guid id, Guid userId);
+        Task<bool> VoteServiceAsync(Guid id, Guid userId, bool isUpvote);
     }
 }
