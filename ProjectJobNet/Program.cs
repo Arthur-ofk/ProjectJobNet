@@ -15,9 +15,9 @@ namespace ProjectJobNet
     public class Program
     {
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+#pragma warning disable CS1998 
         public static async Task Main(string[] args)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+#pragma warning restore CS1998 
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -33,7 +33,7 @@ namespace ProjectJobNet
                     });
             });
 
-            // Add services to the container.
+           
             //init
             //Реєстрація сервісів
             builder.Services.AddScoped<IAuthService, AuthService>();
@@ -134,8 +134,17 @@ namespace ProjectJobNet
            builder.Services.AddDbContext<JobNetContext>(options =>
            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             var app = builder.Build();
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<JobNetContext>();
 
-            
+                // За потреби застосуй міграції
+                // await context.Database.MigrateAsync();
+
+                await DatabaseSeeder.SeedAsync(context);
+            }
+
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

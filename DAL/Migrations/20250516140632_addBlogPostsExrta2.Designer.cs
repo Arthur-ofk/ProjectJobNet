@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(JobNetContext))]
-    [Migration("20250511203127_AddNewTables")]
-    partial class AddNewTables
+    [Migration("20250516140632_addBlogPostsExrta2")]
+    partial class addBlogPostsExrta2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -53,6 +53,33 @@ namespace DAL.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("BlogPosts");
+                });
+
+            modelBuilder.Entity("DAL.Models.BlogPostVote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BlogPostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUpvote")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BlogPostId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("BlogPostVotes");
                 });
 
             modelBuilder.Entity("DAL.Models.Category", b =>
@@ -193,6 +220,37 @@ namespace DAL.Migrations
                     b.ToTable("LikedPosts");
                 });
 
+            modelBuilder.Entity("DAL.Models.PostComment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BlogPostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BlogPostId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PostComments");
+                });
+
             modelBuilder.Entity("DAL.Models.Resume", b =>
                 {
                     b.Property<Guid>("Id")
@@ -282,6 +340,24 @@ namespace DAL.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("DAL.Models.SavedBlogPost", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BlogPostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("SavedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("UserId", "BlogPostId");
+
+                    b.HasIndex("BlogPostId");
+
+                    b.ToTable("SavedBlogPosts");
                 });
 
             modelBuilder.Entity("DAL.Models.SavedJob", b =>
@@ -615,6 +691,25 @@ namespace DAL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DAL.Models.BlogPostVote", b =>
+                {
+                    b.HasOne("DAL.Models.BlogPost", "BlogPost")
+                        .WithMany("Votes")
+                        .HasForeignKey("BlogPostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DAL.Models.User", "User")
+                        .WithMany("BlogPostVotes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BlogPost");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("DAL.Models.Complaint", b =>
                 {
                     b.HasOne("DAL.Models.User", "Complainant")
@@ -691,6 +786,25 @@ namespace DAL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DAL.Models.PostComment", b =>
+                {
+                    b.HasOne("DAL.Models.BlogPost", "BlogPost")
+                        .WithMany("Comments")
+                        .HasForeignKey("BlogPostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DAL.Models.User", "User")
+                        .WithMany("PostComments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BlogPost");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("DAL.Models.Resume", b =>
                 {
                     b.HasOne("DAL.Models.User", "User")
@@ -711,6 +825,25 @@ namespace DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Author");
+                });
+
+            modelBuilder.Entity("DAL.Models.SavedBlogPost", b =>
+                {
+                    b.HasOne("DAL.Models.BlogPost", "BlogPost")
+                        .WithMany("SavedPosts")
+                        .HasForeignKey("BlogPostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DAL.Models.User", "User")
+                        .WithMany("SavedBlogPosts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BlogPost");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DAL.Models.SavedJob", b =>
@@ -829,9 +962,15 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Models.BlogPost", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("Complaints");
 
                     b.Navigation("LikedPosts");
+
+                    b.Navigation("SavedPosts");
+
+                    b.Navigation("Votes");
                 });
 
             modelBuilder.Entity("DAL.Models.Category", b =>
@@ -872,6 +1011,8 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Models.User", b =>
                 {
+                    b.Navigation("BlogPostVotes");
+
                     b.Navigation("BlogPosts");
 
                     b.Navigation("Complaints");
@@ -880,9 +1021,13 @@ namespace DAL.Migrations
 
                     b.Navigation("LikedPosts");
 
+                    b.Navigation("PostComments");
+
                     b.Navigation("Resumes");
 
                     b.Navigation("Reviews");
+
+                    b.Navigation("SavedBlogPosts");
 
                     b.Navigation("SavedJobs");
 

@@ -31,6 +31,9 @@ namespace DAL.Context
         public DbSet<SavedJob> SavedJobs { get; set; }
         public DbSet<ServiceVote> ServiceVotes { get; set; }
         public DbSet<Order> Orders { get; set; }
+        public DbSet<BlogPostVote> BlogPostVotes { get; set; }   // New
+        public DbSet<PostComment> PostComments { get; set; }       // New
+        public DbSet<SavedBlogPost> SavedBlogPosts { get; set; }   // New
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -70,9 +73,8 @@ namespace DAL.Context
                 .HasForeignKey(st => st.TagId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Конфігурація для таблиці LikedPosts (багато-до-багатьох зв'язок між User і BlogPost)
-            modelBuilder.Entity<LikedPost>()
-                .HasKey(lp => new { lp.UserId, lp.PostId });
+           
+          
 
             modelBuilder.Entity<LikedPost>()
                 .HasOne(lp => lp.User)
@@ -80,11 +82,20 @@ namespace DAL.Context
                 .HasForeignKey(lp => lp.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<LikedPost>()
-                .HasOne(lp => lp.Post)
-                .WithMany(bp => bp.LikedPosts)
-                .HasForeignKey(lp => lp.PostId)
-                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<LikedPost>(entity =>
+            {
+                entity.HasKey(lp => new { lp.UserId, lp.PostId });
+
+                entity.HasOne(lp => lp.Post)
+                      .WithMany(bp => bp.LikedPosts)
+                      .HasForeignKey(lp => lp.PostId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(lp => lp.User)
+                      .WithMany(u => u.LikedPosts)
+                      .HasForeignKey(lp => lp.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
 
             // Конфігурація для таблиці SavedJobs (багато-до-багатьох зв'язок між User (роботодавець) і Job)
             modelBuilder.Entity<SavedJob>()
@@ -189,6 +200,49 @@ namespace DAL.Context
         .WithMany(p => p.Subscriptions)
         .HasForeignKey(s => s.PlanId)
         .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure SavedBlogPosts composite key and relationships
+            modelBuilder.Entity<SavedBlogPost>(entity =>
+            {
+                entity.HasKey(e => new { e.UserId, e.BlogPostId });
+                entity.HasOne(e => e.BlogPost)
+                      .WithMany(b => b.SavedPosts)
+                      .HasForeignKey(e => e.BlogPostId)
+                       .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.User)
+                      .WithMany(u => u.SavedBlogPosts)
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Configure BlogPostVotes relationships
+            modelBuilder.Entity<BlogPostVote>(entity =>
+            {
+                entity.HasOne(e => e.BlogPost)
+                      .WithMany(b => b.Votes)
+                      .HasForeignKey(e => e.BlogPostId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.User)
+                      .WithMany(u => u.BlogPostVotes)
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Restrict); // Updated to Restrict
+            });
+
+            // Configure PostComments relationships
+            modelBuilder.Entity<PostComment>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+
+                entity.HasOne(c => c.BlogPost)
+                      .WithMany(b => b.Comments)
+                      .HasForeignKey(c => c.BlogPostId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(c => c.User)
+                      .WithMany(u => u.PostComments)
+                      .HasForeignKey(c => c.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
         }
     }
 }

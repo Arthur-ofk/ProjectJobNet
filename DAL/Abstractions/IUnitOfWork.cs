@@ -31,6 +31,10 @@ namespace DAL.Abstractions
             ISavedJobRepository SavedJobRepository { get; }
         IServiceVoteRepository ServiceVoteRepository { get; }
         IOrderRepository OrderRepository { get; }
+        IBlogPostVoteRepository BlogPostVoteRepository { get; }
+        IPostCommentRepository PostCommentRepository { get; }
+        ISavedBlogPostRepository SavedBlogPostRepository { get; }
+
         Task<int> CompleteAsync();
         }
     

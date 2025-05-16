@@ -31,11 +31,14 @@ namespace DAL.Repos
         private readonly Lazy<ISavedJobRepository> _savedJobRepository;
         private readonly Lazy<IServiceVoteRepository> _serviceVoteRepository;
         private readonly Lazy<IOrderRepository> _orderRepository;
+        private readonly Lazy<IBlogPostVoteRepository> _blogPostVoteRepository;
+        private readonly Lazy<IPostCommentRepository> _postCommentRepository;
+        private readonly Lazy<ISavedBlogPostRepository> _savedBlogPostRepository;
 
         public UnitOfWork(JobNetContext context)
         {
             _context = context;
-            _roleRepository = new Lazy<IRoleRepository>(()=> new RoleRepository(context));
+            _roleRepository = new Lazy<IRoleRepository>(()=> new RoleRepository(_context));
             _tagRepository = new Lazy<ITagRepository>(() => new TagRepository(_context));
             _userRepository = new Lazy<IUserRepository>(() => new UserRepository(_context));
             _jobRepository = new Lazy<IJobRepository>(() => new JobRepository(_context));
@@ -54,6 +57,9 @@ namespace DAL.Repos
             _savedJobRepository = new Lazy<ISavedJobRepository>(() => new SavedJobRepository(_context));
             _serviceVoteRepository = new Lazy<IServiceVoteRepository>(() => new ServiceVoteRepository(_context));
             _orderRepository = new Lazy<IOrderRepository>(() => new OrderRepository(_context));
+            _blogPostVoteRepository = new Lazy<IBlogPostVoteRepository>(() => new BlogPostVoteRepository(_context));
+            _postCommentRepository = new Lazy<IPostCommentRepository>(() => new PostCommentRepository(_context));
+            _savedBlogPostRepository = new Lazy<ISavedBlogPostRepository>(() => new SavedBlogPostRepository(_context));
         }
         public IRoleRepository RoleRepository => _roleRepository.Value;
         public ITagRepository TagRepository => _tagRepository.Value;
@@ -72,10 +78,13 @@ namespace DAL.Repos
         public IWarningRepository WarningRepository => _warningRepository.Value;
         public ILikedPostRepository LikedPostRepository => _likedPostRepository.Value;
         public ISavedJobRepository SavedJobRepository => _savedJobRepository.Value;
-
         public IServiceVoteRepository ServiceVoteRepository => _serviceVoteRepository.Value;
-
         public IOrderRepository OrderRepository => _orderRepository.Value;
+        public IBlogPostVoteRepository BlogPostVoteRepository => _blogPostVoteRepository.Value;
+        public IPostCommentRepository PostCommentRepository => _postCommentRepository.Value;
+        public ISavedBlogPostRepository SavedBlogPostRepository => _savedBlogPostRepository.Value;
+
+        
 
         public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
 

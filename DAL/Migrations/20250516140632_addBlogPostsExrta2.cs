@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class addBlogPostsExrta2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -27,6 +27,27 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Orders",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ServiceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AuthorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AuthorConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    CustomerConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    AcceptedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Roles",
                 columns: table => new
                 {
@@ -39,6 +60,21 @@ namespace DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Roles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ServiceVotes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ServiceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    IsUpvote = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ServiceVotes", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -158,7 +194,10 @@ namespace DAL.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FileContent = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
+                    FileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ContentType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -202,12 +241,12 @@ namespace DAL.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ServiceName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ServiceName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Upvotes = table.Column<int>(type: "int", nullable: false, defaultValue: 0), // Added
-                    Downvotes = table.Column<int>(type: "int", nullable: false, defaultValue: 0), // Added
+                    Upvotes = table.Column<int>(type: "int", nullable: false),
+                    Downvotes = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -260,33 +299,60 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                 name: "Complaints",
-                 columns: table => new
-                 {
-                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                     ComplainantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                     TargetPostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                     SubmittedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                 },
-                 constraints: table =>
-                 {
-                     table.PrimaryKey("PK_Complaints", x => x.Id);
-                     table.ForeignKey(
-                         name: "FK_Complaints_BlogPosts_TargetPostId",
-                         column: x => x.TargetPostId,
-                         principalTable: "BlogPosts",
-                         principalColumn: "Id",
-                         onDelete: ReferentialAction.Restrict);
-                     table.ForeignKey(
-                         name: "FK_Complaints_Users_ComplainantId",
-                         column: x => x.ComplainantId,
-                         principalTable: "Users",
-                         principalColumn: "Id");
-                 });
+                name: "BlogPostVotes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    BlogPostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    IsUpvote = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BlogPostVotes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BlogPostVotes_BlogPosts_BlogPostId",
+                        column: x => x.BlogPostId,
+                        principalTable: "BlogPosts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_BlogPostVotes_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Complaints",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ComplainantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TargetPostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SubmittedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Complaints", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Complaints_BlogPosts_TargetPostId",
+                        column: x => x.TargetPostId,
+                        principalTable: "BlogPosts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Complaints_Users_ComplainantId",
+                        column: x => x.ComplainantId,
+                        principalTable: "Users",
+                        principalColumn: "Id");
+                });
 
             migrationBuilder.CreateTable(
                 name: "LikedPosts",
@@ -307,6 +373,59 @@ namespace DAL.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_LikedPosts_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PostComments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    BlogPostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PostComments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PostComments_BlogPosts_BlogPostId",
+                        column: x => x.BlogPostId,
+                        principalTable: "BlogPosts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PostComments_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SavedBlogPosts",
+                columns: table => new
+                {
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    BlogPostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SavedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SavedBlogPosts", x => new { x.UserId, x.BlogPostId });
+                    table.ForeignKey(
+                        name: "FK_SavedBlogPosts_BlogPosts_BlogPostId",
+                        column: x => x.BlogPostId,
+                        principalTable: "BlogPosts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SavedBlogPosts_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -387,44 +506,54 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                 name: "Warnings",
-                 columns: table => new
-                 {
-                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                     ModeratorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                     ComplaintId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                     Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                     SentAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                 },
-                 constraints: table =>
-                 {
-                     table.PrimaryKey("PK_Warnings", x => x.Id);
-                     table.ForeignKey(
-                         name: "FK_Warnings_Complaints_ComplaintId",
-                         column: x => x.ComplaintId,
-                         principalTable: "Complaints",
-                         principalColumn: "Id",
-                         onDelete: ReferentialAction.Restrict);
-                     table.ForeignKey(
-                         name: "FK_Warnings_Users_ModeratorId",
-                         column: x => x.ModeratorId,
-                         principalTable: "Users",
-                         principalColumn: "Id",
-                         onDelete: ReferentialAction.Restrict);
-                     table.ForeignKey(
-                         name: "FK_Warnings_Users_UserId",
-                         column: x => x.UserId,
-                         principalTable: "Users",
-                         principalColumn: "Id",
-                         onDelete: ReferentialAction.Restrict);
-                 });
+                name: "Warnings",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ModeratorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ComplaintId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SentAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Warnings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Warnings_Complaints_ComplaintId",
+                        column: x => x.ComplaintId,
+                        principalTable: "Complaints",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Warnings_Users_ModeratorId",
+                        column: x => x.ModeratorId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Warnings_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_BlogPosts_UserId",
                 table: "BlogPosts",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BlogPostVotes_BlogPostId",
+                table: "BlogPostVotes",
+                column: "BlogPostId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BlogPostVotes_UserId",
+                table: "BlogPostVotes",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -458,6 +587,16 @@ namespace DAL.Migrations
                 column: "PostId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PostComments_BlogPostId",
+                table: "PostComments",
+                column: "BlogPostId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PostComments_UserId",
+                table: "PostComments",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Resumes_UserId",
                 table: "Resumes",
                 column: "UserId");
@@ -466,6 +605,11 @@ namespace DAL.Migrations
                 name: "IX_Reviews_AuthorId",
                 table: "Reviews",
                 column: "AuthorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SavedBlogPosts_BlogPostId",
+                table: "SavedBlogPosts",
+                column: "BlogPostId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SavedJobs_JobId",
@@ -522,10 +666,19 @@ namespace DAL.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "BlogPostVotes");
+
+            migrationBuilder.DropTable(
                 name: "JobTags");
 
             migrationBuilder.DropTable(
                 name: "LikedPosts");
+
+            migrationBuilder.DropTable(
+                name: "Orders");
+
+            migrationBuilder.DropTable(
+                name: "PostComments");
 
             migrationBuilder.DropTable(
                 name: "Resumes");
@@ -534,10 +687,16 @@ namespace DAL.Migrations
                 name: "Reviews");
 
             migrationBuilder.DropTable(
+                name: "SavedBlogPosts");
+
+            migrationBuilder.DropTable(
                 name: "SavedJobs");
 
             migrationBuilder.DropTable(
                 name: "ServiceTags");
+
+            migrationBuilder.DropTable(
+                name: "ServiceVotes");
 
             migrationBuilder.DropTable(
                 name: "Subscriptions");
