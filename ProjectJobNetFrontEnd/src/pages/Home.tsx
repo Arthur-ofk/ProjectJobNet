@@ -12,7 +12,8 @@ function Home() {
         <div className="main-card">
           <h3>Employers</h3>
           <div className="subblocks">
-            <div className="subblock">
+            {/* Updated: Now clickable to create a vacancy */}
+            <div className="subblock clickable" onClick={() => navigate('/createVacancy')}>
               <h5>Place Vacancy</h5>
               <p>Post a job opening and find the right candidate for your company.</p>
             </div>
@@ -29,7 +30,8 @@ function Home() {
         <div className="main-card">
           <h3>JobSeeker</h3>
           <div className="subblocks">
-            <div className="subblock">
+            {/* Updated: Now clickable to create a service */}
+            <div className="subblock clickable" onClick={() => navigate('/createService')}>
               <h5>Place Service</h5>
               <p>Offer your skills for hourly paid tasks and get hired quickly.</p>
             </div>
