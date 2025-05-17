@@ -1,6 +1,6 @@
 /* ...existing styles... */
 .main-container {
   /* Assuming header+footer total ~200px */
-  min-height: calc(100vh - 200px);
+  min-height: calc(100vh - 400px);
 }
 /* ...existing styles... */

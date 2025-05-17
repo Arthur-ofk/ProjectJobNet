@@ -134,6 +134,8 @@ namespace ProjectJobNet
 #pragma warning restore CS8604 // Possible null reference argument.
             });
 
+            builder.Services.AddAuthorization();
+
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             builder.Services.AddSwaggerGen();
@@ -157,9 +159,13 @@ namespace ProjectJobNet
                 app.UseSwaggerUI();
             }
 
+            app.UseHttpsRedirection();
+
+            app.UseRouting();
+
             app.UseCors("AllowFrontend");
 
-            app.UseHttpsRedirection();
+            app.UseAuthentication();    // <— add this line
 
             app.UseAuthorization();
 

@@ -6,5 +6,5 @@ public class CreateBlogPostDto {
     public string Tags { get; set; }
     public Guid UserId { get; set; }
     // New property for image file (if storing image URL after processing upload)
-    public IFormFile Image { get; set; }
+    public IFormFile? Image { get; set; }
 }

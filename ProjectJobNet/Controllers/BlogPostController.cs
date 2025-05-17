@@ -4,6 +4,7 @@ using BLL.Shared.Complaint;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace ProjectJobNet.Controllers
 {
@@ -52,10 +53,12 @@ namespace ProjectJobNet.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddBlogPost([FromBody] CreateBlogPostDto createBlogPostDto)
+        public async Task<ActionResult<BlogPostDto>> AddBlogPost([FromForm] CreateBlogPostDto createBlogPostDto)
         {
-            await _blogPostService.AddBlogPostAsync(createBlogPostDto);
-            return CreatedAtAction(nameof(GetBlogPostById), new { id = createBlogPostDto }, createBlogPostDto);
+            var created = await _blogPostService.AddBlogPostAsync(createBlogPostDto);
+            return CreatedAtAction(nameof(GetBlogPostById),
+                                   new { id = created.Id },
+                                   created);
         }
 
         [HttpPut("{id}")]
@@ -161,6 +164,15 @@ namespace ProjectJobNet.Controllers
         {
             var posts = await _blogPostService.GetPagedBlogPostsAsync(skip, take);
             return Ok(posts);
+        }
+
+        // New endpoint: Get current user's saved blog posts
+        [HttpGet("saved")]
+        public async Task<IActionResult> GetSavedPosts()
+        {
+            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var saved = await _savedBlogPostService.GetSavedPostsAsync(userId);
+            return Ok(saved);
         }
     }
 }

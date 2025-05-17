@@ -8,6 +8,10 @@ function Home() {
 
   return (
     <>
+      <div style={{ padding: 32 }}>
+        <h1>Welcome to ProjectJobNet</h1>
+        <p>Your go-to platform for jobs, services, and blog posts.</p>
+      </div>
       <div className="main-cards-container">
         <div className="main-card">
           <h3>Employers</h3>

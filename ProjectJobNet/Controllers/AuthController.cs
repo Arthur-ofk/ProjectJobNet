@@ -1,6 +1,7 @@
 ﻿using BLL.Services.Abstractins;
 using BLL.Shared.Auth;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ProjectJobNet.Controllers
 {
@@ -16,6 +17,7 @@ namespace ProjectJobNet.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             try
@@ -28,7 +30,9 @@ namespace ProjectJobNet.Controllers
                 return Unauthorized(new { message = "Invalid email or password" });
             }
         }
+
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
             try

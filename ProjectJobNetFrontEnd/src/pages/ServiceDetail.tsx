@@ -55,21 +55,20 @@ const StarRating: React.FC<{ value: number; onChange: (val: number) => void }> =
 };
 
 function ServiceDetail() {
-  const { id } = useParams();
+  const { id } = useParams<{id:string}>();
+  const { token, user } = useSelector((s:RootState)=>s.auth);
   const [service, setService] = useState<Service | null>(null);
   const [author, setAuthor] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [voteStatus, setVoteStatus] = useState<'none' | 'up' | 'down'>('none');
   const [error, setError] = useState<string | null>(null);
-  const { user, token } = useSelector((state: RootState) => state.auth);
   const [orderStatus, setOrderStatus] = useState<string | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
-  // New state for review submission
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewRating, setReviewRating] = useState<number>(1);
   const [reviewText, setReviewText] = useState('');
-  // Add new state variable for checking if the user has used (ordered) the service
   const [hasOrdered, setHasOrdered] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/services/${id}`)
@@ -83,7 +82,6 @@ function ServiceDetail() {
             .then(user => setAuthor(user));
         }
       });
-    // Fetch vote status for this user/service
     if (user && token && id) {
       fetch(`${API_BASE_URL}/services/voteStatus?serviceId=${id}&userId=${user.id}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -100,6 +98,20 @@ function ServiceDetail() {
       .then(data => {
         setReviews(data.filter((r: Review) => r.targetId === id));
       });
+    if (token && user) {
+      fetch(`${API_BASE_URL}/services/${id}/vote`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(r => r.json())
+        .then(vote => setVoteStatus(vote?.isUpvote ? 'up' : 'down'))
+        .catch(() => setVoteStatus('none'));
+      fetch(`${API_BASE_URL}/savedService?serviceId=${id}&userId=${user.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(r => r.ok ? r.json() : false)
+        .then(setSaved)
+        .catch(() => setSaved(false));
+    }
   }, [id, user, token]);
 
   useEffect(() => {
@@ -109,7 +121,6 @@ function ServiceDetail() {
       })
         .then(res => res.json())
         .then(data => {
-          // Use a case-insensitive check for finished orders
           if (
             data &&
             Array.isArray(data) &&
@@ -154,14 +165,12 @@ function ServiceDetail() {
       return;
     }
     setVoteStatus(isUpvote ? 'up' : 'down');
-    // Optionally, refresh service data
     fetch(`${API_BASE_URL}/services/${id}`)
       .then(res => res.json())
       .then(data => setService(data));
   };
 
   const handleReport = () => {
-    // Redirect to a report page or open modal; for simplicity, alert.
     alert('Report functionality is not implemented yet.');
   };
 
@@ -183,7 +192,6 @@ function ServiceDetail() {
     }
   };
 
-  // New handler to submit review
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !token || !service) return;
@@ -199,7 +207,6 @@ function ServiceDetail() {
       body: JSON.stringify(reviewData)
     });
     if (res.ok) {
-      // Refresh reviews
       fetch(`${API_BASE_URL}/Review`)
         .then(res => res.json())
         .then(data => {
@@ -211,6 +218,15 @@ function ServiceDetail() {
     } else {
       alert('Failed to submit review.');
     }
+  };
+
+  const toggleSave = () => {
+    if (!token || !user) return;
+    const method = saved ? 'DELETE' : 'POST';
+    fetch(`${API_BASE_URL}/services/${id}/save`, {
+      method,
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(() => setSaved(!saved));
   };
 
   if (loading) return <div>Loading...</div>;
@@ -243,7 +259,7 @@ function ServiceDetail() {
                 cursor: hasOrdered ? 'pointer' : 'not-allowed'
               }}
               onClick={() => handleVote(true)}
-              disabled={!hasOrdered}
+              disabled={!hasOrdered || voteStatus !== 'none'}
             >
               ⬆ Upvote
             </button>
@@ -258,7 +274,7 @@ function ServiceDetail() {
                 cursor: hasOrdered ? 'pointer' : 'not-allowed'
               }}
               onClick={() => handleVote(false)}
-              disabled={!hasOrdered}
+              disabled={!hasOrdered || voteStatus !== 'none'}
             >
               ⬇ Downvote
             </button>
@@ -269,10 +285,15 @@ function ServiceDetail() {
             >
               Report
             </button>
+            <button
+              style={{ marginLeft: 8, borderRadius: 8, border: 'none', background: '#ccc', color: '#333', padding: '4px 12px', cursor: 'pointer' }}
+              onClick={toggleSave}
+            >
+              {saved ? '★ Saved' : '☆ Save'}
+            </button>
           </>
         )}
       </div>
-      {/* Display current vote status */}
       {user && hasOrdered && voteStatus !== 'none' && (
         <div style={{ marginTop: 8, fontWeight: 600 }}>
           You voted: {voteStatus === 'up' ? 'Upvoted' : 'Downvoted'}
@@ -285,7 +306,6 @@ function ServiceDetail() {
       )}
       {error && <div style={{ color: 'red', marginTop: 8 }}>{error}</div>}
       <div style={{ marginTop: 16 }}><b>Description:</b> {service.description}</div>
-      {/* Modified: Display categoryId instead of service.categoryName */}
       {service.categoryId && (
         <div style={{ marginTop: 8 }}>
           <b>Category:</b> {service.categoryId}
@@ -301,7 +321,6 @@ function ServiceDetail() {
       )}
       {orderStatus && <div style={{ marginTop: 8, color: '#245ea0' }}>{orderStatus}</div>}
 
-      {/* Write review section above others */}
       {user && (
         <div style={{ marginTop: 32, padding: 16, background: '#eaf4fb', borderRadius: 8 }}>
           <h3>Write a Review</h3>
@@ -324,7 +343,6 @@ function ServiceDetail() {
           </div>
         </div>
       )}
-      {/* Reviews Section */}
       <h3 style={{ marginTop: 32 }}>Reviews</h3>
       {reviews.length === 0 && <div>No reviews yet.</div>}
       {reviews.map(r => (

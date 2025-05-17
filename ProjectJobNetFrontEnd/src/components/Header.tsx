@@ -20,10 +20,6 @@ function Header() {
     return '?';
   };
 
-  const toggleTheme = () => {
-    document.body.classList.toggle('dark-mode');
-  };
-
   return (
     <header className="header">
       <div className="logo" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
@@ -34,7 +30,6 @@ function Header() {
         {/* Quick access buttons styled like other nav buttons */}
         <button className="btn" onClick={() => navigate('/vacancies')}>Vacancies</button>
         <button className="btn" onClick={() => navigate('/services')}>Services</button>
-        <button className="btn" onClick={toggleTheme}>🌓</button>
         {!token ? (
           <>
             <button className="btn" onClick={() => navigate('/login')}>Sign In</button>

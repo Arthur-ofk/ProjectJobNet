@@ -5,6 +5,7 @@ import vacanciesReducer from './slices/vacanciesSlice.ts';
 import servicesReducer from './slices/servicesSlice.ts';
 import notificationsReducer from './slices/notificationsSlice.ts';
 import blogReducer from './slices/blogSlice.ts';
+import vacancyDetailReducer from './slices/vacancyDetailSlice.ts';
 import rootSaga from './sagas/rootSaga.ts';
 
 const sagaMiddleware = createSagaMiddleware();
@@ -25,6 +26,7 @@ const store = configureStore({
     services: servicesReducer,
     notifications: notificationsReducer,
     blog: blogReducer,
+    vacancyDetail: vacancyDetailReducer,
   },
   preloadedState: { auth: preloadedAuth },
   middleware: getDefaultMiddleware =>

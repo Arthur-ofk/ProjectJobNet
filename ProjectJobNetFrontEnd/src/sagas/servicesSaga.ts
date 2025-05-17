@@ -1,4 +1,4 @@
-import { call, put, takeLatest } from 'redux-saga/effects';
+import { call, put, takeLatest, select } from 'redux-saga/effects';
 import { API_BASE_URL } from '../constants.ts';
 import {
   fetchServicesRequest,
@@ -23,8 +23,10 @@ function* handleFetchServices() {
 
 function* handleUpvoteService(action: ReturnType<typeof upvoteServiceRequested>) {
   try {
+    const token: string = yield select((s: any) => s.auth.token);
     const response: Response = yield call(fetch, `${API_BASE_URL}/services/${action.payload}/upvote`, {
       method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     });
     if (!response.ok) throw new Error('Failed to upvote service');
     yield put(upvoteServiceSuccess({ serviceId: action.payload }));
@@ -35,8 +37,10 @@ function* handleUpvoteService(action: ReturnType<typeof upvoteServiceRequested>)
 
 function* handleDownvoteService(action: ReturnType<typeof downvoteServiceRequested>) {
   try {
+    const token: string = yield select((s: any) => s.auth.token);
     const response: Response = yield call(fetch, `${API_BASE_URL}/services/${action.payload}/downvote`, {
       method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     });
     if (!response.ok) throw new Error('Failed to downvote service');
     yield put(downvoteServiceSuccess({ serviceId: action.payload }));

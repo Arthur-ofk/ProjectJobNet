@@ -1,0 +1,47 @@
+.blog-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 16px;
+}
+.post-preview {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 16px;
+}
+.post-preview h4 {
+  margin: 0 0 8px;
+  color: #245ea0;
+}
+.meta {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 8px;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+}
+.actions button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+}
+.actions .comment-btn {
+  background: none;
+  border: none;
+  color: #245ea0;
+  cursor: pointer;
+  font-size: 1rem;
+}
+.loader {
+  text-align: center;
+  padding: 12px;
+  color: #888;
+}
+.error {
+  color: red;
+  text-align: center;
+}

@@ -5,7 +5,7 @@ import { API_BASE_URL } from '../constants.ts';
 function* handleFetchVacancyDetail(action: ReturnType<typeof fetchVacancyDetailRequest>) {
   try {
     const { id } = action.payload;
-    const response: Response = yield call(fetch, `${API_BASE_URL}/api/vacancies/${id}`);
+    const response: Response = yield call(fetch, `${API_BASE_URL}/jobs/${id}`);
     if (!response.ok) {
       throw new Error('Failed to fetch vacancy details');
     }

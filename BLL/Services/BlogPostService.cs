@@ -48,25 +48,24 @@ namespace BLL.Services
             return _mapper.Map<IEnumerable<BlogPostDto>>(posts);
         }
 
-        public async Task AddBlogPostAsync(CreateBlogPostDto createBlogPostDto)
+        public async Task<BlogPostDto> AddBlogPostAsync(CreateBlogPostDto dto)
         {
-            var blogPost = _mapper.Map<BlogPost>(createBlogPostDto);
-            blogPost.CreatedAt = DateTime.Now;
-            blogPost.UpdatedAt = DateTime.Now;
+            var blogPost = _mapper.Map<BlogPost>(dto);
+            blogPost.CreatedAt = DateTime.UtcNow;
+            blogPost.UpdatedAt = DateTime.UtcNow;
 
-            if (createBlogPostDto.Image != null && createBlogPostDto.Image.Length > 0)
+            // only map binary if a file was actually uploaded
+            if (dto.Image != null && dto.Image.Length > 0)
             {
-                using (var ms = new MemoryStream())
-                {
-                    await createBlogPostDto.Image.CopyToAsync(ms);
-                    blogPost.ImageData = ms.ToArray();
-                }
-                blogPost.ImageContentType = createBlogPostDto.Image.ContentType;
-                // Image is now stored in the DB rather than saved to the file system.
+                using var ms = new MemoryStream();
+                await dto.Image.CopyToAsync(ms);
+                blogPost.ImageData = ms.ToArray();
+                blogPost.ImageContentType = dto.Image.ContentType;
             }
 
             await _unitOfWork.BlogPostRepository.AddAsync(blogPost);
             await _unitOfWork.CompleteAsync();
+            return _mapper.Map<BlogPostDto>(blogPost);
         }
 
         public async Task UpdateBlogPostAsync(Guid id, UpdateBlogPostDto updateBlogPostDto)

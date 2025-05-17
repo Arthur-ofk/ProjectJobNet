@@ -11,7 +11,7 @@ namespace BLL.Services.Abstractins
     {
         Task<IEnumerable<BlogPostDto>> GetAllBlogPostsAsync();
         Task<BlogPostDto> GetBlogPostByIdAsync(Guid id);
-        Task AddBlogPostAsync(CreateBlogPostDto createBlogPostDto);
+        Task<BlogPostDto> AddBlogPostAsync(CreateBlogPostDto createBlogPostDto);
         Task UpdateBlogPostAsync(Guid id, UpdateBlogPostDto updateBlogPostDto);
         Task DeleteBlogPostAsync(Guid id);
         Task<IEnumerable<BlogPostDto>> GetPagedBlogPostsAsync(int skip, int take);

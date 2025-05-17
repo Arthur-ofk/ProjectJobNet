@@ -125,3 +125,80 @@
 .submit-comment-btn:hover {
   background-color: var(--button-bg);
 }
+
+.comments-section .add-comment-section {
+  margin-bottom: 16px;
+}
+
+.comments-section .add-comment-textarea {
+  width: 100%;
+  height: 80px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px;
+  resize: vertical;
+}
+
+.comments-section .add-comment-btn {
+  background: #245ea0;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.comments-section .comment-item {
+  margin-bottom: 12px;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.detail-actions button {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.detail-actions button:nth-child(1) {
+  /* Upvote */
+  background: #eaf4fb;
+  color: #245ea0;
+}
+.detail-actions button:nth-child(1):hover {
+  background: #d0eaff;
+  transform: translateY(-1px);
+}
+.detail-actions button:nth-child(2) {
+  /* Downvote */
+  background: #ffeaea;
+  color: #b71c1c;
+}
+.detail-actions button:nth-child(2):hover {
+  background: #ffcccc;
+  transform: translateY(-1px);
+}
+.detail-actions button:nth-child(3) {
+  /* Save */
+  background: #eaf4fb;
+  color: #245ea0;
+}
+.detail-actions button:nth-child(3):hover {
+  background: #d0eaff;
+  transform: translateY(-1px);
+}
+.detail-actions button:nth-child(4) {
+  /* Report */
+  background: #ffeaea;
+  color: #b71c1c;
+}
+.detail-actions button:nth-child(4):hover {
+  background: #ffcccc;
+  transform: translateY(-1px);
+}

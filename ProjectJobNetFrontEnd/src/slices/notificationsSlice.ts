@@ -38,6 +38,11 @@ const notificationsSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+    clearNotifications(state) {
+      state.items = [];
+      state.loading = false;
+      state.error = null;
+    },
   },
 });
 
@@ -45,5 +50,6 @@ export const {
   fetchNotificationsRequest,
   fetchNotificationsSuccess,
   fetchNotificationsFailure,
+  clearNotifications,
 } = notificationsSlice.actions;
 export default notificationsSlice.reducer;

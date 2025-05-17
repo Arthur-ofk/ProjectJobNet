@@ -4,7 +4,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store.ts';
 import InfoCard from '../components/InfoCard.tsx';
 import { logout } from '../slices/authSlice.ts';
-import { Notification, fetchNotificationsRequest } from '../slices/notificationsSlice.ts';
+import { Notification, fetchNotificationsRequest, clearNotifications } from '../slices/notificationsSlice.ts';
+import { useNavigate } from 'react-router-dom';
 
 type Resume = {
   id: string;
@@ -69,6 +70,11 @@ function UserProfile() {
   const [orderActionStatus, setOrderActionStatus] = useState<string | null>(null);
   const notifications = useSelector((state: RootState) => state.notifications.items) as Notification[];
   const dispatch = useDispatch<AppDispatch>();
+  const [savedPosts, setSavedPosts] = useState<BlogPost[]>([]);
+  const navigate = useNavigate();
+  const [savedVacancies, setSavedVacancies] = useState<any[]>([]);
+  const [savedSubTab, setSavedSubTab] = useState<'posts'|'vacancies'|'services'>('posts');
+  const [savedServices, setSavedServices] = useState<BlogPost[]>([]);
 
   // Add Service Form State
   const [showAddService, setShowAddService] = useState(false);
@@ -130,17 +136,20 @@ function UserProfile() {
     if (!user) return;
     // Fetch services
     fetch(`${API_BASE_URL}/services`)
-      .then(res => res.json())
+      .then(res => res.ok ? res.json() : [])
       .then(data => {
         setServices(data.filter((s: Service) => s.userId === user.id));
       })
       .catch(() => setServices([]));
     // Fetch blog posts
-    fetch(`${API_BASE_URL}/posts`)
-      .then(res => res.json())
+    fetch(`${API_BASE_URL}/BlogPost`)
+      .then(res => res.ok ? res.json() : [])
       .then(data => {
-        setBlogPosts(data.filter((p: BlogPost) => p.userId === user.id));
-      });
+        setBlogPosts(Array.isArray(data)
+          ? data.filter((p: BlogPost) => p.userId === user.id)
+          : []);
+      })
+      .catch(() => setBlogPosts([]));
     // Fetch rating (average from reviews)
     fetch(`${API_BASE_URL}/Review`)
       .then(res => res.json())
@@ -184,6 +193,40 @@ function UserProfile() {
       return () => clearInterval(interval);
     }
   }, [user, token, dispatch]);
+
+  useEffect(() => {
+    if (tab === 'saved' && token) {
+      // saved blog posts
+      fetch(`${API_BASE_URL}/BlogPost/saved`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(setSavedPosts)
+        .catch(() => setSavedPosts([]));
+
+      // saved vacancies
+      fetch(`${API_BASE_URL}/SavedJob?employerId=${user.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(async saves => {
+          const jobs = await Promise.all(saves.map((s: any) =>
+            fetch(`${API_BASE_URL}/jobs/${s.jobId}`)
+              .then(r => r.json())
+          ));
+          setSavedVacancies(jobs);
+        })
+        .catch(() => setSavedVacancies([]));
+
+      // fetch saved services
+      fetch(`${API_BASE_URL}/BlogPost/saved`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(r => r.json())
+        .then(setSavedServices)
+        .catch(() => setSavedServices([]));
+    }
+  }, [tab, token]);
 
   // Helper to get auth headers if token exists
   const getAuthHeaders = () => {
@@ -716,11 +759,40 @@ function UserProfile() {
       )}
 
       {tab === 'saved' && (
-        <div>
-          <h3>Saved Items</h3>
-          <p>Here you can filter your saved vacancies, resumes, and posts.</p>
-          {/* Placeholder content; implement filtering logic later */}
-        </div>
+        <>
+          <div style={{ display:'flex', gap:12, marginBottom:16 }}>
+            <button style={savedSubTab==='posts'?btnPrimary:btnStyle} onClick={()=>setSavedSubTab('posts')}>Posts</button>
+            <button style={savedSubTab==='vacancies'?btnPrimary:btnStyle} onClick={()=>setSavedSubTab('vacancies')}>Vacancies</button>
+            <button style={savedSubTab==='services'?btnPrimary:btnStyle} onClick={()=>setSavedSubTab('services')}>Services</button>
+          </div>
+          {savedSubTab==='posts' && (
+            savedPosts.length===0 
+              ? <div>No saved posts.</div>
+              : savedPosts.map(p => (
+                  <div key={p.id} onClick={()=>navigate(`/posts/${p.id}`)} style={{border:'1px solid #245ea0',borderRadius:8,padding:12,marginBottom:12,cursor:'pointer'}}>
+                    <h4>{p.title}</h4><p>{p.content.slice(0,100)}…</p>
+                  </div>
+                ))
+          )}
+          {savedSubTab==='vacancies' && (
+            savedVacancies.length===0
+              ? <div>No saved vacancies.</div>
+              : savedVacancies.map(j => (
+                  <div key={j.id} onClick={()=>navigate(`/vacancies/${j.id}`)} style={{border:'1px solid #28a745',borderRadius:8,padding:12,marginBottom:12,cursor:'pointer'}}>
+                    <h4>{j.title}</h4><p>{j.location} • ${j.salary}</p>
+                  </div>
+                ))
+          )}
+          {savedSubTab==='services' && (
+            savedServices.length===0
+              ? <div>No saved services.</div>
+              : savedServices.map(s => (
+                  <div key={s.id} onClick={()=>navigate(`/services/${s.id}`)} style={{border:'1px solid #ff8c00',borderRadius:8,padding:12,marginBottom:12,cursor:'pointer'}}>
+                    <h4>{s.title}</h4><p>{s.content.slice(0,100)}…</p>
+                  </div>
+                ))
+          )}
+        </>
       )}
     </div>
   );

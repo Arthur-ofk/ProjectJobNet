@@ -56,6 +56,7 @@ namespace ProjectJobNet.Controllers
             await _userService.DeleteUserAsync(id);
             return NoContent();
         }
+
         [HttpGet("/search/{searchParam}/{value}")]
         public async Task<IActionResult> FindByParam(string searchParam, string value)
         {
@@ -63,5 +64,13 @@ namespace ProjectJobNet.Controllers
             return Ok(result);
         }
 
+        [HttpGet("{id}/username")]
+        [AllowAnonymous]
+        public async Task<ActionResult<string>> GetUsername(Guid id)
+        {
+            var user = await _userService.GetUserByIdAsync(id);
+            if (user == null) return NotFound();
+            return Ok(user.Username);
+        }
     }
 }
