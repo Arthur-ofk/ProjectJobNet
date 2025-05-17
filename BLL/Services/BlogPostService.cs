@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+
 
 namespace BLL.Services
 {
@@ -15,11 +17,13 @@ namespace BLL.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        
 
         public BlogPostService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+           
         }
 
         public async Task<IEnumerable<BlogPostDto>> GetAllBlogPostsAsync()
@@ -34,11 +38,32 @@ namespace BLL.Services
             return _mapper.Map<BlogPostDto>(blogPost);
         }
 
+        public async Task<IEnumerable<BlogPostDto>> GetPagedBlogPostsAsync(int skip, int take)
+        {
+            var posts = await _unitOfWork.BlogPostRepository.GetPagedAsync(
+                skip, 
+                take, 
+                orderBy: q => q.CreatedAt // Order ascending by CreatedAt; adjust if needed (e.g., descending)
+            );
+            return _mapper.Map<IEnumerable<BlogPostDto>>(posts);
+        }
+
         public async Task AddBlogPostAsync(CreateBlogPostDto createBlogPostDto)
         {
             var blogPost = _mapper.Map<BlogPost>(createBlogPostDto);
             blogPost.CreatedAt = DateTime.Now;
             blogPost.UpdatedAt = DateTime.Now;
+
+            if (createBlogPostDto.Image != null && createBlogPostDto.Image.Length > 0)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    await createBlogPostDto.Image.CopyToAsync(ms);
+                    blogPost.ImageData = ms.ToArray();
+                }
+                blogPost.ImageContentType = createBlogPostDto.Image.ContentType;
+                // Image is now stored in the DB rather than saved to the file system.
+            }
 
             await _unitOfWork.BlogPostRepository.AddAsync(blogPost);
             await _unitOfWork.CompleteAsync();

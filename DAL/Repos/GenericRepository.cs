@@ -39,6 +39,9 @@ namespace DAL.Repos
 
         public void RemoveRange(IEnumerable<T> entities) => _context.Set<T>().RemoveRange(entities);
 
-        
+        public async Task<IEnumerable<T>> GetPagedAsync(int skip, int take, Expression<Func<T, object>> orderBy)
+        {
+            return await _context.Set<T>().OrderBy(orderBy).Skip(skip).Take(take).ToListAsync();
+        }
     }
 }

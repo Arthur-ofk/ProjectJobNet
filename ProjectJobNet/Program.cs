@@ -53,7 +53,10 @@ namespace ProjectJobNet
             builder.Services.AddScoped<ILikedPostService, LikedPostService>();
             builder.Services.AddScoped<ISavedJobService, SavedJobService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
-            
+            builder.Services.AddScoped<IBlogPostVoteService,BlogPostVoteService>();
+            builder.Services.AddScoped<IPostCommentService, PostCommentService>();
+            builder.Services.AddScoped<ISavedBlogPostService, SavedBlogPostService>();
+
 
             builder.Services.AddControllers();
             //Реєстрація UOW і репозиторіїв
@@ -77,6 +80,9 @@ namespace ProjectJobNet
             builder.Services.AddScoped<ISavedJobRepository, SavedJobRepository>();
             builder.Services.AddScoped<IServiceVoteRepository, ServiceVoteRepository>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            builder.Services.AddScoped<IBlogPostVoteRepository, BlogPostVoteRepository>();
+            builder.Services.AddScoped<IPostCommentRepository, PostCommentRepository>();
+            builder.Services.AddScoped<ISavedBlogPostRepository, SavedBlogPostRepository>();
 
             builder.Services.AddSwaggerGen(options =>
             {

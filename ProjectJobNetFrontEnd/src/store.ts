@@ -1,10 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
-import createSagaMiddleware from 'redux-saga'; // Run: npm install redux-saga @types/redux-saga
+import createSagaMiddleware from 'redux-saga';
+import authReducer from './slices/authSlice.ts';
 import vacanciesReducer from './slices/vacanciesSlice.ts';
 import servicesReducer from './slices/servicesSlice.ts';
-import authReducer from './slices/authSlice.ts';
-import notificationsReducer from './slices/notificationsSlice.ts'; // Ensure this file exists (see below)
-import rootSaga from './sagas/rootSaga.ts'; // Ensure this file exists (see below)
+import notificationsReducer from './slices/notificationsSlice.ts';
+import blogReducer from './slices/blogSlice.ts';
+import rootSaga from './sagas/rootSaga.ts';
 
 const sagaMiddleware = createSagaMiddleware();
 
@@ -19,16 +20,20 @@ const preloadedAuth = {
 
 const store = configureStore({
   reducer: {
+    auth: authReducer,
     vacancies: vacanciesReducer,
     services: servicesReducer,
-    auth: authReducer,
     notifications: notificationsReducer,
+    blog: blogReducer,
   },
-  preloadedState: {
-    auth: preloadedAuth,
-  },
+  preloadedState: { auth: preloadedAuth },
   middleware: getDefaultMiddleware =>
-    getDefaultMiddleware({ thunk: false }).concat(sagaMiddleware),
+    getDefaultMiddleware({
+      thunk: false,
+      serializableCheck: {
+        ignoredActions: ['blog/createPostRequest'],
+      },
+    }).concat(sagaMiddleware),
 });
 
 sagaMiddleware.run(rootSaga);

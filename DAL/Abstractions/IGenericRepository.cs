@@ -17,5 +17,6 @@ namespace DAL.Abstractions
         void Update(T entity);
         void Remove(T entity);
         void RemoveRange(IEnumerable<T> entities);
+        Task<IEnumerable<T>> GetPagedAsync(int skip, int take, Expression<Func<T, object>> orderBy);
     }
 }

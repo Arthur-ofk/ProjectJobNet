@@ -153,5 +153,14 @@ namespace ProjectJobNet.Controllers
             await _complaintService.AddComplaintAsync(complaintDto);
             return Ok();
         }
+
+        // New endpoint for dynamic, paged download of blog posts
+        [HttpGet("paged")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetPagedBlogPosts([FromQuery] int skip = 0, [FromQuery] int take = 10)
+        {
+            var posts = await _blogPostService.GetPagedBlogPostsAsync(skip, take);
+            return Ok(posts);
+        }
     }
 }

@@ -19,6 +19,7 @@ import PlaceVacancy from './pages/PlaceVacancy.tsx';
 import PlaceService from './pages/PlaceService.tsx';
 import BlogSection from './pages/BlogSection.tsx';
 import PostDetail from './pages/PostDetail.tsx'; // NEW: Import detailed blog post view
+import './App.css';
 
 function App() {
   return (
@@ -42,24 +43,26 @@ function App() {
             
             <main className="main-container" style={{ flex: 1 }}>
               <div><Header /></div>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/vacancies" element={<AllVacancies />} />
-                <Route path="/services" element={<AllServices />} />
-                <Route path="/vacancies/:id" element={<VacancyDetail />} />
-                <Route path="/services/:id" element={<ServiceDetail />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/profile" element={<UserProfile />} />
-                {/* Updated routes for creating new items */}
-                <Route path="/createVacancy" element={<PlaceVacancy />} />
-                <Route path="/createService" element={<PlaceService />} />
-                <Route path="/blog" element={<BlogSection />} />
-                <Route path="/posts/:id" element={<PostDetail />} /> {/* NEW: Detailed blog post route */}
-              </Routes>
-                <div><Footer /></div>
+              <div className="main-container">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/vacancies" element={<AllVacancies />} />
+                  <Route path="/services" element={<AllServices />} />
+                  <Route path="/vacancies/:id" element={<VacancyDetail />} />
+                  <Route path="/services/:id" element={<ServiceDetail />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/profile" element={<UserProfile />} />
+                  {/* Updated routes for creating new items */}
+                  <Route path="/createVacancy" element={<PlaceVacancy />} />
+                  <Route path="/createService" element={<PlaceService />} />
+                  <Route path="/blog" element={<BlogSection />} />
+                  <Route path="/posts/:id" element={<PostDetail />} /> {/* NEW: Detailed blog post route */}
+                </Routes>
+              </div>
+              <div><Footer /></div>
             </main>
             
            

@@ -222,6 +222,17 @@ This document outlines the endpoints and models used in the backend. Each contro
   - **Response:** NoContent
 - **DELETE** `/api/posts/{id}`
   - **Response:** NoContent
+- **GET** `/BlogPost/paged?skip={skip}&take={take}` (AllowAnonymous)
+  - **Response:** IEnumerable<BlogPostDto>
+  - **Usage:** Dynamically load posts using paging parameters (skip and take)
+
+## BlogPost Extra Entities
+- **BlogPostVotes**
+  - Created via repository/service calls using IBlogPostVoteService.
+- **PostComments**
+  - Handled via IPostCommentService.
+- **SavedBlogPosts**
+  - Managed via ISavedBlogPostService.
 
 ---
 

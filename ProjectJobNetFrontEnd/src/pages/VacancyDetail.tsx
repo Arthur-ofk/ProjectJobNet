@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { API_BASE_URL } from '../constants.ts';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store';
+import { fetchVacancyDetailRequest } from '../slices/vacancyDetailSlice.ts';
 
 type Vacancy = {
   id: string;
@@ -17,19 +19,17 @@ type Vacancy = {
 
 function VacancyDetail() {
   const { id } = useParams();
-  const [vacancy, setVacancy] = useState<Vacancy | null>(null);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { vacancy, loading, error } = useSelector((state: RootState) => state.vacancyDetail);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/jobs/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        setVacancy(data);
-        setLoading(false);
-      });
-  }, [id]);
+    if (id) {
+      dispatch(fetchVacancyDetailRequest({ id }));
+    }
+  }, [id, dispatch]);
 
   if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
   if (!vacancy) return <div>Not found</div>;
 
   return (
