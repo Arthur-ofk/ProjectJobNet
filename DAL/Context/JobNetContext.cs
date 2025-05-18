@@ -34,6 +34,8 @@ namespace DAL.Context
         public DbSet<BlogPostVote> BlogPostVotes { get; set; }   // New
         public DbSet<PostComment> PostComments { get; set; }       // New
         public DbSet<SavedBlogPost> SavedBlogPosts { get; set; }   // New
+        public DbSet<Organization> Organizations { get; set; }
+        public DbSet<OrganizationUser> OrganizationUsers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -243,6 +245,29 @@ namespace DAL.Context
                       .WithMany(u => u.PostComments)
                       .HasForeignKey(c => c.UserId)
                       .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Configure OrganizationUser (composite key)
+            modelBuilder.Entity<OrganizationUser>(entity =>
+            {
+                entity.HasKey(ou => new { ou.OrganizationId, ou.UserId });
+                
+                entity.HasOne(ou => ou.Organization)
+                    .WithMany(o => o.Members)
+                    .HasForeignKey(ou => ou.OrganizationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                    
+                entity.HasOne(ou => ou.User)
+                    .WithMany(u => u.Organizations)
+                    .HasForeignKey(ou => ou.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+            
+            // Configure Organization
+            modelBuilder.Entity<Organization>(entity =>
+            {
+                entity.HasKey(o => o.Id);
+                entity.Property(o => o.Name).IsRequired().HasMaxLength(200);
             });
         }
     }

@@ -1,0 +1,307 @@
+.organization-detail {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 16px rgba(36, 94, 160, 0.08);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.org-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.org-logo {
+  width: 80px;
+  height: 80px;
+  margin-right: 24px;
+}
+
+.org-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.org-title {
+  flex: 1;
+}
+
+.org-title h2 {
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.org-industry {
+  color: #666;
+  margin: 0;
+}
+
+.org-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-button {
+  padding: 8px 16px;
+  background: #245ea0;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.org-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.org-tabs button {
+  border-radius: 8px;
+  padding: 8px 16px;
+  background: #eaf4fb;
+  color: #245ea0;
+  border: 1px solid #b3e0ff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.org-tabs button.active {
+  background: #245ea0;
+  color: #fff;
+  border-color: #245ea0;
+}
+
+.org-tab-content {
+  padding: 24px 0;
+}
+
+.org-detail {
+  margin-bottom: 8px;
+}
+
+.invite-button, .add-button {
+  padding: 8px 16px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+.services-grid, .jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.service-card, .job-card {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #eee;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.service-card:hover, .job-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.service-card h4, .job-card h4 {
+  margin-top: 0;
+  color: #245ea0;
+}
+
+.job-details {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.member-card {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f9f9f9;
+  margin-bottom: 12px;
+}
+
+.member-avatar {
+  margin-right: 16px;
+}
+
+.member-avatar img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-info h4 {
+  margin: 0 0 4px 0;
+}
+
+.member-role {
+  color: #245ea0;
+  font-weight: 600;
+  margin: 0;
+}
+
+.member-since {
+  color: #777;
+  font-size: 0.8rem;
+  margin: 4px 0 0 0;
+}
+
+.member-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.remove-button {
+  padding: 4px 8px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Blog posts grid */
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.blog-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(36, 94, 160, 0.08);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.blog-card:hover {
+  box-shadow: 0 8px 20px rgba(36, 94, 160, 0.16);
+  transform: translateY(-4px);
+}
+
+.blog-card-image {
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+}
+
+.blog-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.blog-card:hover .blog-card-image img {
+  transform: scale(1.05);
+}
+
+.blog-card-content {
+  padding: 16px;
+}
+
+.blog-card h4 {
+  margin: 0 0 8px 0;
+  color: #245ea0;
+}
+
+.blog-card p {
+  margin: 0 0 12px 0;
+  color: #555;
+  line-height: 1.4;
+}
+
+.blog-date {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Form for creating posts */
+.create-form {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 12px;
+  margin: 16px 0 24px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.submit-button {
+  background: #245ea0;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-button:hover {
+  background: #1c4c82;
+}
+
+.add-button {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.add-button:hover {
+  background: #218838;
+}

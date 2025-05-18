@@ -20,6 +20,7 @@ import PlaceService from './pages/PlaceService.tsx';
 import BlogSection from './pages/BlogSection.tsx';
 import PostDetail from './pages/PostDetail.tsx'; // NEW: Import detailed blog post view
 import UserDetail from './pages/UserDetail.tsx';
+import OrganizationDetail from './pages/OrganizationDetail.tsx'; // NEW: Import organization detail view
 import './App.css';
 
 function App() {
@@ -62,6 +63,7 @@ function App() {
                   <Route path="/blog" element={<BlogSection />} />
                   <Route path="/posts/:id" element={<PostDetail />} /> {/* NEW: Detailed blog post route */}
                   <Route path="/users/:id" element={<UserDetail />} />
+                  <Route path="/organizations/:id" element={<OrganizationDetail />} /> {/* NEW: Organization detail route */}
                 </Routes>
               </div>
               <div><Footer /></div>

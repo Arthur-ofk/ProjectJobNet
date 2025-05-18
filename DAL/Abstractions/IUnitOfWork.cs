@@ -29,13 +29,15 @@ namespace DAL.Abstractions
             IWarningRepository WarningRepository { get; }
             ILikedPostRepository LikedPostRepository { get; }
             ISavedJobRepository SavedJobRepository { get; }
-        IServiceVoteRepository ServiceVoteRepository { get; }
-        IOrderRepository OrderRepository { get; }
-        IBlogPostVoteRepository BlogPostVoteRepository { get; }
-        IPostCommentRepository PostCommentRepository { get; }
-        ISavedBlogPostRepository SavedBlogPostRepository { get; }
+            IServiceVoteRepository ServiceVoteRepository { get; }
+            IOrderRepository OrderRepository { get; }
+            IBlogPostVoteRepository BlogPostVoteRepository { get; }
+            IPostCommentRepository PostCommentRepository { get; }
+            ISavedBlogPostRepository SavedBlogPostRepository { get; }
+            IOrganizationRepository OrganizationRepository { get; }
+            IOrganizationUserRepository OrganizationUserRepository { get; }
 
-        Task<int> CompleteAsync();
+            Task<int> CompleteAsync();
         }
     
 }

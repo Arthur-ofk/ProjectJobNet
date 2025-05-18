@@ -31,5 +31,10 @@ namespace DAL.Models
         public DateTime UpdatedAt { get; set; }
         public ICollection<JobTag> JobTags { get; set; } = new List<JobTag>();
         public ICollection<SavedJob> SavedJobs { get; set; } = new List<SavedJob>();
+        // Add OrganizationId property to associate jobs with organizations
+        public Guid? OrganizationId { get; set; }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        public Organization Organization { get; set; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     }
 }

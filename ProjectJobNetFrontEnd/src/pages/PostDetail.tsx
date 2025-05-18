@@ -300,51 +300,27 @@ function PostDetail() {
     });
   };
 
+  // Handle back button to maintain scroll position
+  const handleBackClick = () => {
+    navigate(-1); // Use browser history to go back
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!post) return <div>No post found</div>;
 
   return (
-    
     <div className="post-detail-container">
-      <button className="back-btn" onClick={() => navigate(-1)}>← Back</button>
+      {/* Single back button */}
+      <button className="back-btn" onClick={handleBackClick}>← Back</button>
+      
       <h2>{post.title}</h2>
       <div className="post-meta">
         <span>Author: {author}</span>
         <span>Posted on {new Date(post.createdAt).toLocaleString()}</span>
       </div>
-      <div className="detail-actions">
-        {token && <>
-          <button 
-            style={{
-              backgroundColor: voteStatus === 'up' ? '#4CAF50' : '#eaf4fb',
-              color: voteStatus === 'up' ? 'white' : '#245ea0',
-              fontWeight: voteStatus === 'up' ? 'bold' : 'normal'
-            }} 
-            onClick={() => handleVotePost(true)}
-          >
-            ▲ Upvote
-          </button>
-          <button 
-            style={{
-              backgroundColor: voteStatus === 'down' ? '#f44336' : '#eaf4fb',
-              color: voteStatus === 'down' ? 'white' : '#245ea0',
-              fontWeight: voteStatus === 'down' ? 'bold' : 'normal'
-            }} 
-            onClick={() => handleVotePost(false)}
-          >
-            ▼ Downvote
-          </button>
-          <span style={{ margin: '0 12px', fontWeight: 600 }}>Score: {votes}</span>
-          <button onClick={toggleSave}>
-            {saved ? '★ Saved' : '☆ Save'}
-          </button>
-          <button onClick={handleReport}>⚠️ Report</button>
-        </>}
-      </div>
-      <div className="post-content">{post.content}</div>
       
-      {/* Display post image if available */}
+      {/* Display post image first if available */}
       {post.imageData && (
         <div className="post-image-container">
           <img 
@@ -355,11 +331,49 @@ function PostDetail() {
         </div>
       )}
       
+      {/* Content and actions below the image */}
+      <div className="post-content">{post.content}</div>
+      
+      <div className="detail-actions">
+        {token && <>
+          <button 
+            className={`vote-button upvote ${voteStatus === 'up' ? 'active' : ''}`}
+            onClick={() => handleVotePost(true)}
+          >
+            <span className="vote-icon">▲</span>
+            <span className="vote-text">Upvote</span>
+          </button>
+          <button 
+            className={`vote-button downvote ${voteStatus === 'down' ? 'active' : ''}`}
+            onClick={() => handleVotePost(false)}
+          >
+            <span className="vote-icon">▼</span>
+            <span className="vote-text">Downvote</span>
+          </button>
+          <span className="vote-score">Score: {votes}</span>
+          <button 
+            className={`action-button save-btn ${saved ? 'active' : ''}`}
+            onClick={toggleSave}
+          >
+            <span className="action-icon">{saved ? '★' : '☆'}</span>
+            <span className="action-text">{saved ? 'Saved' : 'Save'}</span>
+          </button>
+          <button 
+            className="action-button report-btn"
+            onClick={handleReport}
+          >
+            <span className="action-icon">⚠️</span>
+            <span className="action-text">Report</span>
+          </button>
+        </>}
+      </div>
+      
       {post.tags?.length > 0 && (
         <div className="post-tags">
           {post.tags.map(tag => <span key={tag} className="tag">{tag}</span>)}
         </div>
       )}
+      
       <div className="comments-section">
         <h3>Comments</h3>
         {token && (

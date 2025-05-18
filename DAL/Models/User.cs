@@ -51,5 +51,8 @@ namespace DAL.Models
         public ICollection<BlogPostVote> BlogPostVotes { get; set; } = new List<BlogPostVote>();
         public ICollection<PostComment> PostComments { get; set; } = new List<PostComment>();
         public ICollection<SavedBlogPost> SavedBlogPosts { get; set; } = new List<SavedBlogPost>();
+
+        // New navigation property for organizations:
+        public ICollection<OrganizationUser> Organizations { get; set; }
     }
 }

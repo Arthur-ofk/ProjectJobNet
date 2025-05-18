@@ -1,12 +1,28 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { API_BASE_URL } from '../constants.ts';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate, Link } from 'react-router-dom';
 import { RootState, AppDispatch } from '../store.ts';
-import InfoCard from '../components/InfoCard.tsx';
+import { API_BASE_URL } from '../constants.ts';
+import { fetchPostsRequest } from '../slices/blogSlice.ts';
 import { logout } from '../slices/authSlice.ts';
-import { Notification, fetchNotificationsRequest, clearNotifications } from '../slices/notificationsSlice.ts';
-import { useNavigate } from 'react-router-dom';
+import { fetchNotificationsRequest } from '../slices/notificationsSlice.ts'; // Add this import
+import InfoCard from '../components/InfoCard.tsx';
+import './UserProfile.css';
 
+// Organization type definition
+type Organization = {
+  id: string;
+  name: string;
+  description: string;
+  industry: string;
+  website: string;
+  address: string;
+  logoUrl: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// Other existing types remain the same
 type Resume = {
   id: string;
   userId: string;
@@ -53,8 +69,9 @@ type Order = {
 };
 
 function UserProfile() {
+  // Existing state from the original component
   const { user, token } = useSelector((state: RootState) => state.auth);
-  const [tab, setTab] = useState<'info' | 'resumes' | 'services' | 'notifications' | 'orders' | 'saved'>('info');
+  const [tab, setTab] = useState<'info' | 'resumes' | 'services' | 'notifications' | 'orders' | 'saved' | 'organizations'>('info');
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [resumeError, setResumeError] = useState<string | null>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -87,6 +104,22 @@ function UserProfile() {
 
   // Polling interval for order status updates (in ms)
   const POLL_INTERVAL = 3000;
+
+  // New state for organizations
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [showCreateOrg, setShowCreateOrg] = useState(false);
+  const [newOrg, setNewOrg] = useState({
+    name: '',
+    description: '',
+    industry: '',
+    website: '',
+    address: '',
+    logoUrl: ''
+  });
+
+  // Active organization context for business view
+  const [activeOrg, setActiveOrg] = useState<Organization | null>(null);
+  const [viewMode, setViewMode] = useState<'personal' | 'business'>('personal');
 
   useEffect(() => {
     if (!user || !token) return;
@@ -141,13 +174,14 @@ function UserProfile() {
         setServices(data.filter((s: Service) => s.userId === user.id));
       })
       .catch(() => setServices([]));
-    // Fetch blog posts
+    // Fetch blog posts - FIX: Filter by user ID
     fetch(`${API_BASE_URL}/BlogPost`)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
-        setBlogPosts(Array.isArray(data)
+        const userPosts = Array.isArray(data) 
           ? data.filter((p: BlogPost) => p.userId === user.id)
-          : []);
+          : [];
+        setBlogPosts(userPosts);
       })
       .catch(() => setBlogPosts([]));
     // Fetch rating (average from reviews)
@@ -227,6 +261,26 @@ function UserProfile() {
         .catch(() => setSavedServices([]));
     }
   }, [tab, token]);
+
+  // Add a new useEffect for loading user's organizations
+  useEffect(() => {
+    if (user && token) {
+      fetch(`${API_BASE_URL}/organization/user/${user.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.ok ? res.json() : [])
+        .then(orgs => {
+          setOrganizations(orgs);
+          if (orgs.length > 0 && !activeOrg) {
+            setActiveOrg(orgs[0]);
+          }
+        })
+        .catch(err => {
+          console.error("Error loading organizations", err);
+          setOrganizations([]);
+        });
+    }
+  }, [user, token]);
 
   // Helper to get auth headers if token exists
   const getAuthHeaders = () => {
@@ -473,6 +527,67 @@ function UserProfile() {
     window.location.href = `/services/${serviceId}`; // or open a modal for rating
   };
 
+  // New handlers for organization actions
+  const handleCreateOrg = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !user) {
+      alert("You must be logged in to create an organization");
+      return;
+    }
+  
+    try {
+      const requestData = {
+        ...newOrg,
+        ownerUserId: user.id
+      };
+      console.log("Creating organization with data:", requestData);
+  
+      const res = await fetch(`${API_BASE_URL}/organization`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(requestData)
+      });
+  
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Server response:", errorText);
+        throw new Error(`Failed to create organization: ${res.status} ${res.statusText}. ${errorText}`);
+      }
+  
+      const created = await res.json();
+      console.log("Organization created:", created);
+      
+      setOrganizations([...organizations, created]);
+      setShowCreateOrg(false);
+      setNewOrg({
+        name: '',
+        description: '',
+        industry: '',
+        website: '',
+        address: '',
+        logoUrl: ''
+      });
+  
+      // Set active org to the newly created one
+      setActiveOrg(created);
+      setViewMode('business');
+    } catch (err) {
+      console.error("Error creating organization:", err);
+      alert(`Failed to create organization: ${err.message}`);
+    }
+  };
+  
+
+  const switchViewMode = (mode: 'personal' | 'business', org?: Organization) => {
+    setViewMode(mode);
+    if (mode === 'business' && org) {
+      setActiveOrg(org);
+    }
+  };
+
   // --- Button Styles ---
   const btnStyle: React.CSSProperties = {
     borderRadius: 8,
@@ -498,301 +613,744 @@ function UserProfile() {
   if (!user) return <div>Loading...</div>;
 
   return (
-    <div style={{ background: '#fff', borderRadius: 16, padding: 32, boxShadow: '0 4px 16px rgba(36,94,160,0.08)', maxWidth: 900, margin: '0 auto' }}>
-      <h2>Your Profile</h2>
-      <button
-        style={{
-          float: 'right',
-          borderRadius: 8,
-          padding: '6px 18px',
-          background: '#ffeaea',
-          color: '#b71c1c',
-          border: '1px solid #b71c1c',
-          fontWeight: 600,
-          fontSize: '1rem',
-          cursor: 'pointer'
-        }}
-        onClick={handleLogout}
-      >
-        Logout
-      </button>
-      <div style={{ marginBottom: 24 }}>
-        <button style={tab === 'info' ? btnPrimary : btnStyle} onClick={() => setTab('info')}>Info</button>
-        <button style={tab === 'resumes' ? btnPrimary : btnStyle} onClick={() => setTab('resumes')}>Resumes</button>
-        <button style={tab === 'services' ? btnPrimary : btnStyle} onClick={() => setTab('services')}>Services</button>
-        <button style={tab === 'notifications' ? btnPrimary : btnStyle} onClick={() => setTab('notifications')}>
-          Notifications
-        </button>
-        <button style={tab === 'orders' ? btnPrimary : btnStyle} onClick={() => setTab('orders')}>My Orders</button>
-        <button style={tab === 'saved' ? btnPrimary : btnStyle} onClick={() => setTab('saved')}>Saved</button>
+    <div className="profile-container">
+      {/* Always visible profile header with enhanced styling */}
+      <div className="profile-header">
+        <div className="profile-avatar">
+          <img src={`https://i.pravatar.cc/150?u=${user?.id}`} alt="Profile" />
+        </div>
+        <div className="profile-info">
+          <h2 className="profile-name">{user?.firstName} {user?.lastName}</h2>
+          <p className="profile-username">@{user?.userName}</p>
+          <p className="profile-email">{user?.email}</p>
+
+          {/* Organization selector - only shown if user has orgs */}
+          {organizations.length > 0 && (
+            <div className="view-selector">
+              <span>View as: </span>
+              <button 
+                className={viewMode === 'personal' ? 'active' : ''} 
+                onClick={() => switchViewMode('personal')}
+              >
+                Personal
+              </button>
+              <div className="org-dropdown">
+                <button 
+                  className={viewMode === 'business' ? 'active' : ''}
+                >
+                  {activeOrg?.name || 'Business'} ▼
+                </button>
+                <div className="dropdown-content">
+                  {organizations.map(org => (
+                    <button key={org.id} onClick={() => switchViewMode('business', org)}>
+                      {org.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Add logout button */}
+        <div className="profile-actions">
+          <button 
+            onClick={handleLogout} 
+            className="logout-btn"
+            style={{
+              background: '#f44336',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '8px 16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              marginLeft: 'auto'
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
-      {tab === 'info' && (
+      {/* View mode specific tabs */}
+      {viewMode === 'personal' ? (
         <>
-          <div style={{ marginBottom: 16 }}>
-            <b>Username:</b> {user.userName}<br />
-            <b>Name:</b> {user.firstName} {user.lastName}<br />
-            <b>Email:</b> {user.email}<br />
-            <b>Address:</b> {user.address}<br />
-            <b>Phone:</b> {user.phoneNumber}<br />
-            <b>Date of Birth:</b> {user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : ''}<br />
-            <b>Rating:</b> {rating !== null ? rating.toFixed(2) : 'No reviews yet'}
+          {/* Personal view tabs */}
+          <div className="profile-tabs">
+            <button className={tab === 'info' ? 'active' : ''} onClick={() => setTab('info')}>Info</button>
+            <button className={tab === 'resumes' ? 'active' : ''} onClick={() => setTab('resumes')}>Resumes</button>
+            <button className={tab === 'services' ? 'active' : ''} onClick={() => setTab('services')}>My Services</button>
+            <button className={tab === 'notifications' ? 'active' : ''} onClick={() => setTab('notifications')}>Notifications</button>
+            <button className={tab === 'orders' ? 'active' : ''} onClick={() => setTab('orders')}>My Orders</button>
+            <button className={tab === 'saved' ? 'active' : ''} onClick={() => setTab('saved')}>Saved</button>
+            <button className={tab === 'organizations' ? 'active' : ''} onClick={() => setTab('organizations')}>Organizations</button>
           </div>
-          <button style={btnStyle} onClick={() => setShowSettings(s => !s)}>
-            {showSettings ? 'Close Settings' : 'Edit Info'}
-          </button>
-          <h3 style={{ marginTop: 32 }}>Your Blog Posts</h3>
-          {/* ...blog posts section as before... */}
-        </>
-      )}
 
-      {tab === 'resumes' && (
-        <>
-          <h3>Resume</h3>
-          {resumeError && <div style={{ color: 'red', marginBottom: 8 }}>{resumeError}</div>}
-          {resumes.length > 0 ? (
-            resumes.map(resume => (
-              <div key={resume.id} style={{ marginBottom: 16 }}>
-                <div>
-                  <b>File:</b> {resume.fileName ? (
-                    <a
-                      href={`data:${resume.contentType};base64,${resume.fileContent}`}
-                      download={resume.fileName}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: '#245ea0', textDecoration: 'underline' }}
-                    >
-                      {resume.fileName}
-                    </a>
-                  ) : (
-                    <span>No file</span>
-                  )}
-                  <button
-                    style={{
-                      marginLeft: 16,
-                      borderRadius: 8,
-                      padding: '4px 12px',
-                      background: '#ffeaea',
-                      color: '#b71c1c',
-                      border: '1px solid #b71c1c',
-                      cursor: 'pointer'
-                    }}
-                    onClick={() => handleDeleteResume(resume.id)}
-                    disabled={loading}
-                  >
-                    Delete
-                  </button>
+          {/* Content for personal tabs */}
+          <div className="profile-content">
+            {tab === 'info' && (
+              <div className="info-section">
+                {/* Full user info with enhanced styling */}
+                <div className="user-details">
+                  <h3 className="section-title">Personal Information</h3>
+                  <div className="detail-grid">
+                    <div className="detail-item">
+                      <span className="detail-label">Username:</span>
+                      <span className="detail-value">{user?.userName}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Name:</span>
+                      <span className="detail-value">{user?.firstName} {user?.lastName}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Email:</span>
+                      <span className="detail-value">{user?.email}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Phone:</span>
+                      <span className="detail-value">{user?.phoneNumber || 'Not provided'}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Address:</span>
+                      <span className="detail-value">{user?.address || 'Not provided'}</span>
+                    </div>
+                    {user?.dateOfBirth && (
+                      <div className="detail-item">
+                        <span className="detail-label">Birth Date:</span>
+                        <span className="detail-value">{new Date(user.dateOfBirth).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div><b>Last updated:</b> {new Date(resume.updatedAt).toLocaleDateString()}</div>
-                {resume.content && (
-                  <div style={{ background: '#f5f5f5', borderRadius: 8, padding: 16, marginTop: 8 }}>{resume.content}</div>
-                )}
-              </div>
-            ))
-          ) : (
-            <div style={{ marginBottom: 16 }}>No resume uploaded.</div>
-          )}
-          <input
-            type="file"
-            accept=".txt,.pdf,.doc,.docx"
-            ref={fileInputRef}
-            style={{ display: 'none' }}
-            onChange={handleResumeUpload}
-            disabled={!canUploadResume}
-          />
-          <button
-            style={btnPrimary}
-            onClick={() => fileInputRef.current?.click()}
-            disabled={loading || !canUploadResume}
-            title={canUploadResume ? '' : 'You can only have up to 3 resumes.'}
-          >
-            {loading ? 'Uploading...' : 'Upload Resume'}
-          </button>
-          {!canUploadResume && (
-            <div style={{ color: '#b71c1c', marginTop: 8 }}>You can only have up to 3 resumes.</div>
-          )}
-        </>
-      )}
 
-      {tab === 'services' && (
-        <>
-          <h3>Your Services</h3>
-          <button style={btnPrimary} onClick={() => setShowAddService(s => !s)} disabled={loading}>
-            {showAddService ? 'Close' : 'Add Service'}
-          </button>
-          {showAddService && (
-            <form onSubmit={handleAddServiceSubmit} style={{ margin: '16px 0', background: '#f5f5f5', padding: 16, borderRadius: 8, maxWidth: 400 }}>
-              <div>
-                <label>Service Name:</label>
+                {/* Organization memberships - show all orgs user belongs to */}
+                {organizations.length > 0 && (
+                  <div className="user-organizations">
+                    <h3 className="section-title">Organization Memberships</h3>
+                    <div className="org-membership-list">
+                      {organizations.map(org => (
+                        <div key={org.id} className="org-membership-item">
+                          <Link to={`/organizations/${org.id}`} className="org-name">{org.name}</Link>
+                          <span className="org-industry">{org.industry}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Blog posts from this user with images */}
+                <h3 className="section-title">My Blog Posts</h3>
+                <div className="blog-strip">
+                  {blogPosts.length === 0 ? (
+                    <p>No blog posts yet.</p>
+                  ) : (
+                    blogPosts.map((post: any) => (
+                      <div key={post.id} className="blog-post-card">
+                        {post.imageData && (
+                          <div className="blog-post-image">
+                            <img 
+                              src={`data:${post.imageContentType || 'image/jpeg'};base64,${post.imageData}`}
+                              alt={post.title}
+                            />
+                          </div>
+                        )}
+                        <h4>{post.title}</h4>
+                        <p>{post.content.substring(0, 150)}...</p>
+                        <Link to={`/posts/${post.id}`}>Read more</Link>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Other tab contents remain largely the same */}
+            {tab === 'resumes' && (
+              <>
+                <h3>Resume</h3>
+                {resumeError && <div style={{ color: 'red', marginBottom: 8 }}>{resumeError}</div>}
+                {resumes.length > 0 ? (
+                  resumes.map(resume => (
+                    <div key={resume.id} style={{ marginBottom: 16 }}>
+                      <div>
+                        <b>File:</b> {resume.fileName ? (
+                          <a
+                            href={`data:${resume.contentType};base64,${resume.fileContent}`}
+                            download={resume.fileName}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: '#245ea0', textDecoration: 'underline' }}
+                          >
+                            {resume.fileName}
+                          </a>
+                        ) : (
+                          <span>No file</span>
+                        )}
+                        <button
+                          style={{
+                            marginLeft: 16,
+                            borderRadius: 8,
+                            padding: '4px 12px',
+                            background: '#ffeaea',
+                            color: '#b71c1c',
+                            border: '1px solid #b71c1c',
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => handleDeleteResume(resume.id)}
+                          disabled={loading}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                      <div><b>Last updated:</b> {new Date(resume.updatedAt).toLocaleDateString()}</div>
+                      {resume.content && (
+                        <div style={{ background: '#f5f5f5', borderRadius: 8, padding: 16, marginTop: 8 }}>{resume.content}</div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ marginBottom: 16 }}>No resume uploaded.</div>
+                )}
                 <input
-                  value={newService.serviceName}
-                  onChange={e => setNewService(s => ({ ...s, serviceName: e.target.value }))}
-                  required
-                  style={{ width: '100%', marginBottom: 8 }}
+                  type="file"
+                  accept=".txt,.pdf,.doc,.docx"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  onChange={handleResumeUpload}
+                  disabled={!canUploadResume}
                 />
-              </div>
-              <div>
-                <label>Description:</label>
-                <textarea
-                  value={newService.description}
-                  onChange={e => setNewService(s => ({ ...s, description: e.target.value }))}
-                  required
-                  style={{ width: '100%', marginBottom: 8 }}
-                />
-              </div>
-              <div>
-                <label>Price:</label>
-                <input
-                  value={newService.price}
-                  onChange={e => setNewService(s => ({ ...s, price: e.target.value }))}
-                  required
-                  type="number"
-                  min="0"
-                  style={{ width: '100%', marginBottom: 8 }}
-                />
-              </div>
-              <div>
-                <label>Category:</label>
-                <select
-                  value={newService.categoryId}
-                  onChange={e => setNewService(s => ({ ...s, categoryId: e.target.value }))}
-                  required
-                  style={{ width: '100%', marginBottom: 8 }}
+                <button
+                  style={btnPrimary}
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={loading || !canUploadResume}
+                  title={canUploadResume ? '' : 'You can only have up to 3 resumes.'}
                 >
-                  <option value="">Select category...</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.categoryName}</option>
+                  {loading ? 'Uploading...' : 'Upload Resume'}
+                </button>
+                {!canUploadResume && (
+                  <div style={{ color: '#b71c1c', marginTop: 8 }}>You can only have up to 3 resumes.</div>
+                )}
+              </>
+            )}
+
+            {tab === 'services' && (
+              <>
+                <h3>Your Services</h3>
+                <button style={btnPrimary} onClick={() => setShowAddService(s => !s)} disabled={loading}>
+                  {showAddService ? 'Close' : 'Add Service'}
+                </button>
+                {showAddService && (
+                  <form onSubmit={handleAddServiceSubmit} style={{ margin: '16px 0', background: '#f5f5f5', padding: 16, borderRadius: 8, maxWidth: 400 }}>
+                    <div>
+                      <label>Service Name:</label>
+                      <input
+                        value={newService.serviceName}
+                        onChange={e => setNewService(s => ({ ...s, serviceName: e.target.value }))}
+                        required
+                        style={{ width: '100%', marginBottom: 8 }}
+                      />
+                    </div>
+                    <div>
+                      <label>Description:</label>
+                      <textarea
+                        value={newService.description}
+                        onChange={e => setNewService(s => ({ ...s, description: e.target.value }))}
+                        required
+                        style={{ width: '100%', marginBottom: 8 }}
+                      />
+                    </div>
+                    <div>
+                      <label>Price:</label>
+                      <input
+                        value={newService.price}
+                        onChange={e => setNewService(s => ({ ...s, price: e.target.value }))}
+                        required
+                        type="number"
+                        min="0"
+                        style={{ width: '100%', marginBottom: 8 }}
+                      />
+                    </div>
+                    <div>
+                      <label>Category:</label>
+                      <select
+                        value={newService.categoryId}
+                        onChange={e => setNewService(s => ({ ...s, categoryId: e.target.value }))}
+                        required
+                        style={{ width: '100%', marginBottom: 8 }}
+                      >
+                        <option value="">Select category...</option>
+                        {categories.map(cat => (
+                          <option key={cat.id} value={cat.id}>{cat.categoryName}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <button type="submit" style={btnPrimary} disabled={loading}>Add</button>
+                    {serviceError && <div style={{ color: 'red', marginTop: 8 }}>{serviceError}</div>}
+                  </form>
+                )}
+                <div className="cards-grid">
+                  {services.length === 0 && <div>No services yet.</div>}
+                  {services.map(service => (
+                    <InfoCard
+                      key={service.id}
+                      title={service.serviceName}
+                      subtitle={`Price: $${service.price} | Upvotes: ${(service.upvotes ?? 0) - (service.downvotes ?? 0)}`}
+                      description={service.description}
+                    />
                   ))}
-                </select>
+                </div>
+              </>
+            )}
+
+            {tab === 'notifications' && (
+              <>
+                <h3>Notifications</h3>
+                {notifications.length === 0 ? (
+                  <div>No notifications</div>
+                ) : (
+                  notifications.map(n => (
+                    <div key={n.id} style={{ background: '#f5f5f5', padding: 16, marginBottom: 12, borderRadius: 8 }}>
+                      <p>
+                        Order <strong>{n.id}</strong> - Status: <strong>{n.status}</strong>
+                      </p>
+                      {/* Accept/Refuse buttons for service author when order is pending */}
+                      {user && user.id === n.authorId && n.status === 'Pending' && (
+                        <>
+                          <button
+                            onClick={() => handleOrderAction(n.id, 'accept')}
+                            style={{ marginRight: 8, padding: '4px 8px', background: '#eaf4fb', color: '#245ea0', borderRadius: 6, border: '1px solid #245ea0' }}
+                          >
+                            Accept Order
+                          </button>
+                          <button
+                            onClick={() => handleOrderAction(n.id, 'refuse')}
+                            style={{ padding: '4px 8px', background: '#ffeaea', color: '#b71c1c', borderRadius: 6, border: '1px solid #b71c1c' }}
+                          >
+                            Refuse Order
+                          </button>
+                        </>
+                      )}
+                      {/* Confirm button for author after accepted */}
+                      {user && user.id === n.authorId && !n.authorConfirmed && n.status === 'Accepted' && (
+                        <button onClick={() => handleConfirm(n.id, 'author')}
+                                style={{ marginRight: 8, padding: '4px 8px' }}>
+                          Confirm Order (Author)
+                        </button>
+                      )}
+                      {/* Confirm button for customer after accepted */}
+                      {user && user.id === n.customerId && !n.customerConfirmed && n.status === 'Accepted' && (
+                        <button onClick={() => handleConfirm(n.id, 'customer')}
+                                style={{ padding: '4px 8px' }}>
+                          Confirm Order (Customer)
+                        </button>
+                      )}
+                      {/* Only the customer (order placer) can rate the service after completion */}
+                      {user && user.id === n.customerId && n.status === 'Finished' && (
+                        <button
+                          style={{ marginLeft: 8, padding: '4px 8px', background: '#eaf4fb', color: '#245ea0', borderRadius: 6, border: '1px solid #245ea0' }}
+                          onClick={() => handleRateService(n.serviceId!)}
+                        >
+                          Rate Service
+                        </button>
+                      )}
+                    </div>
+                  ))
+                )}
+              </>
+            )}
+
+            {tab === 'orders' && (
+              <>
+                <h3>My Orders</h3>
+                {notifications.length === 0 ? (
+                  <div>No orders found</div>
+                ) : (
+                  notifications.map(n => (
+                    <div key={n.id} style={{ background: '#eef', padding: 16, marginBottom: 12, borderRadius: 8 }}>
+                      <p>
+                        Order <strong>{n.id}</strong> – Status: <strong>{n.status}</strong>
+                      </p>
+                      {/* You can include similar confirm buttons if needed */}
+                    </div>
+                  ))
+                )}
+              </>
+            )}
+
+            {tab === 'saved' && (
+              <>
+                <div style={{ display:'flex', gap:12, marginBottom:16 }}>
+                  <button style={savedSubTab==='posts'?btnPrimary:btnStyle} onClick={()=>setSavedSubTab('posts')}>Posts</button>
+                  <button style={savedSubTab==='vacancies'?btnPrimary:btnStyle} onClick={()=>setSavedSubTab('vacancies')}>Vacancies</button>
+                  <button style={savedSubTab==='services'?btnPrimary:btnStyle} onClick={()=>setSavedSubTab('services')}>Services</button>
+                </div>
+                {savedSubTab==='posts' && (
+                  savedPosts.length===0 
+                    ? <div>No saved posts.</div>
+                    : savedPosts.map(p => (
+                        <div key={p.id} onClick={()=>navigate(`/posts/${p.id}`)} style={{border:'1px solid #245ea0',borderRadius:8,padding:12,marginBottom:12,cursor:'pointer'}}>
+                          <h4>{p.title}</h4><p>{p.content.slice(0,100)}…</p>
+                        </div>
+                      ))
+                )}
+                {savedSubTab==='vacancies' && (
+                  savedVacancies.length===0
+                    ? <div>No saved vacancies.</div>
+                    : savedVacancies.map(j => (
+                        <div key={j.id} onClick={()=>navigate(`/vacancies/${j.id}`)} style={{border:'1px solid #28a745',borderRadius:8,padding:12,marginBottom:12,cursor:'pointer'}}>
+                          <h4>{j.title}</h4><p>{j.location} • ${j.salary}</p>
+                        </div>
+                      ))
+                )}
+                {savedSubTab==='services' && (
+                  savedServices.length===0
+                    ? <div>No saved services.</div>
+                    : savedServices.map(s => (
+                        <div key={s.id} onClick={()=>navigate(`/services/${s.id}`)} style={{border:'1px solid #ff8c00',borderRadius:8,padding:12,marginBottom:12,cursor:'pointer'}}>
+                          <h4>{s.title}</h4><p>{s.content.slice(0,100)}…</p>
+                        </div>
+                      ))
+                )}
+              </>
+            )}
+
+            {/* New organizations tab */}
+            {tab === 'organizations' && (
+              <div className="organizations-section">
+                <h3>My Organizations</h3>
+                <button 
+                  className="create-button"
+                  onClick={() => setShowCreateOrg(!showCreateOrg)}
+                >
+                  {showCreateOrg ? 'Cancel' : 'Create Organization'}
+                </button>
+
+                {showCreateOrg && (
+                  <form className="create-org-form" onSubmit={handleCreateOrg}>
+                    <div className="form-group">
+                      <label>Organization Name</label>
+                      <input 
+                        type="text" 
+                        value={newOrg.name}
+                        onChange={e => setNewOrg({...newOrg, name: e.target.value})}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Description</label>
+                      <textarea
+                        value={newOrg.description}
+                        onChange={e => setNewOrg({...newOrg, description: e.target.value})}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Industry</label>
+                      <input 
+                        type="text" 
+                        value={newOrg.industry}
+                        onChange={e => setNewOrg({...newOrg, industry: e.target.value})}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Website</label>
+                      <input 
+                        type="url" 
+                        value={newOrg.website}
+                        onChange={e => setNewOrg({...newOrg, website: e.target.value})}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Address</label>
+                      <input 
+                        type="text" 
+                        value={newOrg.address}
+                        onChange={e => setNewOrg({...newOrg, address: e.target.value})}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Logo URL</label>
+                      <input 
+                        type="url" 
+                        value={newOrg.logoUrl}
+                        onChange={e => setNewOrg({...newOrg, logoUrl: e.target.value})}
+                      />
+                    </div>
+
+                    <button type="submit" className="submit-button">Create Organization</button>
+                  </form>
+                )}
+
+                {organizations.length === 0 ? (
+                  <p>You are not a member of any organization. Create one to get started.</p>
+                ) : (
+                  <div className="org-list">
+                    {organizations.map(org => (
+                      <div key={org.id} className="org-card">
+                        <h4>{org.name}</h4>
+                        <p>{org.description}</p>
+                        <div className="org-details">
+                          <div><strong>Industry:</strong> {org.industry}</div>
+                          {org.website && (
+                            <div><strong>Website:</strong> <a href={org.website} target="_blank" rel="noopener noreferrer">{org.website}</a></div>
+                          )}
+                        </div>
+                        <button 
+                          className="switch-button"
+                          onClick={() => switchViewMode('business', org)}
+                        >
+                          Switch to Business View
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <button type="submit" style={btnPrimary} disabled={loading}>Add</button>
-              {serviceError && <div style={{ color: 'red', marginTop: 8 }}>{serviceError}</div>}
-            </form>
-          )}
-          <div className="cards-grid">
-            {services.length === 0 && <div>No services yet.</div>}
-            {services.map(service => (
-              <InfoCard
-                key={service.id}
-                title={service.serviceName}
-                subtitle={`Price: $${service.price} | Upvotes: ${(service.upvotes ?? 0) - (service.downvotes ?? 0)}`}
-                description={service.description}
-              />
-            ))}
+            )}
           </div>
         </>
-      )}
-
-      {tab === 'notifications' && (
+      ) : (
+        /* Business view mode */
         <>
-          <h3>Notifications</h3>
-          {notifications.length === 0 ? (
-            <div>No notifications</div>
-          ) : (
-            notifications.map(n => (
-              <div key={n.id} style={{ background: '#f5f5f5', padding: 16, marginBottom: 12, borderRadius: 8 }}>
-                <p>
-                  Order <strong>{n.id}</strong> - Status: <strong>{n.status}</strong>
-                </p>
-                {/* Accept/Refuse buttons for service author when order is pending */}
-                {user && user.id === n.authorId && n.status === 'Pending' && (
-                  <>
-                    <button
-                      onClick={() => handleOrderAction(n.id, 'accept')}
-                      style={{ marginRight: 8, padding: '4px 8px', background: '#eaf4fb', color: '#245ea0', borderRadius: 6, border: '1px solid #245ea0' }}
-                    >
-                      Accept Order
-                    </button>
-                    <button
-                      onClick={() => handleOrderAction(n.id, 'refuse')}
-                      style={{ padding: '4px 8px', background: '#ffeaea', color: '#b71c1c', borderRadius: 6, border: '1px solid #b71c1c' }}
-                    >
-                      Refuse Order
-                    </button>
-                  </>
+          {activeOrg && (
+            <>
+              <div className="org-header">
+                <h3>{activeOrg.name}</h3>
+                <p>{activeOrg.industry}</p>
+              </div>
+
+              <div className="profile-tabs">
+                <button className={tab === 'info' ? 'active' : ''} onClick={() => setTab('info')}>Info</button>
+                <button className={tab === 'services' ? 'active' : ''} onClick={() => setTab('services')}>Services</button>
+                <button className={tab === 'vacancies' ? 'active' : ''} onClick={() => setTab('vacancies')}>Vacancies</button>
+                <button className={tab === 'members' ? 'active' : ''} onClick={() => setTab('members')}>Members</button>
+                <button className={tab === 'blog' ? 'active' : ''} onClick={() => setTab('blog')}>Blog</button>
+              </div>
+
+              <div className="profile-content">
+                {tab === 'info' && (
+                  <div className="info-section">
+                    <h3>Organization Details</h3>
+                    <div><strong>Name:</strong> {activeOrg.name}</div>
+                    <div><strong>Description:</strong> {activeOrg.description}</div>
+                    <div><strong>Industry:</strong> {activeOrg.industry}</div>
+                    {activeOrg.website && (
+                      <div><strong>Website:</strong> <a href={activeOrg.website} target="_blank" rel="noopener noreferrer">{activeOrg.website}</a></div>
+                    )}
+                    <div><strong>Address:</strong> {activeOrg.address}</div>
+                    <div><strong>Created:</strong> {new Date(activeOrg.createdAt).toLocaleDateString()}</div>
+                  </div>
                 )}
-                {/* Confirm button for author after accepted */}
-                {user && user.id === n.authorId && !n.authorConfirmed && n.status === 'Accepted' && (
-                  <button onClick={() => handleConfirm(n.id, 'author')}
-                          style={{ marginRight: 8, padding: '4px 8px' }}>
-                    Confirm Order (Author)
-                  </button>
+
+                {tab === 'services' && (
+                  <OrganizationServices orgId={activeOrg.id} token={token} />
                 )}
-                {/* Confirm button for customer after accepted */}
-                {user && user.id === n.customerId && !n.customerConfirmed && n.status === 'Accepted' && (
-                  <button onClick={() => handleConfirm(n.id, 'customer')}
-                          style={{ padding: '4px 8px' }}>
-                    Confirm Order (Customer)
-                  </button>
+
+                {tab === 'vacancies' && (
+                  <OrganizationVacancies orgId={activeOrg.id} token={token} />
                 )}
-                {/* Only the customer (order placer) can rate the service after completion */}
-                {user && user.id === n.customerId && n.status === 'Finished' && (
-                  <button
-                    style={{ marginLeft: 8, padding: '4px 8px', background: '#eaf4fb', color: '#245ea0', borderRadius: 6, border: '1px solid #245ea0' }}
-                    onClick={() => handleRateService(n.serviceId!)}
-                  >
-                    Rate Service
-                  </button>
+
+                {tab === 'members' && (
+                  <OrganizationMembers orgId={activeOrg.id} token={token} />
                 )}
               </div>
-            ))
+            </>
           )}
         </>
       )}
+    </div>
+  );
+}
 
-      {tab === 'orders' && (
-        <>
-          <h3>My Orders</h3>
-          {notifications.length === 0 ? (
-            <div>No orders found</div>
-          ) : (
-            notifications.map(n => (
-              <div key={n.id} style={{ background: '#eef', padding: 16, marginBottom: 12, borderRadius: 8 }}>
-                <p>
-                  Order <strong>{n.id}</strong> – Status: <strong>{n.status}</strong>
-                </p>
-                {/* You can include similar confirm buttons if needed */}
-              </div>
-            ))
-          )}
-        </>
-      )}
+// New BlogStrip component for user-specific blog posts
+function BlogStrip({ userId }: { userId?: string }) {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-      {tab === 'saved' && (
-        <>
-          <div style={{ display:'flex', gap:12, marginBottom:16 }}>
-            <button style={savedSubTab==='posts'?btnPrimary:btnStyle} onClick={()=>setSavedSubTab('posts')}>Posts</button>
-            <button style={savedSubTab==='vacancies'?btnPrimary:btnStyle} onClick={()=>setSavedSubTab('vacancies')}>Vacancies</button>
-            <button style={savedSubTab==='services'?btnPrimary:btnStyle} onClick={()=>setSavedSubTab('services')}>Services</button>
+  useEffect(() => {
+    if (!userId) return;
+
+    setLoading(true);
+    fetch(`${API_BASE_URL}/BlogPost?userId=${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        setPosts(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setPosts([]);
+        setLoading(false);
+      });
+  }, [userId]);
+
+  if (loading) return <div>Loading posts...</div>;
+
+  return (
+    <div className="blog-strip">
+      {posts.length === 0 ? (
+        <p>No blog posts yet.</p>
+      ) : (
+        posts.map((post: any) => (
+          <div key={post.id} className="blog-post-card">
+            <h4>{post.title}</h4>
+            <p>{post.content.substring(0, 150)}...</p>
+            <a href={`/posts/${post.id}`}>Read more</a>
           </div>
-          {savedSubTab==='posts' && (
-            savedPosts.length===0 
-              ? <div>No saved posts.</div>
-              : savedPosts.map(p => (
-                  <div key={p.id} onClick={()=>navigate(`/posts/${p.id}`)} style={{border:'1px solid #245ea0',borderRadius:8,padding:12,marginBottom:12,cursor:'pointer'}}>
-                    <h4>{p.title}</h4><p>{p.content.slice(0,100)}…</p>
-                  </div>
-                ))
-          )}
-          {savedSubTab==='vacancies' && (
-            savedVacancies.length===0
-              ? <div>No saved vacancies.</div>
-              : savedVacancies.map(j => (
-                  <div key={j.id} onClick={()=>navigate(`/vacancies/${j.id}`)} style={{border:'1px solid #28a745',borderRadius:8,padding:12,marginBottom:12,cursor:'pointer'}}>
-                    <h4>{j.title}</h4><p>{j.location} • ${j.salary}</p>
-                  </div>
-                ))
-          )}
-          {savedSubTab==='services' && (
-            savedServices.length===0
-              ? <div>No saved services.</div>
-              : savedServices.map(s => (
-                  <div key={s.id} onClick={()=>navigate(`/services/${s.id}`)} style={{border:'1px solid #ff8c00',borderRadius:8,padding:12,marginBottom:12,cursor:'pointer'}}>
-                    <h4>{s.title}</h4><p>{s.content.slice(0,100)}…</p>
-                  </div>
-                ))
-          )}
-        </>
+        ))
+      )}
+    </div>
+  );
+}
+
+// Organization Services sub-component
+function OrganizationServices({ orgId, token }: { orgId: string, token: string | null }) {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!orgId || !token) return;
+
+    setLoading(true);
+    fetch(`${API_BASE_URL}/services?organizationId=${orgId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        setServices(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setServices([]);
+        setLoading(false);
+      });
+  }, [orgId, token]);
+
+  if (loading) return <div>Loading services...</div>;
+
+  return (
+    <div className="services-section">
+      <h3>Organization Services</h3>
+      <a href="/createService" className="create-button">Add New Service</a>
+
+      {services.length === 0 ? (
+        <p>No services yet. Add a service to get started.</p>
+      ) : (
+        <div className="services-grid">
+          {services.map((service: any) => (
+            <InfoCard
+              key={service.id}
+              title={service.serviceName}
+              subtitle={`Price: $${service.price}`}
+              description={service.description}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Organization Vacancies sub-component
+function OrganizationVacancies({ orgId, token }: { orgId: string, token: string | null }) {
+  const [vacancies, setVacancies] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!orgId || !token) return;
+
+    setLoading(true);
+    fetch(`${API_BASE_URL}/jobs?organizationId=${orgId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        setVacancies(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setVacancies([]);
+        setLoading(false);
+      });
+  }, [orgId, token]);
+
+  if (loading) return <div>Loading vacancies...</div>;
+
+  return (
+    <div className="vacancies-section">
+      <h3>Organization Vacancies</h3>
+      <a href="/createVacancy" className="create-button">Add New Vacancy</a>
+
+      {vacancies.length === 0 ? (
+        <p>No vacancies yet. Add a vacancy to get started.</p>
+      ) : (
+        <div className="vacancies-grid">
+          {vacancies.map((vacancy: any) => (
+            <InfoCard
+              key={vacancy.id}
+              title={vacancy.title}
+              subtitle={`Salary: $${vacancy.salary} | Location: ${vacancy.location}`}
+              description={vacancy.description}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Organization Members sub-component
+function OrganizationMembers({ orgId, token }: { orgId: string, token: string | null }) {
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!orgId || !token) return;
+
+    setLoading(true);
+    fetch(`${API_BASE_URL}/organization/${orgId}/members`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        setMembers(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setMembers([]);
+        setLoading(false);
+      });
+  }, [orgId, token]);
+
+  if (loading) return <div>Loading members...</div>;
+
+  return (
+    <div className="members-section">
+      <h3>Organization Members</h3>
+      <button className="create-button">Add Member</button>
+
+      {members.length === 0 ? (
+        <p>No members yet.</p>
+      ) : (
+        <div className="members-list">
+          {members.map((member: any) => (
+            <div key={member.userId} className="member-card">
+              <div className="member-avatar">
+                <img src={`https://i.pravatar.cc/40?u=${member.userId}`} alt="Avatar" />
+              </div>
+              <div className="member-info">
+                <h4>{member.userName}</h4>
+                <p className="member-role">{member.role}</p>
+                <p className="member-since">Member since {new Date(member.joinedAt).toLocaleDateString()}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

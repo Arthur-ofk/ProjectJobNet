@@ -25,7 +25,7 @@ function VacancyDetail() {
 
   useEffect(() => {
     if (id) {
-      fetch(`${API_BASE_URL}/vacancies/${id}`)
+      fetch(`${API_BASE_URL}/jobs/${id}`)  // Changed from vacancies to jobs
         .then(response => response.json())
         .then(data => setVacancy(data))
         .catch(() => setVacancy(null));

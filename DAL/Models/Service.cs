@@ -21,5 +21,9 @@ namespace DAL.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public ICollection<ServiceTag> ServiceTags { get; set; } = new List<ServiceTag>(); // default empty list
+
+        // Add OrganizationId property to associate services with organizations
+        public Guid? OrganizationId { get; set; }
+        public Organization Organization { get; set; }
     }
 }

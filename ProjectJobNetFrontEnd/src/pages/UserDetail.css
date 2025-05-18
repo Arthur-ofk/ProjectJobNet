@@ -1,99 +1,314 @@
 .user-detail-container {
-  max-width: 800px;
-  margin: 32px auto;
   background: #fff;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 16px rgba(36, 94, 160, 0.08);
+  max-width: 900px;
+  margin: 0 auto;
 }
 
+/* Enhanced user header */
 .user-header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
 }
 
 .user-header img {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border: 4px solid #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-right: 24px;
 }
 
+.user-header-info {
+  flex: 1;
+}
+
+.user-header-info h2.user-name {
+  margin: 0 0 8px 0;
+  color: #245ea0;
+  font-size: 2rem;
+}
+
+.user-header-info p.user-fullname {
+  margin: 4px 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.user-header-info p.user-email {
+  margin: 4px 0;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+/* Organization memberships section */
+.user-organizations {
+  margin: 24px 0;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 12px;
+}
+
+.user-organizations h3 {
+  color: #245ea0;
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+}
+
+.organization-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.organization-link-card {
+  text-decoration: none;
+  color: inherit;
+}
+
+.organization-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+.organization-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(36,94,160,0.1);
+}
+
+.organization-card h4 {
+  color: #245ea0;
+  margin: 0 0 8px 0;
+}
+
+.organization-card p {
+  color: #666;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* User info section */
+.user-info-section {
+  margin-top: 32px;
+}
+
+.user-info-section h3 {
+  color: #245ea0;
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.detail-item {
+  padding: 12px 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.detail-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  background: #eaf4fb;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #245ea0;
+  margin-right: 8px;
+}
+
+.detail-value {
+  color: #333;
+}
+
+/* Reviews section */
+.reviews-section {
+  margin-top: 32px;
+}
+
+.reviews-section h3 {
+  color: #245ea0;
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-card {
+  background: #f9f9f9;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.review-stars {
+  color: #ffb400;
+  letter-spacing: 2px;
+}
+
+.star {
+  font-size: 1.2rem;
+}
+
+.review-date {
+  color: #777;
+  font-size: 0.9rem;
+}
+
+.review-text {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Tabs navigation */
 .user-tabs {
   display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
   border-bottom: 1px solid #eee;
-  padding-bottom: 12px;
+  margin: 32px 0 24px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .user-tabs button {
-  padding: 8px 16px;
-  border: none;
   background: #eaf4fb;
   color: #245ea0;
-  border-radius: 8px;
+  border: none;
+  padding: 10px 24px;
   cursor: pointer;
+  font-size: 1rem;
   font-weight: 600;
-  transition: all 0.2s;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  margin-bottom: -1px;
 }
 
 .user-tabs button.active {
   background: #245ea0;
-  color: #fff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(36,94,160,0.2);
+  color: white;
 }
 
-.user-tab-content {
-  min-height: 200px;
+/* Blog grid styling */
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
 }
 
-.user-tab-content .about-section p {
-  margin: 8px 0;
-  line-height: 1.6;
-}
-
-.cards-grid {
+.blog-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 100%;
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
+  flex-direction: column;
 }
 
-.cards-grid .card {
-  flex: 1 1 300px;
-  transition: transform 0.2s;
-}
-
-.cards-grid .card.clickable:hover {
+.blog-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 16px rgba(0,0,0,0.1);
 }
 
-.empty-state {
-  color: #888;
-  text-align: center;
-  padding: 40px;
-  font-style: italic;
+.blog-card-image {
+  height: 180px;
+  overflow: hidden;
 }
 
-.user-stats {
-  background: #f8f8f8;
+.blog-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.blog-card:hover .blog-card-image img {
+  transform: scale(1.05);
+}
+
+.blog-card-content {
   padding: 16px;
-  border-radius: 8px;
-  margin-top: 24px;
-}
-
-.stat-row {
+  flex: 1;
   display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #eee;
+  flex-direction: column;
 }
 
-.stat-row:last-child {
-  border-bottom: none;
+.blog-card h4 {
+  color: #245ea0;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.blog-card p {
+  color: #555;
+  margin-bottom: 12px;
+  flex: 1;
+}
+
+.blog-card a {
+  color: #245ea0;
+  text-decoration: none;
+  font-weight: 600;
+  margin-top: auto;
+}
+
+.blog-date {
+  font-size: 0.8rem;
+  color: #777;
+  margin-top: 8px;
+  display: block;
+}
+
+/* Organizations grid */
+.org-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.org-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.org-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.org-card h4 {
+  color: #245ea0;
+  margin-top: 0;
 }

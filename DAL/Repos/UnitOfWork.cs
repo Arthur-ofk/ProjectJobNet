@@ -60,6 +60,8 @@ namespace DAL.Repos
             _blogPostVoteRepository = new Lazy<IBlogPostVoteRepository>(() => new BlogPostVoteRepository(_context));
             _postCommentRepository = new Lazy<IPostCommentRepository>(() => new PostCommentRepository(_context));
             _savedBlogPostRepository = new Lazy<ISavedBlogPostRepository>(() => new SavedBlogPostRepository(_context));
+            OrganizationRepository = new OrganizationRepository(_context);
+            OrganizationUserRepository = new OrganizationUserRepository(_context);
         }
         public IRoleRepository RoleRepository => _roleRepository.Value;
         public ITagRepository TagRepository => _tagRepository.Value;
@@ -83,8 +85,8 @@ namespace DAL.Repos
         public IBlogPostVoteRepository BlogPostVoteRepository => _blogPostVoteRepository.Value;
         public IPostCommentRepository PostCommentRepository => _postCommentRepository.Value;
         public ISavedBlogPostRepository SavedBlogPostRepository => _savedBlogPostRepository.Value;
-
-        
+        public IOrganizationRepository OrganizationRepository { get; private set; }
+        public IOrganizationUserRepository OrganizationUserRepository { get; private set; }
 
         public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
 

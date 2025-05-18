@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store.ts';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { API_BASE_URL } from '../constants.ts';
 import {
   fetchPostsRequest,
@@ -34,6 +34,7 @@ function BlogSection() {
 	const loader = useRef<HTMLDivElement>(null);
 	const limit = 10;
 	const navigate = useNavigate();
+	const location = useLocation();
   
 	const [activeTab, setActiveTab] = useState<'popular' | 'recent'>('popular');
 	const [showCreatePost, setShowCreatePost] = useState(false);
@@ -90,6 +91,22 @@ function BlogSection() {
 		if (newPostImage) form.append('Image', newPostImage);
 		dispatch(createPostRequest(form));
 	};
+
+	// Save scroll position when navigating away
+	const saveScrollPosition = (postId: string) => {
+		const currentPosition = window.scrollY;
+		sessionStorage.setItem('scrollPosition', currentPosition.toString());
+		navigate(`/posts/${postId}`);
+	};
+	
+	// Restore scroll position when returning
+	useEffect(() => {
+		const savedPosition = sessionStorage.getItem('scrollPosition');
+		if (savedPosition) {
+			window.scrollTo(0, parseInt(savedPosition));
+			sessionStorage.removeItem('scrollPosition'); // Clear after use
+		}
+	}, []);
   
 	return (
 		<div className="blog-section">
@@ -131,42 +148,78 @@ function BlogSection() {
 				<div
 					key={post.id}
 					className="post-preview"
-					style={{ cursor: 'pointer' }}
-					onClick={() => navigate(`/posts/${post.id}`)}
+					onClick={() => saveScrollPosition(post.id)}
 				>
 					<div className="post-preview-content">
-						<h4>{post.title}</h4>
-						<p>{post.content.substring(0, 100)}...</p>
-						<div className="meta">
-							<span>Votes: {(post.likes ?? 0) - (post.comments ?? 0)}</span>
+						{post.imageData && (
+							<div className="post-preview-image">
+								<img 
+									src={`data:${post.imageContentType || 'image/jpeg'};base64,${post.imageData}`}
+									alt={post.title}
+								/>
+							</div>
+						)}
+						<div className="post-preview-text">
+							<h4>{post.title}</h4>
+							<p>{post.content.substring(0, 100)}...</p>
+							<div className="meta">
+								<span>Votes: {(post.likes ?? 0) - (post.comments ?? 0)}</span>
+							</div>
 						</div>
 					</div>
-
-					{/* Add image display */}
-					{post.imageData && (
-						<div className="post-preview-image">
-							<img 
-								src={`data:${post.imageContentType || 'image/jpeg'};base64,${post.imageData}`}
-								alt="Post thumbnail"
-							/>
-						</div>
-					)}
 					
 					<div className="actions">
-						<button onClick={e => { 
-							e.stopPropagation(); 
-							doVote(post.id, true); 
-						}}>▲</button>
-						<button onClick={e => { 
-							e.stopPropagation(); 
-							doVote(post.id, false); 
-						}}>▼</button>
-						<button className="comment-btn" onClick={e => { 
-							e.stopPropagation(); 
-							navigate(`/posts/${post.id}`); 
-						}}>💬</button>
-						<button onClick={e => { e.stopPropagation(); doSave(post.id); }}>💾</button>
-						<button onClick={e => { e.stopPropagation(); doReport(post.id); }}>⚠️</button>
+						{/* Consistent vote buttons styled like service votes */}
+						<button 
+							className="vote-button upvote"
+							onClick={e => { 
+								e.stopPropagation(); 
+								doVote(post.id, true); 
+							}}
+						>
+							<span className="vote-icon">▲</span>
+							<span className="vote-text">Upvote</span>
+						</button>
+						<button 
+							className="vote-button downvote"
+							onClick={e => { 
+								e.stopPropagation(); 
+								doVote(post.id, false); 
+							}}
+						>
+							<span className="vote-icon">▼</span>
+							<span className="vote-text">Downvote</span>
+						</button>
+						<button 
+							className="action-button comment-btn" 
+							onClick={e => { 
+								e.stopPropagation(); 
+								saveScrollPosition(post.id);
+							}}
+						>
+							<span className="action-icon">💬</span>
+							<span className="action-text">Comment</span>
+						</button>
+						<button 
+							className="action-button save-btn"
+							onClick={e => { 
+								e.stopPropagation(); 
+								doSave(post.id); 
+							}}
+						>
+							<span className="action-icon">💾</span>
+							<span className="action-text">Save</span>
+						</button>
+						<button 
+							className="action-button report-btn"
+							onClick={e => { 
+								e.stopPropagation(); 
+								doReport(post.id); 
+							}}
+						>
+							<span className="action-icon">⚠️</span>
+							<span className="action-text">Report</span>
+						</button>
 					</div>
 				</div>
 			))}

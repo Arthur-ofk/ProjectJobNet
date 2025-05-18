@@ -27,6 +27,9 @@ function AllVacancies() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(15);
 
+  // Add state for organizations
+  const [orgMap, setOrgMap] = useState<{[userId: string]: string}>({});
+
   useEffect(() => {
     dispatch(fetchVacanciesRequest());
   }, [dispatch]);
@@ -34,7 +37,24 @@ function AllVacancies() {
   useEffect(() => {
     fetch(`${API_BASE_URL}/users`)
       .then(res => res.json())
-      .then(data => setUsers(data));
+      .then(data => {
+        setUsers(data);
+        
+        // For each user, fetch their organizations
+        data.forEach((user: User) => {
+          fetch(`${API_BASE_URL}/organization/user/${user.id}`)
+            .then(res => res.ok ? res.json() : [])
+            .then((orgs: any[]) => {
+              if (orgs && orgs.length > 0) {
+                setOrgMap(prev => ({
+                  ...prev,
+                  [user.id]: orgs[0].name
+                }));
+              }
+            })
+            .catch(err => console.error(`Failed to load organizations for user ${user.id}:`, err));
+        });
+      });
   }, []);
 
   const getUserName = (id: string | number) => {
@@ -114,6 +134,9 @@ function AllVacancies() {
                 <>
                   <span>
                     Author: <Link to={`/users/${vacancy.userId}`} onClick={e => e.stopPropagation()}>{getUserName(vacancy.userId)}</Link>
+                    {orgMap[vacancy.userId] && (
+                      <span> ({orgMap[vacancy.userId]})</span>
+                    )}
                   </span>
                   <span> | Location: {vacancy.location}</span>
                   <span> | Salary: ${vacancy.salary}</span>
