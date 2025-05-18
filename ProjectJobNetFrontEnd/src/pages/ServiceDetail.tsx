@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { API_BASE_URL } from '../constants.ts';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store.ts';
+import './ServiceDetail.css';
 
 type Service = {
   id: string;
@@ -155,19 +156,47 @@ function ServiceDetail() {
   const handleVote = async (isUpvote: boolean) => {
     if (!token) return;
     setError(null);
-    const res = await fetch(`${API_BASE_URL}/services/${id}/vote`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify(isUpvote)
-    });
-    if (!res.ok) {
-      setError('You can only vote once and only if you used the service.');
-      return;
+    
+    try {
+      const res = await fetch(`${API_BASE_URL}/services/${id}/vote`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify(isUpvote)
+      });
+      
+      if (!res.ok) {
+        if (res.status === 401) {
+          setError('Your session has expired. Please login again.');
+          // Could also redirect to login page
+        } else {
+          setError('You can only vote once and only if you used the service.');
+        }
+        return;
+      }
+      
+      setVoteStatus(isUpvote ? 'up' : 'down');
+      
+      // Update the UI optimistically
+      if (service) {
+        if (isUpvote) {
+          service.upvotes = (service.upvotes || 0) + 1;
+        } else {
+          service.downvotes = (service.downvotes || 0) + 1;
+        }
+        setService({...service});
+      }
+      
+      // Also refresh the service data from server
+      fetch(`${API_BASE_URL}/services/${id}`)
+        .then(res => res.json())
+        .then(data => setService(data));
+    } catch (err) {
+      console.error("Voting error:", err);
+      setError('An error occurred while voting.');
     }
-    setVoteStatus(isUpvote ? 'up' : 'down');
-    fetch(`${API_BASE_URL}/services/${id}`)
-      .then(res => res.json())
-      .then(data => setService(data));
   };
 
   const handleReport = () => {
@@ -233,7 +262,7 @@ function ServiceDetail() {
   if (!service) return <div>Not found</div>;
 
   return (
-    <div style={{ background: '#fff', borderRadius: 16, padding: 32, boxShadow: '0 4px 16px rgba(36,94,160,0.08)' }}>
+    <div className="service-detail-container">
       <h2>{service.serviceName}</h2>
       <div>
         <b>Author:</b>{' '}
@@ -343,15 +372,31 @@ function ServiceDetail() {
           </div>
         </div>
       )}
-      <h3 style={{ marginTop: 32 }}>Reviews</h3>
-      {reviews.length === 0 && <div>No reviews yet.</div>}
-      {reviews.map(r => (
-        <div key={r.id} style={{ background: '#f5f5f5', borderRadius: 8, padding: 16, marginTop: 12 }}>
-          <div><b>Rating:</b> {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
-          <div><b>Review:</b> {r.reviewText}</div>
-          <div style={{ fontSize: '0.9em', color: '#888' }}>{new Date(r.createdAt).toLocaleString()}</div>
-        </div>
-      ))}
+      <h3 style={{ marginTop: 32 }}>Comments</h3>
+      <div className="comment-list">
+        {reviews.length === 0 && <div>No reviews yet.</div>}
+        {reviews.map(r => (
+          <div key={r.id} className="comment-item">
+            <div className="comment-avatar">
+              <img
+                src={`https://i.pravatar.cc/40?u=${r.authorId}`}
+                alt="avatar"
+              />
+            </div>
+            <div className="comment-content">
+              <div className="comment-header">
+                <a href={`/users/${r.authorId}`} className="comment-username">
+                  {reviews.find(u=>u.authorId===r.authorId)?.authorId ?? 'User'}
+                </a>
+                <span className="comment-date">
+                  {new Date(r.createdAt).toLocaleString()}
+                </span>
+              </div>
+              <div className="comment-text">{r.reviewText}</div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

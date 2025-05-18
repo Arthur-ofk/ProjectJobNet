@@ -7,9 +7,8 @@ namespace BLL.Services.Abstractins
 {
     public interface IPostCommentService
     {
-        Task<IEnumerable<PostCommentDto>> GetCommentsByPostAsync(Guid blogPostId);
-        Task AddCommentAsync(CreatePostCommentDto dto);
-        Task UpdateCommentAsync(Guid commentId, UpdatePostCommentDto dto);
-        Task DeleteCommentAsync(Guid commentId);
+        Task<IEnumerable<PostCommentDto>> GetCommentsByPostIdAsync(Guid postId);
+        Task<PostCommentDto> AddCommentAsync(CreatePostCommentDto dto);
+        Task<bool> DeleteCommentAsync(Guid id);
     }
 }

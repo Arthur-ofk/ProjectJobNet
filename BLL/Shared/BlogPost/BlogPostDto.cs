@@ -3,20 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace BLL.Shared.BlogPost
 {
     public class BlogPostDto
     {
         public Guid Id { get; set; }
-        public Guid UserId { get; set; }
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public string Title { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public string Content { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        public Guid UserId { get; set; }
         public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        
+        // Voting properties
+        public int Upvotes { get; set; }
+        public int Downvotes { get; set; }
+        
+        // Image data
+        public byte[]? ImageData { get; set; }
+        public string? ImageContentType { get; set; }
+        
+        // Comment count instead of collection to avoid circular references
+        public int Comments { get; set; }
+        
+        // Additional computed properties
+        public int Likes => Upvotes; // For backward compatibility
     }
 }

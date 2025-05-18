@@ -26,14 +26,14 @@ namespace DAL.Models
         
         // New collections for extra functionality:
         public ICollection<BlogPostVote> Votes { get; set; } = new List<BlogPostVote>();
-        public ICollection<PostComment> Comments { get; set; } = new List<PostComment>();
+        public virtual ICollection<PostComment> Comments { get; set; } = new HashSet<PostComment>();
         public ICollection<SavedBlogPost> SavedPosts { get; set; } = new List<SavedBlogPost>();
         
         // New property for storing image URL
         public string ImageUrl { get; set; } = string.Empty;
         
         // New properties for storing image binary data and its MIME type
-        public byte[] ImageData { get; set; } // New property for storing image binary data
-        public string ImageContentType { get; set; } // New property for storing image MIME type
+        public byte[]? ImageData { get; set; } // New property for storing image binary data
+        public string? ImageContentType { get; set; } // New property for storing image MIME type
     }
 }

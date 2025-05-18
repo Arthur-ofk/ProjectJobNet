@@ -4,13 +4,17 @@ export type BlogPost = {
   id: string;
   title: string;
   content: string;
-  likes: number;
+  upvotes: number;
+  downvotes: number;
   comments: number;
+  likes: number;  // For backwards compatibility
   tags: string[];
   createdAt: string;
   userId: string;
   authorName?: string;
   authorPicUrl?: string;
+  imageData?: string;
+  imageContentType?: string;
 };
 
 interface BlogState {
@@ -92,6 +96,88 @@ const blogSlice = createSlice({
     createPostFailure(state, action: PayloadAction<string>) {
       state.loading = false;
       state.error = action.payload;
+    },
+    // Post voting actions
+    votePostRequest(state, action: PayloadAction<{ id: string, isUpvote: boolean }>){
+      state.loading = true;
+      state.error = null;
+    },
+    votePostSuccess(state, action: PayloadAction<{ id: string, isUpvote: boolean, score?: number }>){
+      state.loading = false;
+      // Update post votes in current posts array if it exists
+      const post = state.posts.find(p => p.id === action.payload.id);
+      if (post) {
+        // If score is provided by server, use it directly
+        if (action.payload.score !== undefined) {
+          post.upvotes = action.payload.score;  // Set the upvotes to the score
+          post.downvotes = 0;  // Reset downvotes as we're using the score directly
+        } else {
+          // Fallback to old behavior
+          if (action.payload.isUpvote) {
+            post.upvotes++;
+          } else {
+            post.downvotes++;
+          }
+        }
+      }
+      
+      // Update currentPost if that's what was voted on
+      if (state.currentPost && state.currentPost.id === action.payload.id) {
+        // If score is provided, use it directly
+        if (action.payload.score !== undefined) {
+          state.currentPost.upvotes = action.payload.score;  // Set the upvotes to the score
+          state.currentPost.downvotes = 0;  // Reset downvotes as we're using the score directly
+        } else {
+          // Fallback to old behavior
+          if (action.payload.isUpvote) {
+            state.currentPost.upvotes++;
+          } else {
+            state.currentPost.downvotes++;
+          }
+        }
+      }
+    },
+    votePostFailure(state, action: PayloadAction<string>){
+      state.loading = false;
+      state.error = action.payload;
+    },
+    
+    // Post saving actions
+    savePostRequest(state, action: PayloadAction<{ id: string }>){
+      state.loading = true;
+      state.error = null;
+    },
+    savePostSuccess(state){
+      state.loading = false;
+    },
+    savePostFailure(state, action: PayloadAction<string>){
+      state.loading = false;
+      state.error = action.payload;
+    },
+    
+    // Post comments actions
+    fetchCommentsRequest(state, action: PayloadAction<{ postId: string }>){
+      state.loading = true;
+      state.error = null;
+    },
+    fetchCommentsSuccess(state, action: PayloadAction<{ postId: string, comments: any[] }>){
+      state.loading = false;
+      // We could store comments in the state if needed
+    },
+    fetchCommentsFailure(state, action: PayloadAction<string>){
+      state.loading = false;
+      state.error = action.payload;
+    },
+    addCommentRequest(state, action: PayloadAction<{ postId: string, content: string }>){
+      state.loading = true;
+      state.error = null;
+    },
+    addCommentSuccess(state){
+      state.loading = false;
+    },
+    addCommentFailure(state, action: PayloadAction<string>){
+      state.loading = false;
+      state.error = action.payload;
     }
   }
 });
@@ -107,6 +193,18 @@ export const {
   resetPostDetail,
   createPostRequest,
   createPostSuccess,
-  createPostFailure
+  createPostFailure,
+  votePostRequest,
+  votePostSuccess,
+  votePostFailure,
+  savePostRequest,
+  savePostSuccess,
+  savePostFailure,
+  fetchCommentsRequest,
+  fetchCommentsSuccess,
+  fetchCommentsFailure,
+  addCommentRequest,
+  addCommentSuccess,
+  addCommentFailure
 } = blogSlice.actions;
 export default blogSlice.reducer;

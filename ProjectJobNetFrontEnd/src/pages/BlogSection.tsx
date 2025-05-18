@@ -3,7 +3,13 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store.ts';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../constants.ts';
-import { fetchPostsRequest, createPostRequest } from '../slices/blogSlice.ts';
+import {
+  fetchPostsRequest,
+  resetPosts,
+  createPostRequest,
+  votePostRequest,
+  savePostRequest
+} from '../slices/blogSlice.ts';
 import { logout } from '../slices/authSlice.ts';
 import './BlogSection.css';
 
@@ -17,6 +23,8 @@ type BlogPost = {
 	createdAt: string;
 	userId: string;
 	authorName?: string;
+	imageData?: string;
+	imageContentType?: string;
 };
 
 function BlogSection() {
@@ -35,8 +43,9 @@ function BlogSection() {
   
 	// initial load
 	useEffect(() => {
+		dispatch(resetPosts());
 		dispatch(fetchPostsRequest({ skip: 0, take: limit }));
-	}, [dispatch]);
+	}, [dispatch, limit]);
   
 	// infinite scroll
 	useEffect(() => {
@@ -51,27 +60,23 @@ function BlogSection() {
 	}, [loading, hasMore, skip, dispatch]);
   
 	// quick actions
-	const doVote = async (id: string, up: boolean) => {
-		if (!token) return dispatch(logout());
-		await fetch(`${API_BASE_URL}/BlogPost/${id}/vote`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-			body: JSON.stringify({ isUpvote: up })
-		});
-		// reload page or update local state
-		dispatch(fetchPostsRequest({ skip: 0, take: skip + limit }));
+	const doVote = (id: string, up: boolean) => {
+		if (!token) return navigate('/login');
+		dispatch(votePostRequest({ id, isUpvote: up }));
 	};
+  
 	const doSave = (id: string) => {
-		if (!token) return dispatch(logout());
-		fetch(`${API_BASE_URL}/BlogPost/${id}/save`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+		if (!token) return navigate('/login');
+		dispatch(savePostRequest({ id }));
 	};
+  
 	const doReport = (id: string) => {
-		if (!token) return dispatch(logout());
-		const descr = prompt('Reason for report?') || '';
+		if (!token) return navigate('/login');
+		const reason = prompt('Reason for report?') || '';
 		fetch(`${API_BASE_URL}/BlogPost/${id}/report`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-			body: JSON.stringify({ description: descr })
+			body: JSON.stringify({ description: reason })
 		});
 	};
   
@@ -123,28 +128,47 @@ function BlogSection() {
 			)}
 			{/* Render blog posts */}
 			{posts.map(post => (
-					<div
-						key={post.id}
-						className="post-preview"
-						style={{ cursor: 'pointer' }}
-						onClick={() => navigate(`/posts/${post.id}`)}
-					>
+				<div
+					key={post.id}
+					className="post-preview"
+					style={{ cursor: 'pointer' }}
+					onClick={() => navigate(`/posts/${post.id}`)}
+				>
+					<div className="post-preview-content">
 						<h4>{post.title}</h4>
 						<p>{post.content.substring(0, 100)}...</p>
 						<div className="meta">
 							<span>Votes: {(post.likes ?? 0) - (post.comments ?? 0)}</span>
 						</div>
-						<div className="actions">
-							<button onClick={e => { e.stopPropagation(); doVote(post.id, true); }}>▲</button>
-							<button onClick={e => { e.stopPropagation(); doVote(post.id, false); }}>▼</button>
-							<button
-								className="comment-btn"
-								onClick={e => { e.stopPropagation(); navigate(`/posts/${post.id}`); }}
-							>💬</button>
-							<button onClick={e => { e.stopPropagation(); doSave(post.id); }}>💾</button>
-							<button onClick={e => { e.stopPropagation(); doReport(post.id); }}>⚠️</button>
-						</div>
 					</div>
+
+					{/* Add image display */}
+					{post.imageData && (
+						<div className="post-preview-image">
+							<img 
+								src={`data:${post.imageContentType || 'image/jpeg'};base64,${post.imageData}`}
+								alt="Post thumbnail"
+							/>
+						</div>
+					)}
+					
+					<div className="actions">
+						<button onClick={e => { 
+							e.stopPropagation(); 
+							doVote(post.id, true); 
+						}}>▲</button>
+						<button onClick={e => { 
+							e.stopPropagation(); 
+							doVote(post.id, false); 
+						}}>▼</button>
+						<button className="comment-btn" onClick={e => { 
+							e.stopPropagation(); 
+							navigate(`/posts/${post.id}`); 
+						}}>💬</button>
+						<button onClick={e => { e.stopPropagation(); doSave(post.id); }}>💾</button>
+						<button onClick={e => { e.stopPropagation(); doReport(post.id); }}>⚠️</button>
+					</div>
+				</div>
 			))}
 			<div ref={loader} className="loader">{loading ? 'Loading…' : hasMore ? 'Scroll to load more' : 'No more posts'}</div>
 		</div>

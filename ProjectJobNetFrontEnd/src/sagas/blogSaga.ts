@@ -1,4 +1,4 @@
-import { call, put, takeLatest, select } from 'redux-saga/effects';
+import { call, put, takeLatest, select, takeEvery } from 'redux-saga/effects';
 import { logout } from '../slices/authSlice.ts';
 import {
   fetchPostsRequest,
@@ -9,7 +9,19 @@ import {
   fetchPostDetailFailure,
   createPostRequest,
   createPostSuccess,
-  createPostFailure
+  createPostFailure,
+  votePostRequest,
+  votePostSuccess,
+  votePostFailure,
+  savePostRequest,
+  savePostSuccess,
+  savePostFailure,
+  fetchCommentsRequest,
+  fetchCommentsSuccess,
+  fetchCommentsFailure,
+  addCommentRequest,
+  addCommentSuccess,
+  addCommentFailure
 } from '../slices/blogSlice.ts';
 import { API_BASE_URL } from '../constants.ts';
 
@@ -86,8 +98,137 @@ console.log('body', body);
   }
 }
 
+function* handleVotePost(action: ReturnType<typeof votePostRequest>) {
+  try {
+    const token: string = yield select((s: any) => s.auth.token);
+    if (!token) {
+      yield put(logout());
+      return;
+    }
+    
+    const { id, isUpvote } = action.payload;
+    const userId: string = yield select((s: any) => s.auth.user.id);
+    
+    const res: Response = yield call(fetch, `${API_BASE_URL}/BlogPost/${id}/vote`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json', 
+        Authorization: `Bearer ${token}` 
+      },
+      body: JSON.stringify({ 
+        userId: userId, 
+        isUpvote: isUpvote 
+      })
+    });
+    
+    if (res.status === 401) {
+      yield put(logout());
+      return;
+    }
+    
+    if (!res.ok) throw new Error('Failed to vote on post');
+    
+    // Parse the response to get the score
+    const data = yield res.json();
+    
+    // Pass the score in the success action
+    yield put(votePostSuccess({ 
+      id, 
+      isUpvote,
+      score: data.score // Include the score from the server response
+    }));
+  } catch (err: any) {
+    yield put(votePostFailure(err.message || 'Failed to vote on post'));
+  }
+}
+
+function* handleSavePost(action: ReturnType<typeof savePostRequest>) {
+  try {
+    const token: string = yield select((s: any) => s.auth.token);
+    if (!token) {
+      yield put(logout());
+      return;
+    }
+    
+    const { id } = action.payload;
+    const res: Response = yield call(fetch, `${API_BASE_URL}/BlogPost/${id}/save`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    if (res.status === 401) {
+      yield put(logout());
+      return;
+    }
+    
+    if (!res.ok) throw new Error('Failed to save post');
+    
+    yield put(savePostSuccess());
+  } catch (err: any) {
+    yield put(savePostFailure(err.message || 'Failed to save post'));
+  }
+}
+
+function* handleFetchComments(action: ReturnType<typeof fetchCommentsRequest>) {
+  try {
+    const { postId } = action.payload;
+    const res: Response = yield call(fetch, `${API_BASE_URL}/BlogPost/${postId}/comments`);
+    
+    if (!res.ok) throw new Error('Failed to fetch comments');
+    
+    const comments = yield res.json();
+    
+    // Fetch usernames for comments
+    const commentsWithUsernames = yield call(async () => {
+      return await Promise.all(comments.map(async (c: any) => {
+        const name = await fetch(`${API_BASE_URL}/users/${c.userId}/username`)
+                        .then(r => r.ok ? r.text() : 'Unknown');
+        return { ...c, userName: name || 'Unknown' };
+      }));
+    });
+    
+    yield put(fetchCommentsSuccess({ postId, comments: commentsWithUsernames }));
+  } catch (err: any) {
+    yield put(fetchCommentsFailure(err.message || 'Failed to fetch comments'));
+  }
+}
+
+function* handleAddComment(action: ReturnType<typeof addCommentRequest>) {
+  try {
+    const token: string = yield select((s: any) => s.auth.token);
+    if (!token) {
+      yield put(logout());
+      return;
+    }
+    
+    const { postId, content } = action.payload;
+    const res: Response = yield call(fetch, `${API_BASE_URL}/BlogPost/${postId}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ content })
+    });
+    
+    if (res.status === 401) {
+      yield put(logout());
+      return;
+    }
+    
+    if (!res.ok) throw new Error('Failed to add comment');
+    
+    yield put(addCommentSuccess());
+    // Re-fetch comments after adding a new one
+    yield put(fetchCommentsRequest({ postId }));
+  } catch (err: any) {
+    yield put(addCommentFailure(err.message || 'Failed to add comment'));
+  }
+}
+
 export function* watchBlog() {
   yield takeLatest(fetchPostsRequest.type, handleFetchPosts);
   yield takeLatest(fetchPostDetailRequest.type, handleFetchPostDetail);
   yield takeLatest(createPostRequest.type, handleCreatePost);
+  yield takeEvery(votePostRequest.type, handleVotePost);
+  yield takeEvery(savePostRequest.type, handleSavePost);
+  yield takeEvery(fetchCommentsRequest.type, handleFetchComments);
+  yield takeEvery(addCommentRequest.type, handleAddComment);
 }

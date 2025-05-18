@@ -1,0 +1,99 @@
+.user-detail-container {
+  max-width: 800px;
+  margin: 32px auto;
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+}
+
+.user-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.user-header img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.user-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 12px;
+}
+
+.user-tabs button {
+  padding: 8px 16px;
+  border: none;
+  background: #eaf4fb;
+  color: #245ea0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.user-tabs button.active {
+  background: #245ea0;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(36,94,160,0.2);
+}
+
+.user-tab-content {
+  min-height: 200px;
+}
+
+.user-tab-content .about-section p {
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+.cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.cards-grid .card {
+  flex: 1 1 300px;
+  transition: transform 0.2s;
+}
+
+.cards-grid .card.clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.empty-state {
+  color: #888;
+  text-align: center;
+  padding: 40px;
+  font-style: italic;
+}
+
+.user-stats {
+  background: #f8f8f8;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 24px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}

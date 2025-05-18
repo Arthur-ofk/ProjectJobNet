@@ -19,6 +19,7 @@ import PlaceVacancy from './pages/PlaceVacancy.tsx';
 import PlaceService from './pages/PlaceService.tsx';
 import BlogSection from './pages/BlogSection.tsx';
 import PostDetail from './pages/PostDetail.tsx'; // NEW: Import detailed blog post view
+import UserDetail from './pages/UserDetail.tsx';
 import './App.css';
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
                   <Route path="/createService" element={<PlaceService />} />
                   <Route path="/blog" element={<BlogSection />} />
                   <Route path="/posts/:id" element={<PostDetail />} /> {/* NEW: Detailed blog post route */}
+                  <Route path="/users/:id" element={<UserDetail />} />
                 </Routes>
               </div>
               <div><Footer /></div>

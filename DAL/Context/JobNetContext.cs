@@ -233,6 +233,7 @@ namespace DAL.Context
             {
                 entity.HasKey(c => c.Id);
 
+                // Use BlogPostId instead of PostId to match the database column name
                 entity.HasOne(c => c.BlogPost)
                       .WithMany(b => b.Comments)
                       .HasForeignKey(c => c.BlogPostId)
