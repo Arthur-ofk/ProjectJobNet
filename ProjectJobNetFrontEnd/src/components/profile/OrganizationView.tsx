@@ -39,6 +39,10 @@ const OrganizationView: React.FC<OrganizationViewProps> = ({
     description: organization.description || '',
   });
 
+  const [tempOrgImage, setTempOrgImage] = useState<File | null>(null);
+  const [orgPreviewUrl, setOrgPreviewUrl] = useState<string | null>(null);
+  const [isEditingOrgImage, setIsEditingOrgImage] = useState(false);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setOrgFormData(prev => ({
@@ -51,6 +55,35 @@ const OrganizationView: React.FC<OrganizationViewProps> = ({
     e.preventDefault();
     e.stopPropagation();
     dispatch(toggleUploadForm());
+  };
+
+  const handleOrgFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !organization) return;
+    
+    setTempOrgImage(file);
+    const objectUrl = URL.createObjectURL(file);
+    setOrgPreviewUrl(objectUrl);
+    setIsEditingOrgImage(true);
+  };
+
+  const handleSaveOrgImage = () => {
+    if (!tempOrgImage || !organization) return;
+    
+    // Implementation for saving org image
+    console.log("Saving org image", tempOrgImage);
+    
+    // Clean up
+    setIsEditingOrgImage(false);
+    setTempOrgImage(null);
+    
+    // Keep org menu closed
+    setIsOrgMenuVisible(false);
+    
+    if (orgPreviewUrl) {
+      URL.revokeObjectURL(orgPreviewUrl);
+      setOrgPreviewUrl(null);
+    }
   };
 
   const logoImageSrc = organization.logoImageData 
@@ -307,3 +340,7 @@ const OrganizationView: React.FC<OrganizationViewProps> = ({
 };
 
 export default OrganizationView;
+function setIsOrgMenuVisible(arg0: boolean) {
+  throw new Error('Function not implemented.');
+}
+

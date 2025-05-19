@@ -1,5 +1,6 @@
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { API_BASE_URL } from '../constants.ts';
+import { resizeImage } from '../utils/imageUtils.ts';
 import { 
   uploadProfilePictureRequest,
   uploadProfilePictureSuccess,
@@ -30,15 +31,25 @@ function* uploadProfilePictureSaga(action: ReturnType<typeof uploadProfilePictur
       throw new Error('Authentication token is missing');
     }
     
-    // Create form data for file upload
-    const formData = new FormData();
-    formData.append('profileImage', file);
+    // Resize the image first (in the saga instead of component)
+    let optimizedFile;
+    try {
+      optimizedFile = yield call(resizeImage, file, 300, 0.6); // Even smaller and lower quality
+    } catch (resizeError) {
+      console.warn('Failed to resize image, using original:', resizeError);
+      optimizedFile = file;
+    }
     
-    // Use the correct endpoint path
+    // Create form data with the optimized file
+    const formData = new FormData();
+    formData.append('profileImage', optimizedFile);
+    
+    // Use simplified headers and a chunked upload approach
     const response = yield call(fetch, `${API_BASE_URL}/users/${userId}/profile/image`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`
+        'Authorization': `Bearer ${token}`
+        // Do NOT set Content-Type - let browser handle multipart boundaries
       },
       body: formData
     });
@@ -48,6 +59,10 @@ function* uploadProfilePictureSaga(action: ReturnType<typeof uploadProfilePictur
       throw new Error('Your session has expired. Please login again.');
     }
     
+    if (response.status === 431) {
+      throw new Error('Image file is too large. Please try with a smaller image.');
+    }
+    
     if (!response.ok) {
       const errorText = yield call([response, 'text']);
       throw new Error(`Upload failed: ${response.status} ${errorText}`);
@@ -55,19 +70,22 @@ function* uploadProfilePictureSaga(action: ReturnType<typeof uploadProfilePictur
     
     const data = yield call(safeJsonParse, response);
     
+    // Update the profile slice
     yield put(uploadProfilePictureSuccess({ 
       imageData: data.profileImageData,
       contentType: data.profileImageContentType
     }));
     
-    // Also update the user data in auth state
+    // Update the auth state through its proper action
     yield put({ 
-      type: 'auth/updateUserProfile',
-      payload: { 
+      type: 'auth/updateUserProfile', 
+      payload: {
         profileImageData: data.profileImageData,
         profileImageContentType: data.profileImageContentType
       }
     });
+    
+    // The localStorage update is now handled in the reducer
     
   } catch (error) {
     console.error('Error uploading profile picture:', error);
@@ -84,7 +102,8 @@ function* deleteProfilePictureSaga(action: ReturnType<typeof deleteProfilePictur
       throw new Error('Authentication token is missing');
     }
     
-    const response = yield call(fetch, `${API_BASE_URL}/users/${userId}/profileimage`, {
+    // Fix the endpoint URL to match the upload endpoint
+    const response = yield call(fetch, `${API_BASE_URL}/users/${userId}/profile/image`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`
@@ -98,14 +117,7 @@ function* deleteProfilePictureSaga(action: ReturnType<typeof deleteProfilePictur
     
     yield put(deleteProfilePictureSuccess());
     
-    // Also update the user data in auth state
-    yield put({ 
-      type: 'auth/updateUserProfile', 
-      payload: {
-        profileImageData: null,
-        profileImageContentType: null
-      }
-    });
+    // We no longer need this localStorage handling here since it's in the slice
     
   } catch (error) {
     console.error('Error deleting profile picture:', error);

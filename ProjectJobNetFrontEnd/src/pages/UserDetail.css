@@ -350,8 +350,54 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-  z-index: 100;
+  z-index: 1100; /* Very high z-index */
   min-width: 180px;
+  border: 1px solid #e0e0e0; /* Add border for visibility */
+}
+
+/* Add a divider between options in the menu */
+.menu-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 4px 0;
+}
+
+/* Fix menu actions to make buttons equal size */
+.menu-actions {
+  display: flex;
+  padding: 8px;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.menu-actions button {
+  padding: 8px 0;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 14px;
+  flex: 1;
+  min-width: 70px; /* Ensure minimum width */
+}
+
+.menu-actions .save-btn {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.menu-actions .save-btn:hover {
+  background-color: #45a049;
+}
+
+.menu-actions .cancel-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.menu-actions .cancel-btn:hover {
+  background-color: #d32f2f;
 }
 
 .menu-item {
@@ -413,4 +459,81 @@
   position: relative;
   width: 100%;
   height: 100%;
+}
+
+/* Make sure profile avatar container is properly sized and positioned */
+.profile-avatar {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
+  z-index: 1000; /* Give it a high z-index to ensure menu is visible */
+}
+
+.profile-picture-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: visible; /* Changed from hidden to visible so dropdown shows */
+  background-color: #f0f0f0;
+  border: 2px solid #e0e0e0;
+}
+
+.profile-image-clickable-wrapper {
+  position: relative;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-picture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Style for the edit mode controls */
+.profile-image-edit-controls {
+  position: absolute;
+  bottom: -50px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 5px 0;
+  z-index: 100;
+}
+
+.profile-image-save-btn,
+.profile-image-cancel-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.profile-image-save-btn {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.profile-image-save-btn:hover {
+  background-color: #45a049;
+}
+
+.profile-image-cancel-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.profile-image-cancel-btn:hover {
+  background-color: #d32f2f;
 }

@@ -8,9 +8,11 @@ import {
   toggleUploadForm, 
   uploadProfilePictureRequest,
   deleteProfilePictureRequest,
-  setProfilePictureData
+  setProfilePictureData,
+  forceImageUpdate
 } from '../slices/profileSlice.ts';
 import './UserProfile.css';
+import { resizeImage } from '../utils/imageUtils.ts';
 
 // Remove any BrowserRouter or Router imports if they exist
 // Only use Link, NavLink, useNavigate, etc. from react-router-dom
@@ -96,7 +98,8 @@ function UserProfile() {
     isDeleting,
     uploadError, 
     deleteError,
-    showUploadForm 
+    showUploadForm,
+    imageUpdateTimestamp
   } = useSelector((state: RootState) => state.profile);
   const notifications = useSelector((state: RootState) => state.notifications.items);
   const dispatch = useDispatch<AppDispatch>();
@@ -125,6 +128,15 @@ function UserProfile() {
 
   const [orgActiveTab, setOrgActiveTab] = useState<'info' | 'members' | 'jobs' | 'services'>('info');
   const [isProfileMenuVisible, setIsProfileMenuVisible] = useState(false);
+
+  // Add these new state variables
+  const [tempProfileImage, setTempProfileImage] = useState<File | null>(null);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [isEditingImage, setIsEditingImage] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(0);
+
+  // For image rendering, use local state to track the current image - KEEP ONLY THIS DECLARATION
+  const [currentProfileImage, setCurrentProfileImage] = useState<string | null>(null);
 
   // Initialize profile data when user data is available
   useEffect(() => {
@@ -276,12 +288,73 @@ function UserProfile() {
     }
   };
 
-  // Handle file input changes for profile picture
+  // Update the file change handler to create a preview first
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file) return;
     
-    dispatch(uploadProfilePictureRequest({ file, userId: user.id }));
+    // Clear the profile menu visibility for organization
+    if (activeOrg) {
+      // We're in organization mode, handle differently
+      // Implementation for organization photo would go here
+      console.log("Organization photo change");
+      return;
+    }
+    
+    // Store the file for later upload - user profile mode
+    setTempProfileImage(file);
+    
+    // Create a preview URL
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewImageUrl(objectUrl);
+    
+    // Enter edit mode instead of uploading immediately
+    setIsEditingImage(true);
+  };
+
+  // Add a save handler to confirm the upload
+  const handleSaveProfileImage = async () => {
+    if (!tempProfileImage || !user) return;
+    
+    try {
+      // Resize the image before uploading
+      const resizedFile = await resizeImage(tempProfileImage, 800); // Max 800px width/height
+      
+      // Dispatch with resized file
+      dispatch(uploadProfilePictureRequest({
+        file: resizedFile, 
+        userId: user.id
+      }));
+      
+      // Clean up
+      setIsEditingImage(false);
+      setTempProfileImage(null);
+      setIsProfileMenuVisible(false);
+      
+      if (previewImageUrl) {
+        URL.revokeObjectURL(previewImageUrl);
+        setPreviewImageUrl(null);
+      }
+      
+      // Force redux to notify components of the update
+      dispatch(forceImageUpdate());
+    } catch (error) {
+      console.error('Error processing image:', error);
+      // Handle error
+    }
+  };
+
+  // Add a cancel handler to discard changes
+  const handleCancelProfileImage = () => {
+    // Clean up the preview URL to free memory
+    if (previewImageUrl) {
+      URL.revokeObjectURL(previewImageUrl);
+    }
+    
+    // Reset states
+    setPreviewImageUrl(null);
+    setTempProfileImage(null);
+    setIsEditingImage(false);
   };
 
   // Toggle profile picture upload form
@@ -371,7 +444,7 @@ function UserProfile() {
     e.preventDefault();
     e.stopPropagation();
     console.log("Toggle profile menu clicked!");
-    setIsProfileMenuVisible(!isProfileMenuVisible);
+    setIsProfileMenuVisible(prev => !prev); // Toggle the menu state
   };
 
   // Handle organization profile update
@@ -396,13 +469,66 @@ function UserProfile() {
     }
   };
 
+  // Create separate organization photo handlers
+  const handleOrgFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeOrg) return;
+    
+    // Implementation for organization photo handling
+    console.log("Organization photo change logic here");
+    
+    // Example: preview implementation
+    const objectUrl = URL.createObjectURL(file);
+    // Use a separate state for org images
+    // setOrgPreviewImageUrl(objectUrl);
+  };
+
+  // Update local state whenever profile data changes
+  useEffect(() => {
+    if (profileImageData) {
+      setCurrentProfileImage(`data:${profileImageContentType || 'image/jpeg'};base64,${profileImageData}`);
+    } else {
+      setCurrentProfileImage(null);
+    }
+  }, [profileImageData, profileImageContentType]);
+
+  // Keep localStorage update effect
+  useEffect(() => {
+    if (profileImageData) {
+      try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          const userObj = JSON.parse(userData);
+          userObj.profileImageData = profileImageData;
+          userObj.profileImageContentType = profileImageContentType;
+          localStorage.setItem('user', JSON.stringify(userObj));
+        }
+      } catch (error) {
+        console.error('Error updating localStorage:', error);
+      }
+    }
+  }, [profileImageData, profileImageContentType]);
+
+  // Fix the getProfileImageSrc function to return a string, not JSX
+  const getProfileImageSrc = (): string => {
+    if (isEditingImage && previewImageUrl) {
+      return previewImageUrl;
+    }
+    
+    if (currentProfileImage) {
+      return currentProfileImage;
+    }
+    
+    return `https://i.pravatar.cc/150?u=${user?.id || 'default'}&t=${Date.now()}`;
+  };
+
   if (!user) return <div className="loading-container">Loading...</div>;
 
   return (
-    <div className="profile-container" onClick={showUploadForm ? () => dispatch(toggleUploadForm()) : undefined}>
+    <div className="profile-container">
       {/* Profile header */}
       <div className="profile-header">
-        {/* Replace static avatar with ProfilePictureUploader */}
+        {/* Profile avatar section */}
         <div className="profile-avatar" onClick={(e) => e.stopPropagation()}>
           <div className="profile-picture-container">
             <div 
@@ -412,19 +538,19 @@ function UserProfile() {
               tabIndex={0}
             >
               <img 
-                src={profileImageData 
-                  ? `data:${profileImageContentType || 'image/jpeg'};base64,${profileImageData}`
-                  : `https://i.pravatar.cc/150?u=${user.id}`
-                } 
+                src={getProfileImageSrc()} 
                 alt="Profile" 
                 className="profile-picture"
+                key={`profile-image-${Date.now()}`} // Force re-render with unique key
               />
-              <div className="profile-picture-edit-indicator">
-                <span>Edit</span>
-              </div>
+              {!isEditingImage && (
+                <div className="profile-picture-edit-indicator">
+                  <span>Edit</span>
+                </div>
+              )}
             </div>
             
-            {/* Profile picture upload form - always use isProfileMenuVisible instead of showUploadForm */}
+            {/* Profile picture menu with integrated save/cancel buttons for editing */}
             {isProfileMenuVisible && (
               <div className="profile-picture-menu">
                 {isUploading ? (
@@ -435,7 +561,28 @@ function UserProfile() {
                   <div className="menu-item loading">
                     <div className="spinner"></div> Deleting...
                   </div>
+                ) : isEditingImage ? (
+                  // Show save/cancel buttons when in edit mode
+                  <>
+                    <div className="menu-item">Preview mode</div>
+                    <div className="menu-divider"></div>
+                    <div className="menu-actions">
+                      <button 
+                        className="save-btn" 
+                        onClick={handleSaveProfileImage}
+                      >
+                        Save
+                      </button>
+                      <button 
+                        className="cancel-btn" 
+                        onClick={handleCancelProfileImage}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </>
                 ) : (
+                  // Show regular options when not in edit mode
                   <>
                     <label className="menu-item upload-btn">
                       {profileImageData ? 'Change Photo' : 'Add Photo'}

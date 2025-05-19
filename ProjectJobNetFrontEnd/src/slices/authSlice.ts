@@ -73,6 +73,18 @@ const authSlice = createSlice({
       localStorage.setItem('token', action.payload.token);
       localStorage.setItem('user', JSON.stringify(action.payload.user));
     },
+    updateUserProfile(state, action: PayloadAction<any>) {
+      if (state.user) {
+        // Use spread operator for immutable update instead of direct mutation
+        state.user = { 
+          ...state.user, 
+          ...action.payload 
+        };
+        
+        // Also update localStorage
+        localStorage.setItem('user', JSON.stringify(state.user));
+      }
+    },
   },
 });
 
@@ -85,5 +97,6 @@ export const {
   registerFailure,
   logout,
   setAuth,
+  updateUserProfile,
 } = authSlice.actions;
 export default authSlice.reducer;
