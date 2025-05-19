@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store.ts';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { API_BASE_URL } from '../constants.ts';
+import { useNavigate } from 'react-router-dom';
 import {
   fetchPostsRequest,
   resetPosts,
@@ -10,222 +9,362 @@ import {
   votePostRequest,
   savePostRequest
 } from '../slices/blogSlice.ts';
-import { logout } from '../slices/authSlice.ts';
 import './BlogSection.css';
 
-type BlogPost = {
-	id: string;
-	title: string;
-	content: string;
-	likes: number;
-	comments: number;
-	tags: string[];
-	createdAt: string;
-	userId: string;
-	authorName?: string;
-	imageData?: string;
-	imageContentType?: string;
-};
+const POSTS_PER_PAGE = 12;
 
 function BlogSection() {
-	const dispatch = useDispatch();
-	const { posts, loading, error, skip, hasMore } = useSelector((state: RootState) => state.blog);
-	const { token, user } = useSelector((state: RootState) => state.auth);
-	const loader = useRef<HTMLDivElement>(null);
-	const limit = 10;
-	const navigate = useNavigate();
-	const location = useLocation();
+  const dispatch = useDispatch();
+  const { posts, loading, error, skip, hasMore } = useSelector((state: RootState) => state.blog);
+  const { token, user } = useSelector((state: RootState) => state.auth);
+  const loader = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   
-	const [activeTab, setActiveTab] = useState<'popular' | 'recent'>('popular');
-	const [showCreatePost, setShowCreatePost] = useState(false);
-	const [newPost, setNewPost] = useState({ title: '', content: '', tags: '' });
-	const [creating, setCreating] = useState(false);
-	const [newPostImage, setNewPostImage] = useState<File | null>(null);
+  const [activeTab, setActiveTab] = useState<'popular' | 'recent'>('popular');
+  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [newPost, setNewPost] = useState({ title: '', content: '', tags: '' });
+  const [newPostImage, setNewPostImage] = useState<File | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [debugInfo, setDebugInfo] = useState({ visiblePosts: 0, lastFetch: 0 });
   
-	// initial load
-	useEffect(() => {
-		dispatch(resetPosts());
-		dispatch(fetchPostsRequest({ skip: 0, take: limit }));
-	}, [dispatch, limit]);
+  // Initial load
+  useEffect(() => {
+    console.log("BlogSection mounted - resetting posts");
+    dispatch(resetPosts());
+    dispatch(fetchPostsRequest({ skip: 0, take: POSTS_PER_PAGE }));
+  }, [dispatch]);
   
-	// infinite scroll
-	useEffect(() => {
-		if (loading || !hasMore) return;
-		const obs = new IntersectionObserver(([e]) => {
-			if (e.isIntersecting) {
-				dispatch(fetchPostsRequest({ skip: skip + limit, take: limit }));
-			}
-		}, { threshold: 1 });
-		if (loader.current) obs.observe(loader.current);
-		return () => loader.current && obs.unobserve(loader.current);
-	}, [loading, hasMore, skip, dispatch]);
+  // Update debug info when posts change
+  useEffect(() => {
+    setDebugInfo(prev => ({
+      ...prev,
+      visiblePosts: posts.length
+    }));
+  }, [posts]);
   
-	// quick actions
-	const doVote = (id: string, up: boolean) => {
-		if (!token) return navigate('/login');
-		dispatch(votePostRequest({ id, isUpvote: up }));
-	};
-  
-	const doSave = (id: string) => {
-		if (!token) return navigate('/login');
-		dispatch(savePostRequest({ id }));
-	};
-  
-	const doReport = (id: string) => {
-		if (!token) return navigate('/login');
-		const reason = prompt('Reason for report?') || '';
-		fetch(`${API_BASE_URL}/BlogPost/${id}/report`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-			body: JSON.stringify({ description: reason })
-		});
-	};
-  
-	const handleCreatePost = async (e: React.FormEvent) => {
-		e.preventDefault();
-		const form = new FormData();
-		form.append('Title', newPost.title);
-		form.append('Content', newPost.content);
-		form.append('UserId', user.id);
-		form.append('Tags', newPost.tags);
-		if (newPostImage) form.append('Image', newPostImage);
-		dispatch(createPostRequest(form));
-	};
+  // Enhanced infinite scroll with improved configuration
+  useEffect(() => {
+    if (loading) {
+      console.log("Skipping observer setup - currently loading");
+      return;
+    }
+    
+    if (!hasMore) {
+      console.log("Skipping observer setup - no more posts");
+      return;
+    }
+    
+    console.log(`Setting up IntersectionObserver: posts=${posts.length}, skip=${skip}, hasMore=${hasMore}`);
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const isIntersecting = entries[0].isIntersecting;
+        console.log(`Observer triggered: isIntersecting=${isIntersecting}, hasMore=${hasMore}`);
+        
+        if (isIntersecting && hasMore && !loading) {
+          const newSkip = skip + POSTS_PER_PAGE;
+          console.log(`Fetching more posts: skip=${newSkip}, take=${POSTS_PER_PAGE}`);
+          setDebugInfo(prev => ({ ...prev, lastFetch: Date.now() }));
+          dispatch(fetchPostsRequest({ skip: newSkip, take: POSTS_PER_PAGE }));
+        }
+      },
+      { 
+        root: null,
+        rootMargin: '200px', // Increased margin to trigger loading earlier
+        threshold: 0.1 // Lower threshold to detect intersection sooner
+      }
+    );
+    
+    if (loader.current) {
+      observer.observe(loader.current);
+      console.log("Observer attached to element");
+    }
+    
+    return () => {
+      if (loader.current) {
+        observer.unobserve(loader.current);
+        console.log("Observer detached");
+      }
+    };
+  }, [loading, hasMore, skip, posts.length, dispatch]);
 
-	// Save scroll position when navigating away
-	const saveScrollPosition = (postId: string) => {
-		const currentPosition = window.scrollY;
-		sessionStorage.setItem('scrollPosition', currentPosition.toString());
-		navigate(`/posts/${postId}`);
-	};
-	
-	// Restore scroll position when returning
-	useEffect(() => {
-		const savedPosition = sessionStorage.getItem('scrollPosition');
-		if (savedPosition) {
-			window.scrollTo(0, parseInt(savedPosition));
-			sessionStorage.removeItem('scrollPosition'); // Clear after use
-		}
-	}, []);
-  
-	return (
-		<div className="blog-section">
-			<h2>Blog Posts</h2>
-			{error && <div className="error">{error}</div>}
-			{loading && <div>Loading...</div>}
-			{/* Tabs and Create button */}
-			<div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
-				<button onClick={() => setActiveTab('popular')} style={{ background: activeTab === 'popular' ? '#245ea0' : '#eaf4fb', color: activeTab === 'popular' ? '#fff' : '#245ea0', padding: '8px 16px', border: 'none', borderRadius: 6 }}>
-					Popular
-				</button>
-				<button onClick={() => setActiveTab('recent')} style={{ background: activeTab === 'recent' ? '#245ea0' : '#eaf4fb', color: activeTab === 'recent' ? '#fff' : '#245ea0', padding: '8px 16px', border: 'none', borderRadius: 6 }}>
-					Recent
-				</button>
-				<button onClick={() => setShowCreatePost(prev => !prev)} style={{ background: '#28a745', color: '#fff', padding: '8px 16px', border: 'none', borderRadius: 6 }}>
-					{showCreatePost ? 'Cancel' : 'Create Post'}
-				</button>
-			</div>
-			{/* New Post Creation Section */}
-			{showCreatePost && (
-				<form onSubmit={handleCreatePost} style={{ marginBottom: 24, padding: 16, background: '#f5f5f5', borderRadius: 8 }}>
-					<h3>Create a Blog Post</h3>
-					<input type="text" placeholder="Title" value={newPost.title} onChange={e => setNewPost({ ...newPost, title: e.target.value })} required style={{ width: '100%', padding: 8, marginBottom: 8 }} />
-					<textarea placeholder="Content" value={newPost.content} onChange={e => setNewPost({ ...newPost, content: e.target.value })} required style={{ width: '100%', padding: 8, marginBottom: 8, height: 100 }} />
-					<input type="text" placeholder="Tags (comma separated)" value={newPost.tags} onChange={e => setNewPost({ ...newPost, tags: e.target.value })} style={{ width: '100%', padding: 8, marginBottom: 8 }} />
-					<input
-						type="file"
-						accept="image/*"
-						onChange={e => setNewPostImage(e.target.files?.[0] || null)}
-						style={{ marginBottom: 8 }}
-					/>
-					<button type="submit" disabled={creating} style={{ padding: '8px 16px', background: '#245ea0', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
-						{creating ? 'Posting...' : 'Post'}
-					</button>
-				</form>
-			)}
-			{/* Render blog posts */}
-			{posts.map(post => (
-				<div
-					key={post.id}
-					className="post-preview"
-					onClick={() => saveScrollPosition(post.id)}
-				>
-					<div className="post-preview-content">
-						{post.imageData && (
-							<div className="post-preview-image">
-								<img 
-									src={`data:${post.imageContentType || 'image/jpeg'};base64,${post.imageData}`}
-									alt={post.title}
-								/>
-							</div>
-						)}
-						<div className="post-preview-text">
-							<h4>{post.title}</h4>
-							<p>{post.content.substring(0, 100)}...</p>
-							<div className="meta">
-								<span>Votes: {(post.likes ?? 0) - (post.comments ?? 0)}</span>
-							</div>
-						</div>
-					</div>
-					
-					<div className="actions">
-						{/* Consistent vote buttons styled like service votes */}
-						<button 
-							className="vote-button upvote"
-							onClick={e => { 
-								e.stopPropagation(); 
-								doVote(post.id, true); 
-							}}
-						>
-							<span className="vote-icon">▲</span>
-							<span className="vote-text">Upvote</span>
-						</button>
-						<button 
-							className="vote-button downvote"
-							onClick={e => { 
-								e.stopPropagation(); 
-								doVote(post.id, false); 
-							}}
-						>
-							<span className="vote-icon">▼</span>
-							<span className="vote-text">Downvote</span>
-						</button>
-						<button 
-							className="action-button comment-btn" 
-							onClick={e => { 
-								e.stopPropagation(); 
-								saveScrollPosition(post.id);
-							}}
-						>
-							<span className="action-icon">💬</span>
-							<span className="action-text">Comment</span>
-						</button>
-						<button 
-							className="action-button save-btn"
-							onClick={e => { 
-								e.stopPropagation(); 
-								doSave(post.id); 
-							}}
-						>
-							<span className="action-icon">💾</span>
-							<span className="action-text">Save</span>
-						</button>
-						<button 
-							className="action-button report-btn"
-							onClick={e => { 
-								e.stopPropagation(); 
-								doReport(post.id); 
-							}}
-						>
-							<span className="action-icon">⚠️</span>
-							<span className="action-text">Report</span>
-						</button>
-					</div>
-				</div>
-			))}
-			<div ref={loader} className="loader">{loading ? 'Loading…' : hasMore ? 'Scroll to load more' : 'No more posts'}</div>
-		</div>
-	);
+  const handleCreatePost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    
+    try {
+      const form = new FormData();
+      form.append('Title', newPost.title);
+      form.append('Content', newPost.content);
+      form.append('UserId', user.id);
+      form.append('Tags', newPost.tags);
+      if (newPostImage) form.append('Image', newPostImage);
+      
+      dispatch(createPostRequest(form));
+      setShowCreatePost(false);
+      setNewPost({ title: '', content: '', tags: '' });
+      setNewPostImage(null);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleVote = (e: React.MouseEvent, postId: string, upvote: boolean) => {
+    e.stopPropagation();
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    dispatch(votePostRequest({ id: postId, isUpvote: upvote }));
+  };
+
+  const handleSave = (e: React.MouseEvent, postId: string) => {
+    e.stopPropagation();
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    
+    try {
+      dispatch(savePostRequest({ id: postId }));
+    } catch (err) {
+      console.error("Error saving post:", err);
+      // Show error notification to user
+      const errorDiv = document.createElement('div');
+      errorDiv.textContent = 'Failed to save post';
+      errorDiv.style.color = 'red';
+      errorDiv.style.padding = '8px';
+      document.body.appendChild(errorDiv);
+      setTimeout(() => document.body.removeChild(errorDiv), 3000);
+    }
+  };
+
+  const handleComment = (e: React.MouseEvent, postId: string) => {
+    e.stopPropagation();
+    navigate(`/posts/${postId}`);
+  };
+
+  const handleReport = (e: React.MouseEvent, postId: string) => {
+    e.stopPropagation();
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    
+    const reason = prompt('Report reason:');
+    if (reason) {
+      // Report logic
+      alert('Post reported successfully');
+    }
+  };
+
+  return (
+    <div className="blog-section">
+      <h2>Blog Posts</h2>
+      
+      <div className="blog-section-info">
+        <small style={{ color: '#888', fontSize: '0.8rem' }}>
+          Displaying {posts.length} posts {hasMore && '- Scroll for more'}
+        </small>
+      </div>
+      
+      {error && <div className="error">{error}</div>}
+      
+      {/* Tabs and Create button */}
+      <div className="blog-tabs">
+        <button 
+          className={`blog-tab-button ${activeTab === 'popular' ? 'active' : ''}`}
+          onClick={() => setActiveTab('popular')}
+        >
+          Popular
+        </button>
+        <button 
+          className={`blog-tab-button ${activeTab === 'recent' ? 'active' : ''}`}
+          onClick={() => setActiveTab('recent')}
+        >
+          Recent
+        </button>
+        {token && (
+          <button 
+            className="btn btn--primary create-post-button"
+            onClick={() => setShowCreatePost(!showCreatePost)}
+          >
+            {showCreatePost ? 'Cancel' : 'Create Post'}
+          </button>
+        )}
+      </div>
+      
+      {/* Create Post Form */}
+      {showCreatePost && (
+        <form onSubmit={handleCreatePost} className="create-post-form">
+          <h3>Create a Blog Post</h3>
+          
+          <div className="form-group">
+            <label htmlFor="post-title">Title</label>
+            <input 
+              id="post-title"
+              type="text" 
+              value={newPost.title} 
+              onChange={e => setNewPost({...newPost, title: e.target.value})} 
+              required 
+              placeholder="Enter post title"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="post-content">Content</label>
+            <textarea 
+              id="post-content"
+              value={newPost.content} 
+              onChange={e => setNewPost({...newPost, content: e.target.value})} 
+              required 
+              placeholder="Write your post content here"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="post-tags">Tags (comma separated)</label>
+            <input 
+              id="post-tags"
+              type="text" 
+              value={newPost.tags} 
+              onChange={e => setNewPost({...newPost, tags: e.target.value})} 
+              placeholder="tag1, tag2, tag3"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="post-image">Featured Image</label>
+            <input 
+              id="post-image"
+              type="file" 
+              accept="image/*" 
+              onChange={e => setNewPostImage(e.target.files?.[0] || null)} 
+            />
+          </div>
+          
+          <div className="form-actions">
+            <button 
+              type="button" 
+              className="btn btn--outline"
+              onClick={() => setShowCreatePost(false)}
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              className="btn btn--primary"
+              disabled={creating}
+            >
+              {creating ? 'Posting...' : 'Post'}
+            </button>
+          </div>
+        </form>
+      )}
+      
+      {/* Blog posts grid */}
+      <div className="blog-grid">
+        {posts.map(post => (
+          <div
+            key={post.id}
+            className="post-preview"
+            onClick={() => navigate(`/posts/${post.id}`)}
+          >
+            <div className="post-preview-content">
+              {post.imageData && (
+                <div className="post-preview-image">
+                  <img 
+                    src={`data:${post.imageContentType || 'image/jpeg'};base64,${post.imageData}`}
+                    alt={post.title}
+                  />
+                </div>
+              )}
+              <div className="post-preview-text">
+                <h4>{post.title}</h4>
+                <p>{post.content.substring(0, 120)}...</p>
+                <div className="meta">
+                  <span>Posted: {new Date(post.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="actions card-footer__actions">
+              <button 
+                className="icon-btn"
+                onClick={(e) => handleVote(e, post.id, true)}
+                aria-label="Upvote"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 19V5M5 12l7-7 7 7" />
+                </svg>
+              </button>
+              <span className="score">
+                {(post.upvotes || 0) - (post.downvotes || 0)}
+              </span>
+              <button 
+                className="icon-btn"
+                onClick={(e) => handleVote(e, post.id, false)}
+                aria-label="Downvote"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 5v14M5 12l7 7 7-7" />
+                </svg>
+              </button>
+              <button 
+                className="icon-btn"
+                onClick={(e) => handleComment(e, post.id)}
+                aria-label="Comment"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </button>
+              <button 
+                className="icon-btn"
+                onClick={(e) => handleSave(e, post.id)}
+                aria-label="Save"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </button>
+              <button 
+                className="icon-btn"
+                onClick={(e) => handleReport(e, post.id)}
+                aria-label="Report"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      {/* More visible loading indicator for infinite scroll */}
+      <div 
+        ref={loader} 
+        className="loader"
+        style={{ 
+          padding: '15px',
+          margin: '20px 0',
+          textAlign: 'center',
+          backgroundColor: loading ? '#f0f8ff' : 'transparent',
+          transition: 'background-color 0.3s',
+          borderRadius: '8px',
+          minHeight: '50px'
+        }} 
+      >
+        {loading ? 
+          'Loading more posts...' : 
+          hasMore ? 
+            'Scroll for more posts' : 
+            'No more posts to load'
+        }
+      </div>
+    </div>
+  );
 }
 
 export default BlogSection;

@@ -20,6 +20,32 @@ namespace BLL.Services
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
+        public async Task<BlogPostVoteDto> GetVoteAsync(Guid postId, Guid userId)
+        {
+            // Fix: Change 'PostId' to 'BlogPostId' to match the model property name
+            var votes = await _unitOfWork.BlogPostVoteRepository.FindAsync(v => v.BlogPostId == postId && v.UserId == userId);
+            var votesList = votes.ToList();
+            
+            if (!votesList.Any())
+            {
+                // Return a default DTO without using the Voted property
+                return new BlogPostVoteDto
+                {
+                    PostId = postId,
+                    UserId = userId,
+                    IsUpvote = false
+                };
+            }
+            
+            var vote = votesList.First();
+            return vote != null ? _mapper.Map<BlogPostVoteDto>(vote) : new BlogPostVoteDto
+            {
+                PostId = postId,
+                UserId = userId,
+                IsUpvote = false
+            };
+        }
+
         public async Task<BlogPostVote> GetUserVoteAsync(Guid postId, Guid userId)
         {
             try

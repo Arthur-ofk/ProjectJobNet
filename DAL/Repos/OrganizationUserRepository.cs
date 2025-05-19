@@ -14,7 +14,32 @@ namespace DAL.Repos
         public OrganizationUserRepository(JobNetContext context) : base(context)
         {
         }
-        
+
+        // Fix nullability mismatch by ensuring we don't return null
+        public override async Task<OrganizationUser> GetByIdAsync(Guid id)
+        {
+            var entity = await _context.Set<OrganizationUser>().FindAsync(id);
+            if (entity == null)
+            {
+                throw new KeyNotFoundException($"Entity with id {id} not found");
+            }
+            return entity;
+        }
+
+        // Fix potentially returning null by handling it explicitly
+        public async Task<OrganizationUser> GetByUserIdAndOrgIdAsync(Guid userId, Guid orgId)
+        {
+            var entity = await _context.OrganizationUsers
+                .FirstOrDefaultAsync(ou => ou.UserId == userId && ou.OrganizationId == orgId);
+            
+            if (entity == null)
+            {
+                throw new KeyNotFoundException($"OrganizationUser with userId {userId} and orgId {orgId} not found");
+            }
+            
+            return entity;
+        }
+
         public async Task<IEnumerable<OrganizationUser>> GetByOrganizationIdAsync(Guid organizationId)
         {
             return await _context.OrganizationUsers

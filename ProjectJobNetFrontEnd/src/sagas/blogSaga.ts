@@ -151,9 +151,23 @@ function* handleSavePost(action: ReturnType<typeof savePostRequest>) {
     }
     
     const { id } = action.payload;
-    const res: Response = yield call(fetch, `${API_BASE_URL}/BlogPost/${id}/save`, {
+    const userId: string = yield select((s: any) => s.auth.user.id);
+    
+    // Log the exact payload we're sending to help with debugging
+    const savedBlogPost = {
+      blogPostId: id,
+      userId: userId
+    };
+    console.log('Saving post with payload:', savedBlogPost);
+    
+    // Make the API request with proper headers and payload
+    const res: Response = yield call(fetch, `${API_BASE_URL}/BlogPost/saved`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        Authorization: `Bearer ${token}` 
+      },
+      body: JSON.stringify(savedBlogPost)
     });
     
     if (res.status === 401) {
@@ -161,11 +175,55 @@ function* handleSavePost(action: ReturnType<typeof savePostRequest>) {
       return;
     }
     
-    if (!res.ok) throw new Error('Failed to save post');
+    // More detailed error handling to diagnose issues
+    if (!res.ok) {
+      const errorText = yield call([res, 'text']);
+      const errorDetail = `Status: ${res.status}, Message: ${errorText}`;
+      console.error('Save post error details:', errorDetail);
+      
+      // Show more helpful error message to user
+      throw new Error(`Failed to save post (${errorDetail}). Please try again.`);
+    }
     
     yield put(savePostSuccess());
+    
+    // Visual feedback that post was saved
+    const savedNotice = document.createElement('div');
+    savedNotice.textContent = 'Post saved successfully!';
+    savedNotice.style.position = 'fixed';
+    savedNotice.style.bottom = '20px';
+    savedNotice.style.right = '20px';
+    savedNotice.style.background = '#28a745';
+    savedNotice.style.color = 'white';
+    savedNotice.style.padding = '10px 20px';
+    savedNotice.style.borderRadius = '4px';
+    savedNotice.style.zIndex = '1000';
+    document.body.appendChild(savedNotice);
+    
+    setTimeout(() => {
+      document.body.removeChild(savedNotice);
+    }, 3000);
+    
   } catch (err: any) {
+    console.error("Save post error:", err);
     yield put(savePostFailure(err.message || 'Failed to save post'));
+    
+    // Show error toast
+    const errorToast = document.createElement('div');
+    errorToast.textContent = err.message || 'Failed to save post';
+    errorToast.style.position = 'fixed';
+    errorToast.style.bottom = '20px';
+    errorToast.style.right = '20px';
+    errorToast.style.background = '#dc3545';
+    errorToast.style.color = 'white';
+    errorToast.style.padding = '10px 20px';
+    errorToast.style.borderRadius = '4px';
+    errorToast.style.zIndex = '1000';
+    document.body.appendChild(errorToast);
+    
+    setTimeout(() => {
+      document.body.removeChild(errorToast);
+    }, 3000);
   }
 }
 

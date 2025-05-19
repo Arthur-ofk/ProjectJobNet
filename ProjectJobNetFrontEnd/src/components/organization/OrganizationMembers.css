@@ -1,0 +1,167 @@
+.org-members-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  color: #245ea0;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  border-bottom: 2px solid #eaf4fb;
+  padding-bottom: 10px;
+}
+
+.member-actions {
+  margin-bottom: 16px;
+}
+
+.action-button {
+  background-color: #245ea0;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.action-button:hover {
+  background-color: #1b4a7c;
+}
+
+.add-member-form {
+  background-color: #eaf4fb;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.form-input-group {
+  display: flex;
+  gap: 12px;
+}
+
+.member-email-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.submit-button {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.submit-button:hover {
+  background-color: #218838;
+}
+
+.error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.empty-state {
+  color: #6c757d;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+  border: 1px dashed #ccc;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+}
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.member-card {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.member-card:hover {
+  background-color: #eaf4fb;
+}
+
+.member-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 16px;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-name {
+  color: #245ea0;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 1.1rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.member-name:hover {
+  text-decoration: underline;
+}
+
+.member-details {
+  font-size: 0.85rem;
+  color: #6c757d;
+  display: flex;
+  gap: 16px;
+}
+
+.member-role {
+  font-weight: 600;
+}
+
+.member-joined {
+  font-style: italic;
+}
+
+.member-actions {
+  margin-left: auto;
+}
+
+.remove-member-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.remove-member-btn:hover {
+  background-color: #c82333;
+}

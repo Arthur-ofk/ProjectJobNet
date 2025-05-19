@@ -1,24 +1,32 @@
-using BLL.Services.Abstractins;
-using BLL.Shared.Organization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BLL.Services.Abstractins;
+using BLL.Shared.Organization;
 using System;
 using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Text.Json; // Use System.Text.Json instead of Newtonsoft
+using System.Security.Claims; // Add this namespace for ClaimTypes
 
 namespace ProjectJobNet.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class OrganizationController : ControllerBase
     {
         private readonly IOrganizationService _organizationService;
+        private readonly IServiceService _serviceService;
+        private readonly IJobService _jobService;
 
-        public OrganizationController(IOrganizationService organizationService)
+        public OrganizationController(
+            IOrganizationService organizationService, 
+            IServiceService serviceService,
+            IJobService jobService)
         {
             _organizationService = organizationService;
+            _serviceService = serviceService;
+            _jobService = jobService;
         }
 
         [HttpGet]
@@ -33,10 +41,17 @@ namespace ProjectJobNet.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<OrganizationDto>> GetById(Guid id)
         {
-            var org = await _organizationService.GetOrganizationByIdAsync(id);
-            if (org == null)
-                return NotFound();
-            return Ok(org);
+            try
+            {
+                var org = await _organizationService.GetOrganizationByIdAsync(id);
+                if (org == null)
+                    return NotFound();
+                return Ok(org);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error getting organization: {ex.Message}");
+            }
         }
 
         [HttpGet("user/{userId}")]
@@ -60,7 +75,7 @@ namespace ProjectJobNet.Controllers
             try
             {
                 // Log the incoming data
-                System.Diagnostics.Debug.WriteLine($"Creating organization: {Newtonsoft.Json.JsonConvert.SerializeObject(dto)}");
+                System.Diagnostics.Debug.WriteLine($"Creating organization: {JsonSerializer.Serialize(dto)}");
                 
                 // If no owner specified, use the current user
                 if (dto.OwnerUserId == Guid.Empty)

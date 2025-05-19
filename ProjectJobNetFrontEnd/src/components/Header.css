@@ -1,46 +1,208 @@
-.header {
+.site-header {
+  background-color: var(--color-primary, #245ea0);
+  box-shadow: var(--shadow-md, 0 2px 4px rgba(0, 0, 0, 0.1));
+  padding: var(--spacing-4, 1rem) var(--spacing-6, 1.5rem);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  color: white;
+}
+
+.header-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  background-color: #245ea0; /* Slightly darker than the logo color */
-  color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
+/* Logo styling */
 .logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
-.logo-image {
-  height: 40px; /* Adjust size as needed */
-}
-
-.nav-buttons {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  text-decoration: none;
 }
 
-.btn {
-  padding: 8px 16px;
+.logo img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+/* Navigation styling */
+.nav {
+  margin-left: auto;
+  margin-right: var(--spacing-6, 1.5rem);
+}
+
+.nav__list {
+  display: flex;
+  gap: var(--spacing-6, 1.5rem);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav__item {
+  position: relative;
+}
+
+.nav__link {
+  color: #fff;
+  padding: var(--spacing-2, 0.5rem) var(--spacing-4, 1rem);
+  border-radius: var(--radius-md, 0.5rem);
+  text-decoration: none;
+  transition: background-color var(--transition-fast, 0.2s);
+}
+
+.nav__link:hover {
+  background-color: var(--accent-light, #fff4eb);
+  color: var(--color-primary, #245ea0);
+}
+
+.nav__link:active {
+  background-color: var(--accent-dark, #c45e1b);
+  color: white;
+}
+
+/* Auth buttons */
+.auth-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4, 1rem);
+}
+
+.btn--outline-light {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  padding: var(--spacing-2, 0.5rem) var(--spacing-4, 1rem);
+  border: 1px solid #fff;
+  border-radius: var(--radius-md, 0.5rem);
+  transition: all var(--transition-fast, 0.2s);
+}
+
+.btn--outline-light:hover {
+  background-color: var(--accent-light, #fff4eb);
+  color: var(--color-primary, #245ea0);
+}
+
+.btn--light {
+  background-color: #fff;
+  color: var(--color-primary, #245ea0);
+  text-decoration: none;
+  font-weight: 500;
+  padding: var(--spacing-2, 0.5rem) var(--spacing-4, 1rem);
+  border: 1px solid #fff;
+  border-radius: var(--radius-md, 0.5rem);
+  transition: background-color var(--transition-fast, 0.2s);
+}
+
+.btn--light:hover {
+  background-color: var(--gray-100, #f5f5f5);
+}
+
+/* User dropdown styling */
+.user-dropdown {
+  position: relative;
+}
+
+.user-dropdown__toggle {
+  display: flex;
+  align-items: center;
+  background: none;
   border: none;
-  border-radius: 8px; /* Rounded corners */
-  background-color: #4a80c2; /* Slightly lighter blue */
+  cursor: pointer;
+  color: #fff;
+  font-weight: 500;
+  padding: var(--spacing-2, 0.5rem);
+}
+
+.user-dropdown__toggle:hover {
+  color: var(--accent-light, #fff4eb);
+}
+
+.user-dropdown__menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border-radius: var(--radius-md, 0.5rem);
+  box-shadow: var(--shadow-lg, 0 10px 15px rgba(0, 0, 0, 0.1));
+  min-width: 180px;
+  overflow: hidden;
+  z-index: 10;
+  margin-top: var(--spacing-2, 0.5rem);
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--spacing-3, 0.75rem) var(--spacing-4, 1rem);
+  border: none;
+  background: none;
+  color: var(--color-text, #333);
+  font-size: 0.95rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: var(--accent-light, #fff4eb);
+  color: var(--color-primary, #245ea0);
+}
+
+/* Mobile menu toggle */
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
   color: white;
   cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  padding: var(--spacing-2, 0.5rem);
 }
 
-.btn:hover {
-  background-color: #7ab3f5; /* Lighter blue on hover */
-  transform: scale(1.05); /* Slight zoom animation */
-}
-
-.btn-primary {
-  background-color: #4a80c2; /* Orange for Sign Up */
-}
-
-.btn-primary:hover {
-  background-color: #4a80c2; /* Lighter orange on hover */
+/* Mobile styling */
+@media (max-width: 640px) {
+  .mobile-menu-toggle {
+    display: block;
+  }
+  
+  .nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--color-primary, #245ea0);
+    padding: var(--spacing-4, 1rem);
+    box-shadow: var(--shadow-md, 0 2px 4px rgba(0, 0, 0, 0.1));
+    margin: 0;
+  }
+  
+  .nav--mobile-open {
+    display: block;
+  }
+  
+  .nav__list {
+    flex-direction: column;
+    gap: var(--spacing-4, 1rem);
+  }
+  
+  .auth-actions {
+    display: none;
+  }
+  
+  .auth-actions--mobile-open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: calc(100% + var(--spacing-8, 2rem));
+    left: 0;
+    right: 0;
+    background-color: var(--color-primary, #245ea0);
+    padding: var(--spacing-4, 1rem);
+    box-shadow: var(--shadow-md, 0 2px 4px rgba(0, 0, 0, 0.1));
+  }
 }

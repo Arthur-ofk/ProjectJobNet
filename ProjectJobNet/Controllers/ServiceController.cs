@@ -57,12 +57,14 @@ namespace ProjectJobNet.Controllers
             await _serviceService.DeleteServiceAsync(id);
             return NoContent();
         }
-         [HttpGet("{id}/hasUsed")]
+
+        [HttpGet("{id}/hasUsed")]
         public async Task<ActionResult<bool>> HasUserUsedService(Guid id, [FromQuery] Guid userId)
         {
             bool hasUsed = await _serviceService.HasUserUsedService(id, userId);
             return Ok(hasUsed);
         }
+
         // New endpoint for voting on a service
         [HttpPost("{id}/vote")]
         public async Task<IActionResult> VoteService(Guid id, [FromBody] bool isUpvote)
@@ -77,6 +79,22 @@ namespace ProjectJobNet.Controllers
             if (!result)
                 return BadRequest("Voting failed: either you've already voted this way or you haven't used the service.");
             return Ok();
+        }
+
+        // GET: api/services/organization/{organizationId}
+        [AllowAnonymous]
+        [HttpGet("organization/{organizationId}")]
+        public async Task<ActionResult<IEnumerable<ServiceDto>>> GetServicesByOrganization(Guid organizationId)
+        {
+            try
+            {
+                var services = await _serviceService.GetServicesByOrganizationIdAsync(organizationId);
+                return Ok(services);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error retrieving services: {ex.Message}");
+            }
         }
     }
 }

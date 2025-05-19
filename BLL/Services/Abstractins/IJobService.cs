@@ -14,5 +14,7 @@ namespace BLL.Services.Abstractins
         Task AddJobAsync(CreateJobDto createJobDto);
         Task UpdateJobAsync(Guid id, UpdateJobDto updateJobDto);
         Task DeleteJobAsync(Guid id);
+        
+        Task<IEnumerable<JobDto>> GetJobsByOrganizationIdAsync(Guid organizationId);
     }
 }

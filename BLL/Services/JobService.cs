@@ -64,5 +64,11 @@ namespace BLL.Services
             _unitOfWork.JobRepository.Remove(job);
             await _unitOfWork.CompleteAsync();
         }
+
+        public async Task<IEnumerable<JobDto>> GetJobsByOrganizationIdAsync(Guid organizationId)
+        {
+            var jobs = await _unitOfWork.JobRepository.FindAsync(j => j.OrganizationId == organizationId);
+            return _mapper.Map<IEnumerable<JobDto>>(jobs);
+        }
     }
 }

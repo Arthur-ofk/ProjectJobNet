@@ -7,18 +7,36 @@
   margin: 0 auto;
 }
 
+.organization-detail-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
 .org-header {
   display: flex;
   align-items: center;
   margin-bottom: 24px;
   padding-bottom: 16px;
   border-bottom: 1px solid #eee;
+  gap: 24px;
+}
+
+.org-logo-container {
+  flex: 0 0 auto;
 }
 
 .org-logo {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   margin-right: 24px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 4px solid #fff;
 }
 
 .org-logo img {
@@ -26,6 +44,10 @@
   height: 100%;
   object-fit: contain;
   border-radius: 8px;
+}
+
+.org-info {
+  flex: 1;
 }
 
 .org-title {
@@ -37,9 +59,57 @@
   color: #333;
 }
 
-.org-industry {
+.org-name {
+  margin: 0 0 8px 0;
+  color: #245ea0;
+  font-size: 2rem;
+}
+
+.org-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
   color: #666;
-  margin: 0;
+  font-size: 0.95rem;
+}
+
+.org-industry {
+  background-color: #eaf4fb;
+  color: #245ea0;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 50px;
+}
+
+.org-website {
+  color: #245ea0;
+  text-decoration: none;
+}
+
+.org-website:hover {
+  text-decoration: underline;
+}
+
+.org-owner {
+  font-style: italic;
+}
+
+.org-description {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.org-description h3 {
+  margin-top: 0;
+  color: #245ea0;
+  font-size: 1.3rem;
+}
+
+.org-address {
+  margin-top: 16px;
+  color: #666;
 }
 
 .org-actions {
@@ -58,26 +128,31 @@
 
 .org-tabs {
   display: flex;
-  gap: 8px;
+  gap: 2px;
   margin-bottom: 24px;
   flex-wrap: wrap;
+  border-bottom: 2px solid #eee;
 }
 
-.org-tabs button {
-  border-radius: 8px;
-  padding: 8px 16px;
-  background: #eaf4fb;
-  color: #245ea0;
-  border: 1px solid #b3e0ff;
-  font-weight: 600;
+.tab-button {
+  background-color: transparent;
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.2s;
+  border-bottom: 3px solid transparent;
+  color: #666;
+  transition: all 0.2s ease;
 }
 
-.org-tabs button.active {
-  background: #245ea0;
-  color: #fff;
-  border-color: #245ea0;
+.tab-button:hover {
+  color: #245ea0;
+}
+
+.tab-button.active {
+  color: #245ea0;
+  font-weight: 600;
+  border-bottom: 3px solid #245ea0;
 }
 
 .org-tab-content {
@@ -304,4 +379,50 @@
 
 .add-button:hover {
   background: #218838;
+}
+
+.org-content {
+  min-height: 300px;
+}
+
+.loading {
+  text-align: center;
+  color: #666;
+  padding: 40px 0;
+  font-style: italic;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #f5c6cb;
+  margin-bottom: 20px;
+}
+
+.not-found {
+  text-align: center;
+  color: #666;
+  padding: 40px 0;
+  font-size: 1.2rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .org-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .org-metadata {
+    justify-content: center;
+  }
+
+  .org-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
 }

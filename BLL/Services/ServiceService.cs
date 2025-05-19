@@ -138,5 +138,11 @@ namespace BLL.Services
             };
         }
 
+        public async Task<IEnumerable<ServiceDto>> GetServicesByOrganizationIdAsync(Guid organizationId)
+        {
+            var services = await _unitOfWork.ServiceRepository.FindAsync(s => s.OrganizationId == organizationId);
+            return _mapper.Map<IEnumerable<ServiceDto>>(services);
+        }
+
     }
 }

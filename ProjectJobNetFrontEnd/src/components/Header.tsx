@@ -1,66 +1,94 @@
-import React from 'react';
-import './Header.css';
-import logo from '../media/logos/logo.svg'; // Make sure the file exists and use .svg extension
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 import { RootState } from '../store.ts';
+import { logout } from '../slices/authSlice.ts';
+import './Header.css';
+import logo from '../media/logos/logo.svg'; // Assuming logo is in assets folder
 
 function Header() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const { user, token } = useSelector((state: RootState) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const getInitials = () => {
-    if (user?.firstName && user?.lastName) {
-      return user.firstName[0].toUpperCase() + user.lastName[0].toUpperCase();
-    }
-    if (user?.userName) {
-      return user.userName[0].toUpperCase();
-    }
-    return '?';
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/');
   };
 
   return (
-    <header className="header">
-      <div className="logo" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-        <img src={logo} alt="ProjectJobNet Logo" className="logo-image" />
+    <header className="site-header">
+      <div className="header-container">
+        <Link to="/" className="logo">
+          <img src={logo}  width="40" height="40" />
+        </Link>
+        
+        <button 
+          className="mobile-menu-toggle" 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M3 12h18M3 6h18M3 18h18"></path>
+          </svg>
+        </button>
+        
+        <nav className={`nav ${mobileMenuOpen ? 'nav--mobile-open' : ''}`}>
+          <ul className="nav__list">
+            {['Blog', 'Vacancies', 'Services'].map(label => (
+              <li key={label} className="nav__item">
+                <Link 
+                  to={`/${label.toLowerCase()}`} 
+                  className="nav__link"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        
+        <div className={`auth-actions ${mobileMenuOpen ? 'auth-actions--mobile-open' : ''}`}>
+          {token ? (
+            <div className="user-dropdown">
+              <button 
+                className="user-dropdown__toggle" 
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                {user.userName} ▼
+              </button>
+              {dropdownOpen && (
+                <div className="user-dropdown__menu">
+                  <Link 
+                    to="/profile" 
+                    className="dropdown-item"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    My Profile
+                  </Link>
+                  <button 
+                    className="dropdown-item" 
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      handleLogout();
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link to="/login" className="btn btn--outline-light">Sign In</Link>
+              <Link to="/register" className="btn btn--light">Sign Up</Link>
+            </>
+          )}
+        </div>
       </div>
-      <nav className="nav-buttons">
-        <button className="btn" onClick={() => navigate('/blog')}>Blog</button>
-        {/* Quick access buttons styled like other nav buttons */}
-        <button className="btn" onClick={() => navigate('/vacancies')}>Vacancies</button>
-        <button className="btn" onClick={() => navigate('/services')}>Services</button>
-        {!token ? (
-          <>
-            <button className="btn" onClick={() => navigate('/login')}>Sign In</button>
-            <button className="btn btn-primary" onClick={() => navigate('/register')}>Sign Up</button>
-          </>
-        ) : (
-          <div
-            className="profile-circle"
-            onClick={() => navigate('/profile')}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: '50%',
-              background: '#eaf4fb',
-              color: '#245ea0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: 20,
-              cursor: 'pointer',
-              marginLeft: 16
-            }}
-            title="Your profile"
-          >
-            {user?.profilePicUrl
-              ? <img src={user.profilePicUrl} alt="profile" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
-              : getInitials()}
-          </div>
-        )}
-      </nav>
     </header>
   );
 }

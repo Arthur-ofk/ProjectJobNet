@@ -2,6 +2,9 @@
 using BLL.Shared.Job;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ProjectJobNet.Controllers
 {
@@ -15,6 +18,22 @@ namespace ProjectJobNet.Controllers
         public JobController(IJobService jobService)
         {
             _jobService = jobService;
+        }
+
+        // GET: api/jobs/organization/{organizationId}
+        [AllowAnonymous]
+        [HttpGet("organization/{organizationId}")]
+        public async Task<ActionResult<IEnumerable<JobDto>>> GetJobsByOrganization(Guid organizationId)
+        {
+            try
+            {
+                var jobs = await _jobService.GetJobsByOrganizationIdAsync(organizationId);
+                return Ok(jobs);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error retrieving jobs: {ex.Message}");
+            }
         }
 
         [HttpGet]
