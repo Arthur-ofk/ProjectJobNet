@@ -121,19 +121,19 @@ const OrganizationMembers: React.FC<OrganizationMembersProps> = ({ orgId, token,
   if (loading) return <div className="loading">Loading members...</div>;
 
   return (
-    <div className="org-members-container">
-      <h3 className="section-title">Organization Members</h3>
-      
-      {isOwner && (
-        <div className="member-actions">
+    <div className="org-members-section">
+      <div className="section-header">
+        <h3>Organization Members</h3>
+        
+        {isOwner && (
           <button 
-            className="action-button"
+            className="btn btn--primary action-button"
             onClick={() => setShowAddForm(!showAddForm)}
           >
             {showAddForm ? 'Cancel' : 'Add New Member'}
           </button>
-        </div>
-      )}
+        )}
+      </div>
       
       {showAddForm && (
         <form onSubmit={handleAddMember} className="add-member-form">
@@ -146,7 +146,7 @@ const OrganizationMembers: React.FC<OrganizationMembersProps> = ({ orgId, token,
               className="member-email-input"
               required
             />
-            <button type="submit" className="submit-button">Add Member</button>
+            <button type="submit" className="btn btn--primary submit-button">Add Member</button>
           </div>
         </form>
       )}
@@ -156,15 +156,16 @@ const OrganizationMembers: React.FC<OrganizationMembersProps> = ({ orgId, token,
       {members.length === 0 ? (
         <p className="empty-state">No members found for this organization.</p>
       ) : (
-        <div className="members-list">
+        <div className="member-list">
           {members.map(member => (
             <div key={member.id} className="member-card">
-              <SafeImage 
-                src={`https://i.pravatar.cc/48?u=${member.userId}`} 
-                alt={member.user?.userName || 'Member'}
-                className="member-avatar"
-                fallbackSrc="/default-avatar.png"
-              />
+              <div className="member-avatar">
+                <img
+                  src={`https://i.pravatar.cc/48?u=${member.userId}`}
+                  alt={member.user?.userName || 'Member'}
+                  onError={(e) => { e.currentTarget.src = "/default-avatar.png" }}
+                />
+              </div>
               <div className="member-info">
                 <Link to={`/users/${member.userId}`} className="member-name">
                   {member.user?.userName || 'User'}
@@ -180,12 +181,12 @@ const OrganizationMembers: React.FC<OrganizationMembersProps> = ({ orgId, token,
               {isOwner && member.role !== 'Owner' && (
                 <div className="member-actions">
                   <button 
-                    className="remove-member-btn"
+                    className="btn btn--danger remove-member-btn"
                     onClick={() => {
                       if (window.confirm(`Are you sure you want to remove ${member.user?.userName || 'this member'}?`)) {
                         fetch(`${API_BASE_URL}/organization/${orgId}/members/${member.userId}`, {
                           method: 'DELETE',
-                          headers: { 'Authorization': `Bearer ${token}` }
+                          headers: { Authorization: `Bearer ${token}` }
                         }).then(res => {
                           if (res.ok) {
                             setMembers(members.filter(m => m.id !== member.id));

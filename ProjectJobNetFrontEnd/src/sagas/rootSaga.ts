@@ -6,6 +6,7 @@ import { watchServices } from './servicesSaga.ts';
 import { watchNotifications } from './notificationsSaga.ts';
 import { watchVacancyDetail } from './vacancyDetailSaga.ts';
 import { watchProfile } from './profileSaga.ts';
+import { watchOrganization } from './organizationSaga.ts';
 
 export default function* rootSaga() {
   yield all([
@@ -16,5 +17,6 @@ export default function* rootSaga() {
     watchNotifications(),
     watchVacancyDetail(),
     watchProfile(),
+    watchOrganization(),
   ]);
 }

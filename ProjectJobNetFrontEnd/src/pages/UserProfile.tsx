@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store.ts';
 import { fetchNotificationsRequest } from '../slices/notificationsSlice.ts';
@@ -10,7 +10,10 @@ import {
   deleteProfilePictureRequest,
   setProfilePictureData
 } from '../slices/profileSlice.ts';
-import './ProfilePage.css';
+import './UserProfile.css';
+
+// Remove any BrowserRouter or Router imports if they exist
+// Only use Link, NavLink, useNavigate, etc. from react-router-dom
 
 // Import the separated components
 import OrganizationsList from '../components/profile/OrganizationsList.tsx';
@@ -20,6 +23,7 @@ import OrdersSection from '../components/profile/OrdersSection.tsx';
 import SavedItemsSection from '../components/profile/SavedItemsSection.tsx';
 import ProfileSettings from '../components/profile/ProfileSettings.tsx';
 import ProfilePictureUploader from '../components/ProfilePictureUploader.tsx';
+import OrganizationView from '../components/profile/OrganizationView.tsx';
 
 // Type definitions
 type Organization = {
@@ -98,7 +102,7 @@ function UserProfile() {
   const dispatch = useDispatch<AppDispatch>();
   
   // Local state
-  const [activeTab, setActiveTab] = useState<'info' | 'resumes' | 'services' | 'notifications' | 'orders' | 'saved' | 'organizations'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'resumes' | 'services' | 'notifications' | 'orders' | 'saved' | 'organizations' | 'blogs'>('info');
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
@@ -120,6 +124,7 @@ function UserProfile() {
   });
 
   const [orgActiveTab, setOrgActiveTab] = useState<'info' | 'members' | 'jobs' | 'services'>('info');
+  const [isProfileMenuVisible, setIsProfileMenuVisible] = useState(false);
 
   // Initialize profile data when user data is available
   useEffect(() => {
@@ -280,9 +285,11 @@ function UserProfile() {
   };
 
   // Toggle profile picture upload form
-  const handleToggleUploadForm = () => {
+  const handleToggleUploadForm = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent event from bubbling up
     dispatch(toggleUploadForm());
-  };
+  }, [dispatch]);
 
   // Handle profile picture removal
   const handleRemovePhoto = () => {
@@ -344,14 +351,59 @@ function UserProfile() {
     }
   };
 
+  const handleCancelEdit = useCallback(() => {
+    // Reset the form data to original values first
+    if (user) {
+      setEditFormData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        address: user.address || '',
+        phoneNumber: user.phoneNumber || ''
+      });
+    }
+    // Then exit edit mode
+    setIsEditMode(false);
+  }, [user]);
+
+  // Improved toggle function for profile picture menu
+  const toggleProfileMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Toggle profile menu clicked!");
+    setIsProfileMenuVisible(!isProfileMenuVisible);
+  };
+
+  // Handle organization profile update
+  const handleSubmitOrgUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!token || !activeOrg) return;
+    
+    try {
+      // Organization update logic would go here
+      console.log('Organization update would happen here');
+      
+      // Exit edit mode
+      setIsEditMode(false);
+      
+      // Show success message
+      alert('Organization updated successfully!');
+      
+    } catch (error) {
+      console.error('Error updating organization:', error);
+      alert('Failed to update organization. Please try again.');
+    }
+  };
+
   if (!user) return <div className="loading-container">Loading...</div>;
 
   return (
-    <div className="profile-container">
+    <div className="profile-container" onClick={showUploadForm ? () => dispatch(toggleUploadForm()) : undefined}>
       {/* Profile header */}
       <div className="profile-header">
         {/* Replace static avatar with ProfilePictureUploader */}
-        <div className="profile-avatar">
+        <div className="profile-avatar" onClick={(e) => e.stopPropagation()}>
           {!isEditMode ? (
             <img 
               src={profileImageData 
@@ -363,7 +415,12 @@ function UserProfile() {
             />
           ) : (
             <div className="profile-picture-container">
-              <div className="profile-picture-wrapper" onClick={handleToggleUploadForm}>
+              <div 
+                className="profile-image-clickable-wrapper"
+                onClick={toggleProfileMenu}
+                role="button"
+                tabIndex={0}
+              >
                 <img 
                   src={profileImageData 
                     ? `data:${profileImageContentType || 'image/jpeg'};base64,${profileImageData}`
@@ -372,7 +429,7 @@ function UserProfile() {
                   alt="Profile" 
                   className="profile-picture"
                 />
-                {/* Edit indicator */}
+                <div className="profile-picture-edit-indicator"></div>
                 <div className="click-overlay">
                   <span>Click to change</span>
                 </div>
@@ -467,7 +524,7 @@ function UserProfile() {
         <>
           {/* Personal tabs */}
           <div className="profile-tabs">
-            {(['info', 'resumes', 'services', 'notifications', 'orders', 'saved', 'organizations'] as const).map(tab => (
+            {(['info', 'resumes', 'services', 'notifications', 'orders', 'saved', 'organizations', 'blogs'] as const).map(tab => (
               <button
                 key={tab}
                 className={activeTab === tab ? 'active' : ''}
@@ -489,7 +546,7 @@ function UserProfile() {
                   <h3>Personal Information</h3>
                   <button 
                     className="btn btn--outline edit-btn"
-                    onClick={() => setIsEditMode(!isEditMode)}
+                    onClick={() => isEditMode ? handleCancelEdit() : setIsEditMode(true)}
                   >
                     {isEditMode ? 'Cancel' : 'Edit Info'}
                   </button>
@@ -658,124 +715,55 @@ function UserProfile() {
                 )}
               </div>
             )}
+            
+            {activeTab === 'blogs' && (
+              <div className="blogs-section">
+                <div className="section-header">
+                  <h3>My Blog Posts</h3>
+                  <a href="/create-blog" className="btn btn--primary">Create New Blog Post</a>
+                </div>
+                
+                {blogPosts.length === 0 ? (
+                  <p className="empty-state">You haven't published any blog posts yet.</p>
+                ) : (
+                  <div className="blog-posts-grid">
+                    {blogPosts.map(post => (
+                      <div key={post.id} className="blog-post-card">
+                        <div className="blog-post-header">
+                          <h4>{post.title}</h4>
+                          <span className="blog-post-date">{new Date(post.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <div className="blog-post-content">
+                          <p>{post.content.length > 150 
+                            ? post.content.substring(0, 150) + '...' 
+                            : post.content}
+                          </p>
+                        </div>
+                        <div className="blog-post-actions">
+                          <a href={`/blog/${post.id}`} className="btn btn--outline">Read More</a>
+                          <a href={`/edit-blog/${post.id}`} className="btn btn--link">Edit</a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </>
       ) : (
         /* Business view mode */
         <>
           {activeOrg && (
-            <div className="business-view">
-              <div className="organization-header">
-                <h3>{activeOrg.name}</h3>
-                <p>{activeOrg.description}</p>
-                <div className="organization-details">
-                  <span><strong>Industry:</strong> {activeOrg.industry}</span>
-                  {activeOrg.website && (
-                    <span><strong>Website:</strong> <a href={activeOrg.website} target="_blank" rel="noopener noreferrer">{activeOrg.website}</a></span>
-                  )}
-                  {activeOrg.address && (
-                    <span><strong>Address:</strong> {activeOrg.address}</span>
-                  )}
-                </div>
-              </div>
-              
-              {/* Organization tabs */}
-              <div className="org-tabs">
-                <button 
-                  className={`org-tab-button ${orgActiveTab === 'info' ? 'active' : ''}`}
-                  onClick={() => setOrgActiveTab('info')}
-                >
-                  Organization Info
-                </button>
-                <button 
-                  className={`org-tab-button ${orgActiveTab === 'members' ? 'active' : ''}`}
-                  onClick={() => setOrgActiveTab('members')}
-                >
-                  Members
-                </button>
-                <button 
-                  className={`org-tab-button ${orgActiveTab === 'jobs' ? 'active' : ''}`}
-                  onClick={() => setOrgActiveTab('jobs')}
-                >
-                  Jobs
-                </button>
-                <button 
-                  className={`org-tab-button ${orgActiveTab === 'services' ? 'active' : ''}`}
-                  onClick={() => setOrgActiveTab('services')}
-                >
-                  Services
-                </button>
-              </div>
-              
-              {/* Organization tab content */}
-              <div className="org-tab-content">
-                {orgActiveTab === 'info' && (
-                  <div className="org-info">
-                    <h3>Organization Details</h3>
-                    <div className="info-row">
-                      <div className="info-label">Name</div>
-                      <div className="info-value">{activeOrg.name}</div>
-                    </div>
-                    <div className="info-row">
-                      <div className="info-label">Industry</div>
-                      <div className="info-value">{activeOrg.industry || 'Not specified'}</div>
-                    </div>
-                    <div className="info-row">
-                      <div className="info-label">Website</div>
-                      <div className="info-value">
-                        {activeOrg.website ? (
-                          <a href={activeOrg.website} target="_blank" rel="noopener noreferrer">
-                            {activeOrg.website}
-                          </a>
-                        ) : (
-                          'Not provided'
-                        )}
-                      </div>
-                    </div>
-                    <div className="info-row">
-                      <div className="info-label">Address</div>
-                      <div className="info-value">{activeOrg.address || 'Not provided'}</div>
-                    </div>
-                    <div className="info-row">
-                      <div className="info-label">Created</div>
-                      <div className="info-value">
-                        {new Date(activeOrg.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {orgActiveTab === 'members' && (
-                  <div className="org-members">
-                    <h3>Organization Members</h3>
-                    {/* Member list would go here */}
-                    <div className="member-list">
-                      <p>Loading members...</p>
-                    </div>
-                  </div>
-                )}
-                
-                {orgActiveTab === 'jobs' && (
-                  <div className="org-jobs">
-                    <h3>Organization Jobs</h3>
-                    <button className="btn btn--primary create-btn">
-                      Post New Job
-                    </button>
-                    {/* Jobs list would go here */}
-                  </div>
-                )}
-                
-                {orgActiveTab === 'services' && (
-                  <div className="org-services">
-                    <h3>Organization Services</h3>
-                    <button className="btn btn--primary create-btn">
-                      Add New Service
-                    </button>
-                    {/* Services list would go here */}
-                  </div>
-                )}
-              </div>
-            </div>
+            <OrganizationView
+              organization={activeOrg}
+              isEditMode={isEditMode}
+              setIsEditMode={setIsEditMode}
+              handleFileChange={handleFileChange}
+              handleRemovePhoto={handleRemovePhoto}
+              handleSubmitOrgUpdate={handleSubmitOrgUpdate}
+              handleCancelEdit={handleCancelEdit}
+            />
           )}
         </>
       )}

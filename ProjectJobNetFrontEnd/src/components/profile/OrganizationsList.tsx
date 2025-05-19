@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { API_BASE_URL } from '../../constants.ts';
 import { Link } from 'react-router-dom';
+import './OrganizationsList.css';
 
 type Organization = {
   id: string;
@@ -12,9 +13,11 @@ type Organization = {
   logoUrl: string;
   createdAt: string;
   updatedAt: string;
+  logoImageData?: string;
+  logoImageContentType?: string;
 };
 
-type OrganizationsListProps = {
+type Props = {
   organizations: Organization[];
   token: string | null;
   userId: string;
@@ -22,171 +25,157 @@ type OrganizationsListProps = {
   onOrganizationSelect: (org: Organization) => void;
 };
 
-const OrganizationsList: React.FC<OrganizationsListProps> = ({
-  organizations,
-  token,
-  userId,
-  onOrganizationCreate,
-  onOrganizationSelect,
-}) => {
-  const [showCreateOrg, setShowCreateOrg] = useState(false);
-  const [newOrg, setNewOrg] = useState({
-    name: '',
-    description: '',
-    industry: '',
-    website: '',
-    address: '',
-    logoUrl: ''
-  });
-
-  const handleCreateOrg = async (e: React.FormEvent) => {
+function OrganizationsList({ organizations, token, userId, onOrganizationCreate, onOrganizationSelect }: Props) {
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name: '', description: '', industry: '', website: '', address: '' });
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) {
-      alert("You must be logged in to create an organization");
-      return;
-    }
-  
     try {
-      const requestData = {
-        ...newOrg,
-        ownerUserId: userId
-      };
-  
-      const res = await fetch(`${API_BASE_URL}/organization`, {
+      const response = await fetch(`${API_BASE_URL}/organization`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(requestData)
+        body: JSON.stringify({
+          ...form,
+          userId
+        })
       });
-  
-      if (!res.ok) {
-        throw new Error(`Failed to create organization: ${res.status}`);
-      }
-  
-      const created = await res.json();
       
-      onOrganizationCreate(created);
-      setShowCreateOrg(false);
-      setNewOrg({
-        name: '',
-        description: '',
-        industry: '',
-        website: '',
-        address: '',
-        logoUrl: ''
-      });
-    } catch (err: any) {
-      console.error("Error creating organization:", err);
-      alert(`Failed to create organization: ${err.message}`);
+      if (!response.ok) throw new Error('Failed to create organization');
+      
+      const createdOrg = await response.json();
+      onOrganizationCreate(createdOrg);
+      setShowForm(false);
+      setForm({ name: '', description: '', industry: '', website: '', address: '' });
+    } catch (err) {
+      console.error('Failed to create organization:', err);
+      alert('Failed to create organization');
     }
   };
 
   return (
     <div className="organizations-section">
       <div className="section-header">
-        <h3>Your Organizations</h3>
+        <h3>My Organizations</h3>
         <button 
-          onClick={() => setShowCreateOrg(!showCreateOrg)}
-          className="action-button"
+          className="btn btn--primary create-btn"
+          onClick={() => setShowForm(!showForm)}
         >
-          {showCreateOrg ? 'Cancel' : 'Create Organization'}
+          {showForm ? 'Cancel' : 'Create Organization'}
         </button>
       </div>
-
-      {showCreateOrg && (
-        <form onSubmit={handleCreateOrg} className="create-org-form">
-          <h4>Create New Organization</h4>
+      
+      {showForm && (
+        <form className="create-org-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Name:</label>
-            <input 
-              type="text" 
-              value={newOrg.name}
-              onChange={e => setNewOrg({...newOrg, name: e.target.value})}
+            <label htmlFor="org-name">Organization Name</label>
+            <input
+              id="org-name"
+              name="name"
+              value={form.name}
+              onChange={handleInputChange}
               required
             />
           </div>
+          
           <div className="form-group">
-            <label>Industry:</label>
-            <input 
-              type="text" 
-              value={newOrg.industry}
-              onChange={e => setNewOrg({...newOrg, industry: e.target.value})}
+            <label htmlFor="org-industry">Industry</label>
+            <input
+              id="org-industry"
+              name="industry"
+              value={form.industry}
+              onChange={handleInputChange}
               required
             />
           </div>
+          
           <div className="form-group">
-            <label>Description:</label>
-            <textarea 
-              value={newOrg.description}
-              onChange={e => setNewOrg({...newOrg, description: e.target.value})}
+            <label htmlFor="org-description">Description</label>
+            <textarea
+              id="org-description"
+              name="description"
+              value={form.description}
+              onChange={handleInputChange}
               required
             />
           </div>
+          
           <div className="form-group">
-            <label>Website:</label>
-            <input 
-              type="url" 
-              value={newOrg.website}
-              onChange={e => setNewOrg({...newOrg, website: e.target.value})}
+            <label htmlFor="org-website">Website (optional)</label>
+            <input
+              id="org-website"
+              name="website"
+              value={form.website}
+              onChange={handleInputChange}
             />
           </div>
+          
           <div className="form-group">
-            <label>Address:</label>
-            <input 
-              type="text" 
-              value={newOrg.address}
-              onChange={e => setNewOrg({...newOrg, address: e.target.value})}
+            <label htmlFor="org-address">Address (optional)</label>
+            <input
+              id="org-address"
+              name="address"
+              value={form.address}
+              onChange={handleInputChange}
             />
           </div>
-          <div className="form-group">
-            <label>Logo URL:</label>
-            <input 
-              type="url" 
-              value={newOrg.logoUrl}
-              onChange={e => setNewOrg({...newOrg, logoUrl: e.target.value})}
-            />
-          </div>
-          <div className="form-actions">
-            <button type="submit" className="submit-btn">Create Organization</button>
-          </div>
+          
+          <button type="submit" className="btn btn--primary save-btn">
+            Create Organization
+          </button>
         </form>
       )}
-
-      {organizations.length === 0 ? (
-        <p className="empty-state">You haven't created any organizations yet.</p>
-      ) : (
-        <div className="organizations-grid">
-          {organizations.map(org => (
+      
+      <div className="organizations-grid">
+        {organizations.length === 0 ? (
+          <p className="empty-state">You don't have any organizations yet.</p>
+        ) : (
+          organizations.map(org => (
             <div key={org.id} className="organization-card">
               <div className="organization-logo">
-                {org.logoUrl ? (
-                  <img src={org.logoUrl} alt={org.name} />
+                {org.logoImageData ? (
+                  <img 
+                    src={`data:${org.logoImageContentType || 'image/jpeg'};base64,${org.logoImageData}`}
+                    alt={org.name}
+                  />
                 ) : (
-                  <div className="org-initials">{org.name.charAt(0)}</div>
+                  <div className="org-placeholder">{org.name.charAt(0)}</div>
                 )}
               </div>
               <div className="organization-details">
                 <h4>{org.name}</h4>
-                <p className="industry">{org.industry}</p>
-                <p className="description">{org.description.substring(0, 100)}...</p>
+                <span className="organization-industry">{org.industry}</span>
+                <p className="organization-description">
+                  {org.description.length > 120 ? org.description.substring(0, 120) + '...' : org.description}
+                </p>
               </div>
               <div className="organization-actions">
-                <Link to={`/organizations/${org.id}`} className="view-btn">View</Link>
                 <button 
-                  className="switch-btn"
+                  className="view-org-btn"
                   onClick={() => onOrganizationSelect(org)}
                 >
-                  Switch to Business View
+                  View
                 </button>
+                <Link 
+                  to={`/organizations/${org.id}`} 
+                  className="edit-org-btn"
+                >
+                  Details
+                </Link>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
-};
+}
 
 export default OrganizationsList;
