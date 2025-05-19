@@ -89,7 +89,7 @@ namespace ProjectJobNet.Controllers
                     return Unauthorized();
                 
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null)
+                if (userIdClaim?.Value == null)
                     return Unauthorized("User ID not found");
                 
                 var userId = Guid.Parse(userIdClaim.Value);
@@ -119,7 +119,7 @@ namespace ProjectJobNet.Controllers
                     return BadRequest(ModelState);
 
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null)
+                if (userIdClaim?.Value == null)
                 {
                     return Unauthorized("User ID not found in token");
                 }
@@ -156,7 +156,7 @@ namespace ProjectJobNet.Controllers
             try
             {
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null)
+                if (userIdClaim?.Value == null)
                     return Unauthorized("User ID not found");
                     
                 var userId = Guid.Parse(userIdClaim.Value);
@@ -191,7 +191,7 @@ namespace ProjectJobNet.Controllers
             try
             {
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null)
+                if (userIdClaim?.Value == null)
                     return Unauthorized("User ID not found");
                     
                 var userId = Guid.Parse(userIdClaim.Value);
@@ -263,7 +263,7 @@ namespace ProjectJobNet.Controllers
                 if (dto.UserId == Guid.Empty)
                 {
                     var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                    if (userIdClaim == null)
+                    if (userIdClaim?.Value == null)
                         return Unauthorized("User ID not found");
                     
                     dto.UserId = Guid.Parse(userIdClaim.Value);
@@ -295,7 +295,7 @@ namespace ProjectJobNet.Controllers
         public async Task<IActionResult> SavePost(Guid id)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
+            if (userIdClaim?.Value == null)
                 return Unauthorized("User ID not found");
                 
             var userId = Guid.Parse(userIdClaim.Value);
@@ -323,7 +323,7 @@ namespace ProjectJobNet.Controllers
         public async Task<IActionResult> ReportPost(Guid id, [FromBody] CreateComplaintDto complaintDto)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
+            if (userIdClaim?.Value == null)
                 return Unauthorized("User ID not found");
                 
             complaintDto.TargetPostId = id;
@@ -349,7 +349,7 @@ namespace ProjectJobNet.Controllers
             try
             {
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null)
+                if (userIdClaim?.Value == null)
                     return Unauthorized("User ID not found in token");
                     
                 var userId = Guid.Parse(userIdClaim.Value);
@@ -376,7 +376,7 @@ namespace ProjectJobNet.Controllers
                 if (dto.UserId == Guid.Empty)
                 {
                     var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                    if (userIdClaim == null)
+                    if (userIdClaim?.Value == null)
                         return Unauthorized("User ID not found in token");
                         
                     dto.UserId = Guid.Parse(userIdClaim.Value);
@@ -399,7 +399,7 @@ namespace ProjectJobNet.Controllers
             try
             {
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null)
+                if (userIdClaim?.Value == null)
                     return Unauthorized("User ID not found in token");
                     
                 var userId = Guid.Parse(userIdClaim.Value);

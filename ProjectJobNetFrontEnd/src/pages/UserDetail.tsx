@@ -41,11 +41,20 @@ function UserDetail() {
   const [services, setServices] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [profileImageData, setProfileImageData] = useState<string | null>(null);
+  const [profileImageContentType, setProfileImageContentType] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/users/${id}`)
       .then(res => res.json())
-      .then(data => setUser(data));
+      .then(data => {
+        setUser(data);
+        // Store the profile image data if available
+        if (data.profileImageData) {
+          setProfileImageData(data.profileImageData);
+          setProfileImageContentType(data.profileImageContentType);
+        }
+      });
     fetch(`${API_BASE_URL}/review`)
       .then(res => res.json())
       .then(data => {
@@ -90,11 +99,16 @@ function UserDetail() {
 
   if (loading || !user) return <div>Loading...</div>;
 
+  // Generate image source URL from either the database image or fallback avatar
+  const profileImageSrc = profileImageData 
+    ? `data:${profileImageContentType || 'image/jpeg'};base64,${profileImageData}`
+    : `https://i.pravatar.cc/120?u=${id}`;
+
   return (
     <div className="user-detail-container">
       {/* User header with primary info - always visible */}
       <div className="user-header">
-        <img src={`https://i.pravatar.cc/120?u=${id}`} alt="avatar" />
+        <img src={profileImageSrc} alt="avatar" className="user-avatar" />
         <div className="user-header-info">
           <h2 className="user-name">{user.userName}</h2>
           <p className="user-fullname">{user.firstName} {user.lastName}</p>

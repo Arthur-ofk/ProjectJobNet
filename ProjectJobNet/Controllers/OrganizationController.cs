@@ -109,7 +109,9 @@ namespace ProjectJobNet.Controllers
             {
                 // Verify if user is owner or admin
                 var orgMembers = await _organizationService.GetOrganizationMembersAsync(id);
-                var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+                    return BadRequest("Invalid user ID format");
                 
                 bool isAuthorized = false;
                 foreach (var member in orgMembers)
@@ -144,7 +146,9 @@ namespace ProjectJobNet.Controllers
             {
                 // Verify if user is owner
                 var orgMembers = await _organizationService.GetOrganizationMembersAsync(id);
-                var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+                    return BadRequest("Invalid user ID format");
                 
                 bool isOwner = false;
                 foreach (var member in orgMembers)
@@ -193,7 +197,9 @@ namespace ProjectJobNet.Controllers
             {
                 // Verify if user is owner or admin
                 var orgMembers = await _organizationService.GetOrganizationMembersAsync(dto.OrganizationId);
-                var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+                    return BadRequest("Invalid user ID format");
                 
                 bool isAuthorized = false;
                 foreach (var member in orgMembers)
@@ -228,7 +234,9 @@ namespace ProjectJobNet.Controllers
             {
                 // Verify if current user is owner or admin
                 var orgMembers = await _organizationService.GetOrganizationMembersAsync(orgId);
-                var currentUserId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (currentUserIdClaim == null || !Guid.TryParse(currentUserIdClaim.Value, out var currentUserId))
+                    return BadRequest("Invalid user ID format");
                 
                 bool isAuthorized = false;
                 foreach (var member in orgMembers)
@@ -267,7 +275,9 @@ namespace ProjectJobNet.Controllers
             {
                 // Verify if current user is owner
                 var orgMembers = await _organizationService.GetOrganizationMembersAsync(orgId);
-                var currentUserId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (currentUserIdClaim == null || !Guid.TryParse(currentUserIdClaim.Value, out var currentUserId))
+                    return BadRequest("Invalid user ID format");
                 
                 bool isOwner = false;
                 foreach (var member in orgMembers)

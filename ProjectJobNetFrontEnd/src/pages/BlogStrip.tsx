@@ -4,8 +4,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store.ts';
 import { resetPosts, fetchPostsRequest, votePostRequest, savePostRequest } from '../slices/blogSlice.ts';
 import './BlogStrip.css';
+import { API_BASE_URL } from '../constants.ts';
 
-// SVG Icons as components
 const UpArrowIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M12 19V5M5 12l7-7 7 7" />
@@ -30,97 +30,149 @@ const BookmarkIcon = () => (
   </svg>
 );
 
-const POSTS_PER_PAGE = 6; // Reduced number for home page strip
+const POSTS_PER_PAGE = 6;
 
 function BlogStrip() {
   const dispatch = useDispatch();
   const { posts, skip, hasMore, loading, error } = useSelector((state: RootState) => state.blog);
   const { token, user } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
-  const observerRef = useRef<HTMLDivElement>(null);
-  const [debugInfo, setDebugInfo] = useState({ visiblePosts: 0, lastFetch: 0 });
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
+  const [userVotes, setUserVotes] = useState<Map<string, string>>(new Map());
   
-  // Initial load: reset and fetch first page (skip=0)
   useEffect(() => {
-    console.log("BlogStrip mounted - resetting posts");
     dispatch(resetPosts());
     dispatch(fetchPostsRequest({ skip: 0, take: POSTS_PER_PAGE }));
-  }, [dispatch]);
-
-  // Update debug info when posts change
-  useEffect(() => {
-    setDebugInfo(prev => ({
-      ...prev,
-      visiblePosts: posts.length
-    }));
-  }, [posts]);
-
-  // Enhanced infinite scroll with improved triggering
-  useEffect(() => {
-    if (loading) {
-      console.log("Skipping observer setup - currently loading");
-      return;
-    }
     
-    if (!hasMore) {
-      console.log("Skipping observer setup - no more posts");
-      return;
+    if (token) {
+      fetch(`${API_BASE_URL}/BlogPost/saved`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.ok ? res.json() : [])
+        .then(data => {
+          if (Array.isArray(data)) {
+            const newSaved = new Set<string>();
+            data.forEach(post => newSaved.add(post.blogPostId));
+            setSavedPosts(newSaved);
+          }
+        });
     }
-    
-    console.log(`Setting up IntersectionObserver: posts=${posts.length}, skip=${skip}, hasMore=${hasMore}`);
+  }, [dispatch, token]);
+  
+  useEffect(() => {
+    if (!hasMore || loading) return;
     
     const observer = new IntersectionObserver(
       (entries) => {
-        const isIntersecting = entries[0].isIntersecting;
-        console.log(`Observer triggered: isIntersecting=${isIntersecting}, hasMore=${hasMore}`);
-        
-        if (isIntersecting && hasMore && !loading) {
-          const newSkip = skip + POSTS_PER_PAGE;
-          console.log(`Fetching more posts: skip=${newSkip}, take=${POSTS_PER_PAGE}`);
-          setDebugInfo(prev => ({ ...prev, lastFetch: Date.now() }));
-          dispatch(fetchPostsRequest({ skip: newSkip, take: POSTS_PER_PAGE }));
+        const entry = entries[0];
+        if (entry.target === sentinelRef.current && entry.isIntersecting && hasMore && !loading) {
+          dispatch(fetchPostsRequest({ skip: skip + POSTS_PER_PAGE, take: POSTS_PER_PAGE }));
         }
       },
       { 
-        root: null,
-        rootMargin: '200px', // Increased margin to trigger loading earlier
+        rootMargin: '200px',
         threshold: 0.1
       }
     );
     
-    if (observerRef.current) {
-      observer.observe(observerRef.current);
-      console.log("Observer attached to element");
+    if (sentinelRef.current) {
+      observer.observe(sentinelRef.current);
     }
     
     return () => {
-      if (observerRef.current) {
-        observer.unobserve(observerRef.current);
-        console.log("Observer detached");
+      if (sentinelRef.current) {
+        observer.unobserve(sentinelRef.current);
       }
     };
-  }, [loading, hasMore, skip, posts.length, dispatch]);
+  }, [loading, hasMore, skip, dispatch]);
 
-  const handleVote = (e: React.MouseEvent, postId: string, upvote: boolean) => {
+  const handleVote = async (e: React.MouseEvent, postId: string, isUpvote: boolean) => {
     e.stopPropagation();
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-    dispatch(votePostRequest({ id: postId, isUpvote: upvote }));
-  };
-
-  const handleSave = (e: React.MouseEvent, postId: string) => {
-    e.stopPropagation();
+    
     if (!token) {
       navigate('/login');
       return;
     }
     
     try {
-      dispatch(savePostRequest({ id: postId }));
+      // Check if user already voted this way
+      const currentVote = userVotes.get(postId);
+      if (currentVote === (isUpvote ? 'up' : 'down')) {
+        return; // Already voted this way
+      }
+      
+      // Send vote to server
+      const response = await fetch(`${API_BASE_URL}/BlogPost/${postId}/vote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          isUpvote: isUpvote
+        })
+      });
+      
+      if (!response.ok) throw new Error("Voting failed");
+      
+      // Update UI vote status
+      const newVotes = new Map(userVotes);
+      newVotes.set(postId, isUpvote ? 'up' : 'down');
+      setUserVotes(newVotes);
+      
+      // Get accurate score from server
+      const scoreResponse = await fetch(`${API_BASE_URL}/BlogPost/${postId}/score`);
+      if (scoreResponse.ok) {
+        const scoreData = await scoreResponse.json();
+        
+        // Update only this specific post's score in the UI
+        const updatedPosts = posts.map(post => {
+          if (post.id === postId) {
+            return { ...post, upvotes: scoreData.score, downvotes: 0 };
+          }
+          return post;
+        });
+        
+        // Update posts array with accurate score
+        dispatch({ type: 'blog/updatePostScore', payload: { posts: updatedPosts } });
+      }
     } catch (err) {
-      console.error("Error saving post:", err);
+      console.error("Error voting:", err);
+    }
+  };
+
+  const handleSave = async (e: React.MouseEvent, postId: string) => {
+    e.stopPropagation();
+    
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    
+    try {
+      const isSaved = savedPosts.has(postId);
+      
+      if (!isSaved) {
+        dispatch(savePostRequest({ id: postId }));
+        setSavedPosts(prev => new Set(prev).add(postId));
+      } else {
+        const userId = user?.id;
+        
+        fetch(`${API_BASE_URL}/BlogPost/saved?blogPostId=${postId}&userId=${userId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        setSavedPosts(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(postId);
+          return newSet;
+        });
+      }
+    } catch (err) {
+      console.error("Error toggling save:", err);
     }
   };
 
@@ -133,13 +185,8 @@ function BlogStrip() {
     <div className="blog-strip-container">
       <div className="blog-strip-header">
         <h3>Latest Blog Posts</h3>
-        {/* Small debug indicator */}
-        <small style={{ color: '#888', fontSize: '0.7rem' }}>
-          Displaying {posts.length} posts
-        </small>
       </div>
       
-      {/* No slice limitation - display all loaded posts */}
       <div className="blog-strip">
         {posts.map(post => (
           <div
@@ -162,13 +209,9 @@ function BlogStrip() {
             <div className="blog-card-footer">
               <div className="card-footer__actions">
                 <button 
-                  className="icon-btn" 
+                  className={`icon-btn ${userVotes.get(post.id) === 'up' ? 'active-up' : ''}`}
                   aria-label="Upvote"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!token) navigate('/login');
-                    else dispatch(votePostRequest({ id: post.id, isUpvote: true }));
-                  }}
+                  onClick={(e) => handleVote(e, post.id, true)}
                 >
                   <UpArrowIcon />
                 </button>
@@ -176,34 +219,23 @@ function BlogStrip() {
                   {(post.upvotes || 0) - (post.downvotes || 0)}
                 </span>
                 <button 
-                  className="icon-btn" 
+                  className={`icon-btn ${userVotes.get(post.id) === 'down' ? 'active-down' : ''}`}
                   aria-label="Downvote"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!token) navigate('/login');
-                    else dispatch(votePostRequest({ id: post.id, isUpvote: false }));
-                  }}
+                  onClick={(e) => handleVote(e, post.id, false)}
                 >
                   <DownArrowIcon />
                 </button>
                 <button 
-                  className="icon-btn" 
+                  className="icon-btn"
                   aria-label="Comment"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/posts/${post.id}`);
-                  }}
+                  onClick={(e) => handleComment(e, post.id)}
                 >
                   <CommentIcon />
                 </button>
                 <button 
-                  className="icon-btn" 
+                  className={`icon-btn ${savedPosts.has(post.id) ? 'saved' : ''}`}
                   aria-label="Save"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!token) navigate('/login');
-                    else dispatch(savePostRequest({ id: post.id }));
-                  }}
+                  onClick={(e) => handleSave(e, post.id)}
                 >
                   <BookmarkIcon />
                 </button>
@@ -216,9 +248,8 @@ function BlogStrip() {
         ))}
       </div>
       
-      {/* More prominent observer element */}
       <div 
-        ref={observerRef} 
+        ref={sentinelRef}
         className="loader"
         style={{ 
           padding: '15px',
@@ -229,15 +260,10 @@ function BlogStrip() {
           borderRadius: '8px'
         }} 
       >
-        {loading ? 
-          'Loading more posts...' : 
-          hasMore ? 
-            'Scroll for more posts' : 
-            'No more posts to load'
-        }
+        {loading ? 'Loading more posts...' : hasMore ? '' : 'No more posts'}
       </div>
       
-      {error && <div style={{ color: 'red', textAlign: 'center', padding: '10px' }}>{error}</div>}
+      {error && <div style={{ color: 'red', textAlign: 'center' }}>{error}</div>}
     </div>
   );
 }

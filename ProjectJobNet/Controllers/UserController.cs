@@ -1,7 +1,11 @@
 ﻿using BLL.Services.Abstractins;
 using BLL.Shared.User;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace ProjectJobNet.Controllers
 {
@@ -63,6 +67,7 @@ namespace ProjectJobNet.Controllers
             var result = await _userService.SearchUserAsync(searchParam, value);
             return Ok(result);
         }
+
 
         [HttpGet("{id}/username")]
         [AllowAnonymous]

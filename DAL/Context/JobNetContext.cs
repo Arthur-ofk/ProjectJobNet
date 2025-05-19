@@ -122,6 +122,7 @@ namespace DAL.Context
                 .HasForeignKey(r => r.AuthorId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+
             // Конфігурація для таблиці Complaints (зв'язок між User (Complainant) і BlogPost)
             modelBuilder.Entity<Complaint>()
         .HasOne(c => c.Complainant)
@@ -227,7 +228,7 @@ namespace DAL.Context
                 entity.HasOne(e => e.User)
                       .WithMany(u => u.BlogPostVotes)
                       .HasForeignKey(e => e.UserId)
-                      .OnDelete(DeleteBehavior.Restrict); // Updated to Restrict
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Configure PostComments relationships

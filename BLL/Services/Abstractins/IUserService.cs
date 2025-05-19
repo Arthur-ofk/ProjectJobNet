@@ -1,5 +1,5 @@
-﻿
-using BLL.Shared.User;
+﻿using BLL.Shared.User;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +13,9 @@ namespace BLL.Services.Abstractins
         Task<IEnumerable<UserDto>> GetAllUsersAsync();
         Task<UserDto> GetUserByIdAsync(Guid id);
         Task AddUserAsync(CreateUserDto createUserDto);
-        Task UpdateUserAsync(Guid id, UpdateUserDto updateUserDto);
-        Task DeleteUserAsync(Guid id);
+        Task<bool> UpdateUserAsync(Guid id, UpdateUserDto userDto);
+        Task<bool> DeleteUserAsync(Guid id);
         Task<IEnumerable<UserDto>>SearchUserAsync(string param, object  value);
+        Task<bool> UpdateProfilePictureAsync(Guid id, string? profilePictureUrl);
     }
 }

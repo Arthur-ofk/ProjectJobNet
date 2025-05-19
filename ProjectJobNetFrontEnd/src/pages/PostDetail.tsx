@@ -25,12 +25,24 @@ function PostDetail() {
   const [voteStatus, setVoteStatus] = useState<'none' | 'up' | 'down'>('none');
   const [comments, setComments] = useState<any[]>([]);
   const [author, setAuthor] = useState<string>('Loading...');
+  const [authorImage, setAuthorImage] = useState<string | null>(null);
 
   // Load post details when the component mounts or id changes
   useEffect(() => {
     if (id) {
       dispatch(fetchPostDetailRequest({ id }));
       dispatch(fetchCommentsRequest({ postId: id }));
+      
+      // Get accurate score immediately when page loads
+      fetch(`${API_BASE_URL}/BlogPost/${id}/score`)
+        .then(response => {
+          if (response.ok) return response.json();
+          throw new Error("Failed to load score");
+        })
+        .then(scoreData => {
+          setVotes(scoreData.score || 0);
+        })
+        .catch(err => console.error("Error loading score:", err));
       
       // Check saved state if user is logged in
       if (token && user) {
@@ -129,6 +141,23 @@ function PostDetail() {
         });
     }
   }, [post, id]);
+
+  // Update post author info with their picture
+  useEffect(() => {
+    if (post?.userId) {
+      // Fetch author details including profile picture
+      fetch(`${API_BASE_URL}/users/${post.userId}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(userData => {
+          setAuthor(userData?.userName || "Unknown");
+          setAuthorImage(userData?.profilePictureUrl || null);
+        })
+        .catch(err => {
+          console.error("Error fetching author details:", err);
+          setAuthor("Unknown");
+        });
+    }
+  }, [post]);
 
   // Fix vote toggling to work consistently with multiple clicks
   const handleVotePost = (up: boolean) => {
@@ -316,7 +345,20 @@ function PostDetail() {
       
       <h2>{post.title}</h2>
       <div className="post-meta">
-        <span>Author: {author}</span>
+        <Link to={`/users/${post.userId}`} className="post-author">
+          {authorImage ? (
+            <img 
+              src={authorImage} 
+              alt={author} 
+              className="author-avatar" 
+            />
+          ) : (
+            <div className="author-avatar-placeholder">
+              {author.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <span>{author}</span>
+        </Link>
         <span>Posted on {new Date(post.createdAt).toLocaleString()}</span>
       </div>
       

@@ -6,6 +6,7 @@ import servicesReducer from './slices/servicesSlice.ts';
 import notificationsReducer from './slices/notificationsSlice.ts';
 import blogReducer from './slices/blogSlice.ts';
 import vacancyDetailReducer from './slices/vacancyDetailSlice.ts';
+import profileReducer from './slices/profileSlice.ts';
 import rootSaga from './sagas/rootSaga.ts';
 
 const sagaMiddleware = createSagaMiddleware();
@@ -27,13 +28,14 @@ const store = configureStore({
     notifications: notificationsReducer,
     blog: blogReducer,
     vacancyDetail: vacancyDetailReducer,
+    profile: profileReducer,
   },
   preloadedState: { auth: preloadedAuth },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
       thunk: false,
       serializableCheck: {
-        ignoredActions: ['blog/createPostRequest'],
+        ignoredActions: ['blog/createPostRequest', 'profile/uploadProfilePictureRequest'],
       },
     }).concat(sagaMiddleware),
 });

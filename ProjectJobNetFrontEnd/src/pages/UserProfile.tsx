@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store.ts';
-import { logout } from '../slices/authSlice.ts';
 import { fetchNotificationsRequest } from '../slices/notificationsSlice.ts';
+import { logout } from '../slices/authSlice.ts';
 import { API_BASE_URL } from '../constants.ts';
+import { 
+  toggleUploadForm, 
+  uploadProfilePictureRequest,
+  deleteProfilePictureRequest,
+  setProfilePictureData
+} from '../slices/profileSlice.ts';
 import './ProfilePage.css';
 
 // Import the separated components
@@ -13,6 +19,7 @@ import ServicesSection from '../components/profile/ServicesSection.tsx';
 import OrdersSection from '../components/profile/OrdersSection.tsx';
 import SavedItemsSection from '../components/profile/SavedItemsSection.tsx';
 import ProfileSettings from '../components/profile/ProfileSettings.tsx';
+import ProfilePictureUploader from '../components/ProfilePictureUploader.tsx';
 
 // Type definitions
 type Organization = {
@@ -25,6 +32,8 @@ type Organization = {
   logoUrl: string;
   createdAt: string;
   updatedAt: string;
+  logoImageData?: string;
+  logoImageContentType?: string;
 };
 
 type Resume = {
@@ -76,6 +85,15 @@ type Order = {
 function UserProfile() {
   // Redux state
   const { user, token } = useSelector((state: RootState) => state.auth);
+  const { 
+    profileImageData, 
+    profileImageContentType, 
+    isUploading, 
+    isDeleting,
+    uploadError, 
+    deleteError,
+    showUploadForm 
+  } = useSelector((state: RootState) => state.profile);
   const notifications = useSelector((state: RootState) => state.notifications.items);
   const dispatch = useDispatch<AppDispatch>();
   
@@ -92,6 +110,36 @@ function UserProfile() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [viewMode, setViewMode] = useState<'personal' | 'business'>('personal');
   const [activeOrg, setActiveOrg] = useState<Organization | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    address: '',
+    phoneNumber: ''
+  });
+
+  const [orgActiveTab, setOrgActiveTab] = useState<'info' | 'members' | 'jobs' | 'services'>('info');
+
+  // Initialize profile data when user data is available
+  useEffect(() => {
+    if (user) {
+      // Initialize edit form data
+      setEditFormData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        address: user.address || '',
+        phoneNumber: user.phoneNumber || ''
+      });
+      
+      // Initialize profile picture data
+      dispatch(setProfilePictureData({
+        imageData: user.profileImageData || null,
+        contentType: user.profileImageContentType || null
+      }));
+    }
+  }, [user, dispatch]);
 
   // Fetch data when component mounts
   useEffect(() => {
@@ -223,14 +271,156 @@ function UserProfile() {
     }
   };
 
-  if (!user) return <div>Loading...</div>;
+  // Handle file input changes for profile picture
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    
+    dispatch(uploadProfilePictureRequest({ file, userId: user.id }));
+  };
+
+  // Toggle profile picture upload form
+  const handleToggleUploadForm = () => {
+    dispatch(toggleUploadForm());
+  };
+
+  // Handle profile picture removal
+  const handleRemovePhoto = () => {
+    if (!user) return;
+    
+    if (window.confirm('Are you sure you want to remove your profile picture?')) {
+      dispatch(deleteProfilePictureRequest({ userId: user.id }));
+    }
+  };
+
+  // Handle form field changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmitProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!token || !user) return;
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...editFormData,
+          id: user.id
+        })
+      });
+      
+      if (!response.ok) throw new Error('Failed to update profile');
+      
+      // Update local user data in Redux
+      dispatch({ 
+        type: 'auth/updateUserProfile', 
+        payload: { 
+          ...user,
+          ...editFormData
+        } 
+      });
+      
+      // Exit edit mode
+      setIsEditMode(false);
+      
+      // Show success message
+      alert('Profile updated successfully!');
+      
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Failed to update profile. Please try again.');
+    }
+  };
+
+  if (!user) return <div className="loading-container">Loading...</div>;
 
   return (
     <div className="profile-container">
       {/* Profile header */}
       <div className="profile-header">
+        {/* Replace static avatar with ProfilePictureUploader */}
         <div className="profile-avatar">
-          <img src={`https://i.pravatar.cc/150?u=${user.id}`} alt="Profile" />
+          {!isEditMode ? (
+            <img 
+              src={profileImageData 
+                ? `data:${profileImageContentType || 'image/jpeg'};base64,${profileImageData}`
+                : `https://i.pravatar.cc/150?u=${user.id}`
+              } 
+              alt="Profile" 
+              className="profile-picture"
+            />
+          ) : (
+            <div className="profile-picture-container">
+              <div className="profile-picture-wrapper" onClick={handleToggleUploadForm}>
+                <img 
+                  src={profileImageData 
+                    ? `data:${profileImageContentType || 'image/jpeg'};base64,${profileImageData}`
+                    : `https://i.pravatar.cc/150?u=${user.id}`
+                  } 
+                  alt="Profile" 
+                  className="profile-picture"
+                />
+                {/* Edit indicator */}
+                <div className="click-overlay">
+                  <span>Click to change</span>
+                </div>
+              </div>
+              
+              {/* Profile picture upload form */}
+              {showUploadForm && (
+                <div className="profile-picture-menu">
+                  {isUploading ? (
+                    <div className="menu-item loading">
+                      <div className="spinner"></div> Uploading...
+                    </div>
+                  ) : isDeleting ? (
+                    <div className="menu-item loading">
+                      <div className="spinner"></div> Deleting...
+                    </div>
+                  ) : (
+                    <>
+                      <label className="menu-item upload-btn">
+                        {profileImageData ? 'Change Photo' : 'Add Photo'}
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
+                      
+                      {profileImageData && (
+                        <button 
+                          className="menu-item delete-btn"
+                          onClick={handleRemovePhoto}
+                        >
+                          Remove Photo
+                        </button>
+                      )}
+                    </>
+                  )}
+                  
+                  {(uploadError || deleteError) && (
+                    <div className="menu-error">
+                      {uploadError || deleteError}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div className="profile-info">
           <h2 className="profile-name">{user.firstName} {user.lastName}</h2>
@@ -294,11 +484,108 @@ function UserProfile() {
           {/* Personal tab content */}
           <div className="tab-content">
             {activeTab === 'info' && (
-              <ProfileSettings 
-                user={user} 
-                token={token!}
-                onLogout={handleLogout}
-              />
+              <div className="info-tab">
+                <div className="section-header">
+                  <h3>Personal Information</h3>
+                  <button 
+                    className="btn btn--outline edit-btn"
+                    onClick={() => setIsEditMode(!isEditMode)}
+                  >
+                    {isEditMode ? 'Cancel' : 'Edit Info'}
+                  </button>
+                </div>
+
+                {isEditMode ? (
+                  <form onSubmit={handleSubmitProfileUpdate} className="edit-form">
+                    <div className="form-group">
+                      <label>First Name</label>
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={editFormData.firstName}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label>Last Name</label>
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={editFormData.lastName}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label>Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={editFormData.email}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label>Address</label>
+                      <input
+                        type="text"
+                        name="address"
+                        value={editFormData.address}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label>Phone Number</label>
+                      <input
+                        type="tel"
+                        name="phoneNumber"
+                        value={editFormData.phoneNumber}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    
+                    <button type="submit" className="btn btn--primary save-btn">
+                      Save Changes
+                    </button>
+                  </form>
+                ) : (
+                  <div className="info-display">
+                    <div className="info-row">
+                      <div className="info-label">Full Name</div>
+                      <div className="info-value">
+                        {user.firstName} {user.lastName}
+                      </div>
+                    </div>
+                    
+                    <div className="info-row">
+                      <div className="info-label">Username</div>
+                      <div className="info-value">{user.userName}</div>
+                    </div>
+                    
+                    <div className="info-row">
+                      <div className="info-label">Email</div>
+                      <div className="info-value">{user.email}</div>
+                    </div>
+                    
+                    <div className="info-row">
+                      <div className="info-label">Address</div>
+                      <div className="info-value">
+                        {user.address || 'Not provided'}
+                      </div>
+                    </div>
+                    
+                    <div className="info-row">
+                      <div className="info-label">Phone</div>
+                      <div className="info-value">
+                        {user.phoneNumber || 'Not provided'}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
             
             {activeTab === 'resumes' && (
@@ -392,12 +679,101 @@ function UserProfile() {
                 </div>
               </div>
               
-              {/* Organization tabs could go here */}
-              <div className="organization-content">
-                <p>Business view is under development. You will be able to manage your organization's services, vacancies, and members here.</p>
-                <button onClick={() => switchViewMode('personal')} className="action-button">
-                  Back to Personal View
+              {/* Organization tabs */}
+              <div className="org-tabs">
+                <button 
+                  className={`org-tab-button ${orgActiveTab === 'info' ? 'active' : ''}`}
+                  onClick={() => setOrgActiveTab('info')}
+                >
+                  Organization Info
                 </button>
+                <button 
+                  className={`org-tab-button ${orgActiveTab === 'members' ? 'active' : ''}`}
+                  onClick={() => setOrgActiveTab('members')}
+                >
+                  Members
+                </button>
+                <button 
+                  className={`org-tab-button ${orgActiveTab === 'jobs' ? 'active' : ''}`}
+                  onClick={() => setOrgActiveTab('jobs')}
+                >
+                  Jobs
+                </button>
+                <button 
+                  className={`org-tab-button ${orgActiveTab === 'services' ? 'active' : ''}`}
+                  onClick={() => setOrgActiveTab('services')}
+                >
+                  Services
+                </button>
+              </div>
+              
+              {/* Organization tab content */}
+              <div className="org-tab-content">
+                {orgActiveTab === 'info' && (
+                  <div className="org-info">
+                    <h3>Organization Details</h3>
+                    <div className="info-row">
+                      <div className="info-label">Name</div>
+                      <div className="info-value">{activeOrg.name}</div>
+                    </div>
+                    <div className="info-row">
+                      <div className="info-label">Industry</div>
+                      <div className="info-value">{activeOrg.industry || 'Not specified'}</div>
+                    </div>
+                    <div className="info-row">
+                      <div className="info-label">Website</div>
+                      <div className="info-value">
+                        {activeOrg.website ? (
+                          <a href={activeOrg.website} target="_blank" rel="noopener noreferrer">
+                            {activeOrg.website}
+                          </a>
+                        ) : (
+                          'Not provided'
+                        )}
+                      </div>
+                    </div>
+                    <div className="info-row">
+                      <div className="info-label">Address</div>
+                      <div className="info-value">{activeOrg.address || 'Not provided'}</div>
+                    </div>
+                    <div className="info-row">
+                      <div className="info-label">Created</div>
+                      <div className="info-value">
+                        {new Date(activeOrg.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {orgActiveTab === 'members' && (
+                  <div className="org-members">
+                    <h3>Organization Members</h3>
+                    {/* Member list would go here */}
+                    <div className="member-list">
+                      <p>Loading members...</p>
+                    </div>
+                  </div>
+                )}
+                
+                {orgActiveTab === 'jobs' && (
+                  <div className="org-jobs">
+                    <h3>Organization Jobs</h3>
+                    <button className="btn btn--primary create-btn">
+                      Post New Job
+                    </button>
+                    {/* Jobs list would go here */}
+                  </div>
+                )}
+                
+                {orgActiveTab === 'services' && (
+                  <div className="org-services">
+                    <h3>Organization Services</h3>
+                    <button className="btn btn--primary create-btn">
+                      Add New Service
+                    </button>
+                    {/* Services list would go here */}
+                  </div>
+                )}
               </div>
             </div>
           )}
