@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import InfoCard from '../../components/InfoCard.tsx';
+import './SavedItemsSection.css';
 
 type BlogPost = {
   id: string;
@@ -21,96 +22,90 @@ const SavedItemsSection: React.FC<SavedItemsSectionProps> = ({
   savedVacancies,
   savedServices
 }) => {
-  const [savedSubTab, setSavedSubTab] = useState<'posts' | 'vacancies' | 'services'>('posts');
+  const [activeTab, setActiveTab] = useState<'posts' | 'vacancies' | 'services'>('posts');
 
   return (
     <div className="saved-items-section">
-      <div className="section-header">
-        <h3>Saved Items</h3>
+      <h3>Saved Items</h3>
+      
+      {/* Subtabs Navigation */}
+      <div className="saved-items-subtabs">
+        <button 
+          className={`subtab-button ${activeTab === 'posts' ? 'active' : ''}`}
+          onClick={() => setActiveTab('posts')}
+        >
+          Posts ({savedPosts.length})
+        </button>
+        <button 
+          className={`subtab-button ${activeTab === 'vacancies' ? 'active' : ''}`}
+          onClick={() => setActiveTab('vacancies')}
+        >
+          Vacancies ({savedVacancies.length})
+        </button>
+        <button 
+          className={`subtab-button ${activeTab === 'services' ? 'active' : ''}`}
+          onClick={() => setActiveTab('services')}
+        >
+          Services ({savedServices.length})
+        </button>
       </div>
       
-      <div className="saved-tabs">
-        <button 
-          className={savedSubTab === 'posts' ? 'active' : ''}
-          onClick={() => setSavedSubTab('posts')}
-        >
-          Blog Posts
-        </button>
-        <button 
-          className={savedSubTab === 'vacancies' ? 'active' : ''}
-          onClick={() => setSavedSubTab('vacancies')}
-        >
-          Vacancies
-        </button>
-        <button 
-          className={savedSubTab === 'services' ? 'active' : ''}
-          onClick={() => setSavedSubTab('services')}
-        >
-          Services
-        </button>
-      </div>
-      
-      <div className="saved-content">
-        {savedSubTab === 'posts' && (
-          <div className="saved-posts">
+      {/* Content based on active tab */}
+      <div className="saved-items-content">
+        {activeTab === 'posts' && (
+          <>
             {savedPosts.length === 0 ? (
-              <p className="empty-state">You haven't saved any blog posts yet.</p>
+              <p className="empty-state">You haven't saved any posts yet.</p>
             ) : (
               <div className="saved-posts-grid">
-                {savedPosts.map(post => (
-                  <div key={post.id} className="blog-card">
-                    <h4>{post.title}</h4>
-                    <p>{post.content.substring(0, 100)}...</p>
-                    <Link to={`/posts/${post.id}`}>Read more</Link>
+                {savedPosts.map((post) => (
+                  <div key={post.id} className="saved-card">
+                    <h5>{post.title}</h5>
+                    <p>{post.content?.substring(0, 100)}...</p>
+                    <button className="view-btn">View Post</button>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </>
         )}
         
-        {savedSubTab === 'vacancies' && (
-          <div className="saved-vacancies">
+        {activeTab === 'vacancies' && (
+          <>
             {savedVacancies.length === 0 ? (
               <p className="empty-state">You haven't saved any vacancies yet.</p>
             ) : (
               <div className="saved-vacancies-grid">
-                {savedVacancies.map(vacancy => (
-                  <div key={vacancy.id} className="vacancy-card">
-                    <Link to={`/vacancies/${vacancy.id}`}>
-                      <InfoCard
-                        title={vacancy.title}
-                        subtitle={`Salary: $${vacancy.salary} | Location: ${vacancy.location}`}
-                        description={vacancy.description.substring(0, 150) + '...'}
-                      />
-                    </Link>
+                {savedVacancies.map((vacancy) => (
+                  <div key={vacancy.id} className="saved-card">
+                    <h5>{vacancy.title}</h5>
+                    <p>Salary: ${vacancy.salary}</p>
+                    <p>Location: {vacancy.location}</p>
+                    <button className="view-btn">View Vacancy</button>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </>
         )}
         
-        {savedSubTab === 'services' && (
-          <div className="saved-services">
+        {activeTab === 'services' && (
+          <>
             {savedServices.length === 0 ? (
               <p className="empty-state">You haven't saved any services yet.</p>
             ) : (
               <div className="saved-services-grid">
-                {savedServices.map(service => (
-                  <div key={service.id} className="service-card">
-                    <Link to={`/services/${service.id}`}>
-                      <InfoCard
-                        title={service.title}
-                        subtitle={`Price: $${service.price}`}
-                        description={service.description.substring(0, 150) + '...'}
-                      />
-                    </Link>
+                {savedServices.map((service) => (
+                  <div key={service.id} className="saved-card">
+                    <h5>{service.serviceName}</h5>
+                    <p>Price: ${service.price}</p>
+                    <p>{service.description?.substring(0, 100)}...</p>
+                    <button className="view-btn">View Service</button>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
     </div>

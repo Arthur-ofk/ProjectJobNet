@@ -1,13 +1,24 @@
-import { call, put, takeLatest, select } from 'redux-saga/effects';
+import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { API_BASE_URL } from '../constants.ts';
-import {
+import { 
   uploadProfilePictureRequest,
   uploadProfilePictureSuccess,
   uploadProfilePictureFailure,
   deleteProfilePictureRequest,
   deleteProfilePictureSuccess,
-  deleteProfilePictureFailure
-} from '../slices/profileSlice.ts';
+  deleteProfilePictureFailure} from '../slices/profileSlice.ts';
+import { logout } from '../slices/authSlice.ts';
+
+// Helper function for safe JSON parsing
+const safeJsonParse = async (response: Response) => {
+  try {
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+  } catch (error) {
+    console.error('JSON parsing error:', error);
+    return null;
+  }
+};
 
 function* uploadProfilePictureSaga(action: ReturnType<typeof uploadProfilePictureRequest>) {
   try {
@@ -15,13 +26,16 @@ function* uploadProfilePictureSaga(action: ReturnType<typeof uploadProfilePictur
     const token = yield select(state => state.auth.token);
     
     if (!token) {
+      yield put(logout());
       throw new Error('Authentication token is missing');
     }
     
+    // Create form data for file upload
     const formData = new FormData();
     formData.append('profileImage', file);
     
-    const response = yield call(fetch, `${API_BASE_URL}/users/${userId}/profileimage`, {
+    // Use the correct endpoint path
+    const response = yield call(fetch, `${API_BASE_URL}/users/${userId}/profile/image`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`
@@ -29,12 +43,17 @@ function* uploadProfilePictureSaga(action: ReturnType<typeof uploadProfilePictur
       body: formData
     });
     
+    if (response.status === 401) {
+      yield put(logout());
+      throw new Error('Your session has expired. Please login again.');
+    }
+    
     if (!response.ok) {
       const errorText = yield call([response, 'text']);
       throw new Error(`Upload failed: ${response.status} ${errorText}`);
     }
     
-    const data = yield call([response, 'json']);
+    const data = yield call(safeJsonParse, response);
     
     yield put(uploadProfilePictureSuccess({ 
       imageData: data.profileImageData,
@@ -43,8 +62,8 @@ function* uploadProfilePictureSaga(action: ReturnType<typeof uploadProfilePictur
     
     // Also update the user data in auth state
     yield put({ 
-      type: 'auth/updateUserProfile', 
-      payload: {
+      type: 'auth/updateUserProfile',
+      payload: { 
         profileImageData: data.profileImageData,
         profileImageContentType: data.profileImageContentType
       }

@@ -404,80 +404,68 @@ function UserProfile() {
       <div className="profile-header">
         {/* Replace static avatar with ProfilePictureUploader */}
         <div className="profile-avatar" onClick={(e) => e.stopPropagation()}>
-          {!isEditMode ? (
-            <img 
-              src={profileImageData 
-                ? `data:${profileImageContentType || 'image/jpeg'};base64,${profileImageData}`
-                : `https://i.pravatar.cc/150?u=${user.id}`
-              } 
-              alt="Profile" 
-              className="profile-picture"
-            />
-          ) : (
-            <div className="profile-picture-container">
-              <div 
-                className="profile-image-clickable-wrapper"
-                onClick={toggleProfileMenu}
-                role="button"
-                tabIndex={0}
-              >
-                <img 
-                  src={profileImageData 
-                    ? `data:${profileImageContentType || 'image/jpeg'};base64,${profileImageData}`
-                    : `https://i.pravatar.cc/150?u=${user.id}`
-                  } 
-                  alt="Profile" 
-                  className="profile-picture"
-                />
-                <div className="profile-picture-edit-indicator"></div>
-                <div className="click-overlay">
-                  <span>Click to change</span>
-                </div>
+          <div className="profile-picture-container">
+            <div 
+              className="profile-image-clickable-wrapper"
+              onClick={toggleProfileMenu}
+              role="button"
+              tabIndex={0}
+            >
+              <img 
+                src={profileImageData 
+                  ? `data:${profileImageContentType || 'image/jpeg'};base64,${profileImageData}`
+                  : `https://i.pravatar.cc/150?u=${user.id}`
+                } 
+                alt="Profile" 
+                className="profile-picture"
+              />
+              <div className="profile-picture-edit-indicator">
+                <span>Edit</span>
               </div>
-              
-              {/* Profile picture upload form */}
-              {showUploadForm && (
-                <div className="profile-picture-menu">
-                  {isUploading ? (
-                    <div className="menu-item loading">
-                      <div className="spinner"></div> Uploading...
-                    </div>
-                  ) : isDeleting ? (
-                    <div className="menu-item loading">
-                      <div className="spinner"></div> Deleting...
-                    </div>
-                  ) : (
-                    <>
-                      <label className="menu-item upload-btn">
-                        {profileImageData ? 'Change Photo' : 'Add Photo'}
-                        <input 
-                          type="file" 
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          style={{ display: 'none' }}
-                        />
-                      </label>
-                      
-                      {profileImageData && (
-                        <button 
-                          className="menu-item delete-btn"
-                          onClick={handleRemovePhoto}
-                        >
-                          Remove Photo
-                        </button>
-                      )}
-                    </>
-                  )}
-                  
-                  {(uploadError || deleteError) && (
-                    <div className="menu-error">
-                      {uploadError || deleteError}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
-          )}
+            
+            {/* Profile picture upload form - always use isProfileMenuVisible instead of showUploadForm */}
+            {isProfileMenuVisible && (
+              <div className="profile-picture-menu">
+                {isUploading ? (
+                  <div className="menu-item loading">
+                    <div className="spinner"></div> Uploading...
+                  </div>
+                ) : isDeleting ? (
+                  <div className="menu-item loading">
+                    <div className="spinner"></div> Deleting...
+                  </div>
+                ) : (
+                  <>
+                    <label className="menu-item upload-btn">
+                      {profileImageData ? 'Change Photo' : 'Add Photo'}
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                    
+                    {profileImageData && (
+                      <button 
+                        className="menu-item delete-btn"
+                        onClick={handleRemovePhoto}
+                      >
+                        Remove Photo
+                      </button>
+                    )}
+                  </>
+                )}
+                
+                {(uploadError || deleteError) && (
+                  <div className="menu-error">
+                    {uploadError || deleteError}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
         <div className="profile-info">
           <h2 className="profile-name">{user.firstName} {user.lastName}</h2>

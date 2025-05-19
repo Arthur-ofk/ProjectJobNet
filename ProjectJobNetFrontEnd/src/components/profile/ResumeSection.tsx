@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import './ResumeSection.css';
 import { API_BASE_URL } from '../../constants.ts';
 
 type Resume = {
@@ -171,6 +172,33 @@ const ResumeSection: React.FC<ResumeSectionProps> = ({
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="view-btn"
+                  // Add token to download request
+                  onClick={(e) => {
+                    // Prevent default action
+                    e.preventDefault();
+                    
+                    // Create and open in a new window with auth header
+                    const newWindow = window.open('', '_blank');
+                    if (newWindow) {
+                      // Fetch the file with authorization
+                      fetch(`${API_BASE_URL}/resumes/download/${resume.id}`, {
+                        headers: { 
+                          'Authorization': `Bearer ${token}` 
+                        }
+                      })
+                      .then(response => response.blob())
+                      .then(blob => {
+                        // Create object URL and navigate to it
+                        const url = URL.createObjectURL(blob);
+                        newWindow.location.href = url;
+                      })
+                      .catch(err => {
+                        console.error("Error downloading resume:", err);
+                        newWindow.close();
+                        alert("Error downloading resume. Please try again.");
+                      });
+                    }
+                  }}
                 >
                   View
                 </a>

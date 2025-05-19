@@ -2,10 +2,11 @@
 using BLL.Shared.Resume;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
 
 namespace ProjectJobNet.Controllers
 {
-    [Authorize]
     [Route("api/resumes")]
     [ApiController]
     public class ResumeController : ControllerBase
@@ -37,11 +38,10 @@ namespace ProjectJobNet.Controllers
         }
 
         [HttpGet("byUser/{userId}")]
+        [Authorize]
         public async Task<IActionResult> GetResumesByUser(Guid userId)
         {
             var resumes = await _resumeService.GetResumesByUserIdAsync(userId);
-            if (resumes == null || !resumes.Any())
-                return NotFound($"No resumes found for user {userId}");
             return Ok(resumes);
         }
 
@@ -64,6 +64,42 @@ namespace ProjectJobNet.Controllers
         {
             await _resumeService.DeleteResumeAsync(id);
             return NoContent();
+        }
+
+        [HttpGet("download/{id}")]
+        [Authorize]
+        public async Task<IActionResult> DownloadResume(Guid id)
+        {
+            try
+            {
+                var resume = await _resumeService.GetResumeByIdAsync(id);
+                if (resume == null)
+                    return NotFound();
+
+                // If the resume has file content
+                if (!string.IsNullOrEmpty(resume.FileContent.ToString()) && !string.IsNullOrEmpty(resume.ContentType))
+                {
+                    // Convert from base64 string to byte array
+                    byte[] fileBytes =resume.FileContent;
+                    
+                    // Return the file for download
+                    return File(fileBytes, resume.ContentType, resume.FileName ?? $"resume_{id}.pdf");
+                }
+                
+                // If it's just text content
+                if (!string.IsNullOrEmpty(resume.Content))
+                {
+                    // Return as a text file
+                    byte[] textBytes = System.Text.Encoding.UTF8.GetBytes(resume.Content);
+                    return File(textBytes, "text/plain", $"resume_{id}.txt");
+                }
+                
+                return BadRequest("Resume has no content to download");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error downloading resume: {ex.Message}");
+            }
         }
     }
 }

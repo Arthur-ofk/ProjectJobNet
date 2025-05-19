@@ -1,0 +1,87 @@
+.saved-items-section {
+  margin-bottom: 30px;
+}
+
+.saved-items-subtabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 20px;
+}
+
+.subtab-button {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.subtab-button:hover {
+  color: #245ea0;
+}
+
+.subtab-button.active {
+  color: #245ea0;
+  border-bottom-color: #245ea0;
+}
+
+.saved-posts-grid,
+.saved-vacancies-grid,
+.saved-services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.saved-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+  border: 1px solid #eaeaea;
+}
+
+.saved-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.saved-card h5 {
+  font-size: 18px;
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.saved-card p {
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.view-btn {
+  background: #eaf4fb;
+  color: #245ea0;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s ease;
+}
+
+.view-btn:hover {
+  background: #d0e7f7;
+}
+
+.empty-state {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  padding: 30px 0;
+}

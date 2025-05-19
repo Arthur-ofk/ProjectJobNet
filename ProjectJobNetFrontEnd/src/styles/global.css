@@ -1,0 +1,19 @@
+/* ...existing code... */
+
+/* Reusable circular profile image class */
+.circular-profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.circular-profile-container {
+  overflow: hidden;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ...existing code... */

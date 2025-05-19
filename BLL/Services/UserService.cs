@@ -117,7 +117,9 @@ namespace BLL.Services
                 using var memoryStream = new MemoryStream();
                 await profileImage.CopyToAsync(memoryStream);
                 
-                user.ProfileImageData = memoryStream.ToArray();
+                // Convert to base64 string for storage
+                var bytes = memoryStream.ToArray();
+                user.ProfileImageData = Convert.ToBase64String(bytes);
                 user.ProfileImageContentType = profileImage.ContentType;
                 user.UpdatedAt = DateTime.UtcNow;
                 

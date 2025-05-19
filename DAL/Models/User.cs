@@ -11,6 +11,7 @@ namespace DAL.Models
 {
     public class User
     {
+        [Key]
         public Guid Id { get; set; }
         [Required]
         [StringLength(100)]
@@ -26,11 +27,12 @@ namespace DAL.Models
         public string? Address { get; set; }
         
         // Profile image fields - storing directly in DB like BlogPost images
-        public byte[]? ProfileImageData { get; set; }
+        public string? ProfilePictureUrl { get; set; }
+        public string? ProfileImageData { get; set; }
         public string? ProfileImageContentType { get; set; }
         
         // The old URL field - keep for backward compatibility
-        public string? ProfilePictureUrl { get; set; }
+        
         
         public Guid RoleId { get; set; }
         public virtual Role Role { get; set; }

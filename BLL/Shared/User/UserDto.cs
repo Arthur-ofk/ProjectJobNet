@@ -19,7 +19,7 @@ namespace BLL.Shared.User
         public string? PhoneNumber { get; set; }
         
         // Include profile image data
-        public byte[]? ProfileImageData { get; set; }
+        public string? ProfileImageData { get; set; }
         public string? ProfileImageContentType { get; set; }
         public string? ProfilePictureUrl { get; set; }
         

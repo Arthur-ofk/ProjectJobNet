@@ -17,5 +17,7 @@ namespace BLL.Services.Abstractins
         Task<bool> DeleteUserAsync(Guid id);
         Task<IEnumerable<UserDto>>SearchUserAsync(string param, object  value);
         Task<bool> UpdateProfilePictureAsync(Guid id, string? profilePictureUrl);
+        Task<UserDto> UpdateProfileImageAsync(Guid id, IFormFile profileImage);
+        Task<bool> DeleteProfileImageAsync(Guid id);
     }
 }

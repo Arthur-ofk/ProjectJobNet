@@ -68,6 +68,43 @@ namespace ProjectJobNet.Controllers
             return Ok(result);
         }
 
+        [HttpPost("{id}/profile/image")]
+        public async Task<IActionResult> UploadProfileImage(Guid id, IFormFile profileImage)
+        {
+            if (profileImage == null || profileImage.Length == 0)
+                return BadRequest("No file was uploaded");
+
+            try
+            {
+                var updatedUser = await _userService.UpdateProfileImageAsync(id, profileImage);
+                return Ok(updatedUser);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("{id}/profile/image")]
+        public async Task<IActionResult> DeleteProfileImage(Guid id)
+        {
+            try
+            {
+                var result = await _userService.DeleteProfileImageAsync(id);
+                if (!result)
+                    return NotFound();
+                    
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
         [HttpGet("{id}/username")]
         [AllowAnonymous]
