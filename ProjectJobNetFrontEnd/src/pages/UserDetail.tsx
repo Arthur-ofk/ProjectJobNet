@@ -240,14 +240,13 @@ function UserDetail() {
                 <p>No services offered.</p>
               ) : (
                 services.map(s => (
-                  <InfoCard
-                    key={s.id}
-                    title={s.serviceName}
-                    subtitle={`Price $${s.price}`}
-                    description={s.description}
-                    className="clickable"
-                    onClick={() => window.location.href = `/services/${s.id}`}
-                  />
+                  <Link to={`/services/${s.id}`} key={s.id} style={{ textDecoration: 'none' }}>
+                    <InfoCard
+                      title={s.serviceName}
+                      subtitle={`Price $${s.price}`}
+                      description={s.description}
+                    />
+                  </Link>
                 ))
               )}
             </div>

@@ -77,12 +77,13 @@ const SavedItemsSection: React.FC<SavedItemsSectionProps> = ({
               <div className="saved-vacancies-grid">
                 {savedVacancies.map(vacancy => (
                   <div key={vacancy.id} className="vacancy-card">
-                    <InfoCard
-                      title={vacancy.title}
-                      subtitle={`Salary: $${vacancy.salary} | Location: ${vacancy.location}`}
-                      description={vacancy.description.substring(0, 150) + '...'}
-                      onClick={() => window.location.href = `/vacancies/${vacancy.id}`}
-                    />
+                    <Link to={`/vacancies/${vacancy.id}`}>
+                      <InfoCard
+                        title={vacancy.title}
+                        subtitle={`Salary: $${vacancy.salary} | Location: ${vacancy.location}`}
+                        description={vacancy.description.substring(0, 150) + '...'}
+                      />
+                    </Link>
                   </div>
                 ))}
               </div>
@@ -98,12 +99,13 @@ const SavedItemsSection: React.FC<SavedItemsSectionProps> = ({
               <div className="saved-services-grid">
                 {savedServices.map(service => (
                   <div key={service.id} className="service-card">
-                    <InfoCard
-                      title={service.title}
-                      subtitle={`Price: $${service.price}`}
-                      description={service.description.substring(0, 150) + '...'}
-                      onClick={() => window.location.href = `/services/${service.id}`}
-                    />
+                    <Link to={`/services/${service.id}`}>
+                      <InfoCard
+                        title={service.title}
+                        subtitle={`Price: $${service.price}`}
+                        description={service.description.substring(0, 150) + '...'}
+                      />
+                    </Link>
                   </div>
                 ))}
               </div>
