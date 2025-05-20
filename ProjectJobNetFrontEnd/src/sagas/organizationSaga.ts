@@ -22,7 +22,7 @@ function* handleFetchOrganization(action: ReturnType<typeof fetchOrganizationReq
       headers['Authorization'] = `Bearer ${token}`;
     }
     
-    const response: Response = yield call(fetch, `${API_BASE_URL}/organization/${id}`, {
+    const response: Response = yield call(fetch, `${API_BASE_URL}/Organization/${id}`, {
       headers
     });
     
@@ -46,7 +46,7 @@ function* handleFetchOrganizations() {
       headers['Authorization'] = `Bearer ${token}`;
     }
     
-    const response: Response = yield call(fetch, `${API_BASE_URL}/organization`, {
+    const response: Response = yield call(fetch, `${API_BASE_URL}/Organization`, {
       headers
     });
     
@@ -73,7 +73,7 @@ function* uploadOrganizationPictureSaga(action: ReturnType<typeof uploadOrganiza
     const formData = new FormData();
     formData.append('logoImage', file);
     
-    const response: Response = yield call(fetch, `${API_BASE_URL}/organization/${id}/logo`, {
+    const response: Response = yield call(fetch, `${API_BASE_URL}/Organization/${id}/logo`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`

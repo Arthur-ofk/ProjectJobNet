@@ -36,7 +36,7 @@ function OrganizationsList({ organizations, token, userId, onOrganizationCreate,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_BASE_URL}/organization`, {
+      const response = await fetch(`${API_BASE_URL}/Organization`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

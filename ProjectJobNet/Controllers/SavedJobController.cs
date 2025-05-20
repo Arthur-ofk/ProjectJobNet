@@ -24,6 +24,23 @@ namespace ProjectJobNet.Controllers
             return Ok(savedJobs);
         }
 
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetSavedJobsByUser(Guid userId)
+        {
+            try
+            {
+                // Ensure we only return saved jobs that belong to the specified user
+                var savedJobs = await _savedJobService.GetAllSavedJobsAsync();
+                    var belongingJobs = savedJobs.Where(job => job.EmployerId == userId).ToList();
+
+                return Ok(savedJobs);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> AddSavedJob([FromBody] CreateSavedJobDto createSavedJobDto)
         {

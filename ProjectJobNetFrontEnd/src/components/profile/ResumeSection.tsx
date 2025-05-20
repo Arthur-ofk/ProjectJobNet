@@ -160,7 +160,7 @@ const ResumeSection: React.FC<ResumeSectionProps> = ({
           {resumes.map(resume => (
             <div key={resume.id} className="resume-item">
               <div className="resume-info">
-                <h4>{resume.fileName || "Resume"}</h4>
+                <h4 title={resume.fileName || "Resume"}>{resume.fileName || "Resume"}</h4>
                 <p>Uploaded: {new Date(resume.createdAt).toLocaleDateString()}</p>
                 {resume.contentType && (
                   <p className="file-type">{resume.contentType}</p>
@@ -169,10 +169,7 @@ const ResumeSection: React.FC<ResumeSectionProps> = ({
               <div className="resume-actions">
                 <a 
                   href={`${API_BASE_URL}/resumes/download/${resume.id}`}
-                  target="_blank" 
-                  rel="noopener noreferrer" 
                   className="view-btn"
-                  // Add token to download request
                   onClick={(e) => {
                     // Prevent default action
                     e.preventDefault();

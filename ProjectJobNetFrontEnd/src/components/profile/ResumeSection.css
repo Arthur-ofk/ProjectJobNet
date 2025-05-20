@@ -1,154 +1,179 @@
+/* Resume section container */
 .resumes-section {
-  margin-bottom: 30px;
+  padding: 20px;
 }
 
-.resumes-section .section-header {
+.section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
-.resumes-section h3 {
+.section-header h3 {
   margin: 0;
   color: #245ea0;
 }
 
 .action-button {
-  background: #eaf4fb;
-  color: #245ea0;
+  background-color: #245ea0;
+  color: white;
   border: none;
   padding: 10px 16px;
-  border-radius: 6px;
-  font-weight: 500;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  font-weight: 500;
+  transition: background-color 0.2s;
 }
 
 .action-button:hover {
-  background: #d0e7f7;
+  background-color: #1c4b80;
 }
 
 .action-button:disabled {
-  opacity: 0.5;
+  background-color: #ccc;
   cursor: not-allowed;
 }
 
+/* Resume list and items */
 .resumes-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 16px;
 }
 
 .resume-item {
-  background: #fff;
-  border-radius: 8px;
-  padding: 16px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid #eaeaea;
-  transition: all 0.2s ease;
-}
-
-.resume-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  align-items: stretch;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* Prevent content from spilling outside */
+  border: 1px solid #eee;
 }
 
 .resume-info {
   flex: 1;
+  padding: 16px;
+  min-width: 0; /* Allow text to shrink if needed */
 }
 
 .resume-info h4 {
-  margin-top: 0;
-  margin-bottom: 8px;
+  margin: 0 0 8px 0;
+  font-size: 16px;
   color: #333;
+  word-break: break-word; /* Allow breaking long filenames */
 }
 
 .resume-info p {
   margin: 4px 0;
-  color: #777;
+  color: #666;
   font-size: 14px;
 }
 
 .file-type {
+  background-color: #f5f5f5;
   display: inline-block;
-  padding: 2px 8px;
-  background: #f0f0f0;
+  padding: 2px 6px;
   border-radius: 4px;
-  font-size: 12px !important;
-  color: #666 !important;
+  font-size: 12px;
 }
 
+/* Resume actions - vertical column on right side */
 .resume-actions {
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   gap: 8px;
+  background-color: #f9f9f9;
+  padding: 16px;
+  min-width: 100px; /* Ensure buttons have enough space */
+  border-left: 1px solid #eee;
 }
 
 .view-btn, .delete-btn {
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-radius: 4px;
   font-size: 14px;
-  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  text-align: center;
+  white-space: nowrap; /* Prevent button text from wrapping */
   border: none;
+  font-weight: 500;
+  transition: background-color 0.2s;
 }
 
 .view-btn {
-  background: #eaf4fb;
-  color: #245ea0;
+  background-color: #4caf50;
+  color: white;
+  text-decoration: none;
+  display: block;
 }
 
 .view-btn:hover {
-  background: #d0e7f7;
+  background-color: #3d8b40;
 }
 
 .delete-btn {
-  background: #feeded;
-  color: #d32f2f;
+  background-color: #f44336;
+  color: white;
 }
 
 .delete-btn:hover {
-  background: #fcd7d7;
+  background-color: #d32f2f;
 }
 
 .delete-btn:disabled {
-  opacity: 0.5;
+  background-color: #ffcdd2;
   cursor: not-allowed;
 }
 
-.resume-limit-note {
-  margin-top: 20px;
-  text-align: center;
-  font-size: 14px;
-  color: #888;
-}
-
 .error-message {
-  padding: 12px;
+  color: #f44336;
   background-color: #ffebee;
-  color: #c62828;
+  padding: 12px;
   border-radius: 4px;
   margin-bottom: 16px;
-  border: 1px solid #ffcdd2;
 }
 
 .loading {
-  text-align: center;
-  padding: 16px;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
   color: #666;
 }
 
 .empty-state {
+  padding: 24px;
   text-align: center;
-  color: #888;
-  font-style: italic;
-  padding: 30px 0;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  color: #666;
+}
+
+.resume-limit-note {
+  margin-top: 16px;
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Responsive styles */
+@media (max-width: 480px) {
+  .resume-item {
+    flex-direction: column;
+  }
+  
+  .resume-actions {
+    flex-direction: row;
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #eee;
+    padding: 12px;
+  }
+  
+  .view-btn, .delete-btn {
+    flex: 1;
+  }
 }

@@ -73,19 +73,21 @@ namespace ProjectJobNet.Controllers
             try
             {
                 var resume = await _resumeService.GetResumeByIdAsync(id);
-                if (resume == null)
-                    return NotFound();
+                if (resume?.FileName == null)
+                {
+                    return NotFound("Resume not found or filename is missing");
+                }
 
                 // If the resume has file content
-                if (!string.IsNullOrEmpty(resume.FileContent.ToString()) && !string.IsNullOrEmpty(resume.ContentType))
+                if (resume.FileContent != null && resume.FileContent.Length > 0 && !string.IsNullOrEmpty(resume.ContentType))
                 {
-                    // Convert from base64 string to byte array
-                    byte[] fileBytes =resume.FileContent;
-                    
+                    // Use the byte array directly
+                    byte[] fileBytes = resume.FileContent;
+
                     // Return the file for download
-                    return File(fileBytes, resume.ContentType, resume.FileName ?? $"resume_{id}.pdf");
+                    return File(fileBytes, resume.ContentType ?? "application/octet-stream", resume.FileName);
                 }
-                
+
                 // If it's just text content
                 if (!string.IsNullOrEmpty(resume.Content))
                 {
@@ -93,7 +95,7 @@ namespace ProjectJobNet.Controllers
                     byte[] textBytes = System.Text.Encoding.UTF8.GetBytes(resume.Content);
                     return File(textBytes, "text/plain", $"resume_{id}.txt");
                 }
-                
+
                 return BadRequest("Resume has no content to download");
             }
             catch (Exception ex)

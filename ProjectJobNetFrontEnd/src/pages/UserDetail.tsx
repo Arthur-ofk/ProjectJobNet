@@ -97,6 +97,23 @@ function UserDetail() {
       .catch(() => setPosts([]));
   };
 
+  useEffect(() => {
+    if (id) {
+      fetch(`${API_BASE_URL}/BlogPost/user/${id}`)
+        .then(res => res.ok ? res.json() : [])
+        .then(data => {
+          const userPosts = Array.isArray(data) 
+            ? data.filter(post => post.userId === id)
+            : data ? [data] : [];
+          setPosts(userPosts);
+        })
+        .catch(error => {
+          console.error('Error fetching user posts:', error);
+          setPosts([]);
+        });
+    }
+  }, [id]);
+
   if (loading || !user) return <div>Loading...</div>;
 
   // Generate image source URL from either the database image or fallback avatar

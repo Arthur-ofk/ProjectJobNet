@@ -16,13 +16,13 @@ namespace BLL.Shared.Organization
         public string Industry { get; set; }
         
         [StringLength(200)]
-        public string Website { get; set; }
+        public string? Website { get; set; }
         
         [StringLength(300)]
-        public string Address { get; set; }
+        public string? Address { get; set; }
         
         [StringLength(500)]
-        public string LogoUrl { get; set; }
+        public string? LogoUrl { get; set; }
         
         public Guid OwnerUserId { get; set; }
     }

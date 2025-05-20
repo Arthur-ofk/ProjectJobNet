@@ -105,7 +105,7 @@ function UserProfile() {
   const dispatch = useDispatch<AppDispatch>();
   
   // Local state
-  const [activeTab, setActiveTab] = useState<'info' | 'resumes' | 'services' | 'notifications' | 'orders' | 'saved' | 'organizations' | 'blogs'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'resumes' | 'services' | 'notifications' | 'orders' | 'saved' | 'organizations' | 'blogs'>('blogs');
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
@@ -241,7 +241,7 @@ function UserProfile() {
         .catch(() => setSavedPosts([]));
 
       // Fetch saved vacancies
-      fetch(`${API_BASE_URL}/SavedJob?employerId=${user.id}`, {
+      fetch(`${API_BASE_URL}/SavedJob/user/${user.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.json())
@@ -251,6 +251,7 @@ function UserProfile() {
             return;
           }
           
+          // Only fetch the jobs that the user has actually saved
           const vacancies = await Promise.all(
             saves.map(async (save: any) => {
               const res = await fetch(`${API_BASE_URL}/jobs/${save.jobId}`);
@@ -369,7 +370,7 @@ function UserProfile() {
     if (!user) return;
     
     if (window.confirm('Are you sure you want to remove your profile picture?')) {
-      dispatch(deleteProfilePictureRequest({ userId: user.id }));
+      dispatch(deleteProfilePictureRequest());
     }
   };
 
@@ -660,16 +661,16 @@ function UserProfile() {
           {/* Personal tabs */}
           <div className="profile-tabs">
             {(['info', 'resumes', 'services', 'notifications', 'orders', 'saved', 'organizations', 'blogs'] as const).map(tab => (
-              <button
+              <div
                 key={tab}
-                className={activeTab === tab ? 'active' : ''}
+                className={`profile-tab ${activeTab === tab ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab)}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
                 {tab === 'notifications' && notifications.length > 0 && (
                   <span className="badge">{notifications.length}</span>
                 )}
-              </button>
+              </div>
             ))}
           </div>
 
@@ -855,7 +856,7 @@ function UserProfile() {
               <div className="blogs-section">
                 <div className="section-header">
                   <h3>My Blog Posts</h3>
-                  <a href="/create-blog" className="btn btn--primary">Create New Blog Post</a>
+                  <a href="/blog/create" className="btn btn--primary create-blog-btn">Create New Blog Post</a>
                 </div>
                 
                 {blogPosts.length === 0 ? (

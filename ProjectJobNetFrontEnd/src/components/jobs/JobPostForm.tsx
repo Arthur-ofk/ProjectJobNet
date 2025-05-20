@@ -3,7 +3,6 @@ import { API_BASE_URL } from '../../constants.ts';
 import InfoCard from '../../components/InfoCard.tsx';
 import './ServicesSection.css';
 import { useNavigate } from 'react-router-dom';
-import ServiceForm from '../services/ServiceForm.tsx';
 
 type Service = {
   id: string;
@@ -38,11 +37,31 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({
   setServices
 }) => {
   const [showAddService, setShowAddService] = useState(false);
+  const [newService, setNewService] = useState({
+    serviceName: '',
+    description: '',
+    price: '',
+    categoryId: ''
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleAddServiceSubmit = async (serviceData: any) => {
+  const handleAddServiceSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newService.serviceName || !newService.description || !newService.price || !newService.categoryId) {
+      setError('All fields are required.');
+      return;
+    }
+    
+    if (isNaN(Number(newService.price))) {
+      setError('Price must be a number.');
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    
     try {
       const res = await fetch(`${API_BASE_URL}/services`, {
         method: 'POST',
@@ -51,8 +70,11 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          ...serviceData,
           userId: userId,
+          categoryId: newService.categoryId,
+          serviceName: newService.serviceName,
+          description: newService.description,
+          price: Number(newService.price),
           upvotes: 0,
           downvotes: 0
         })
@@ -61,6 +83,7 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({
       if (!res.ok) throw new Error('Failed to add service');
       
       setShowAddService(false);
+      setNewService({ serviceName: '', description: '', price: '', categoryId: '' });
       
       // Refresh services
       const refreshRes = await fetch(`${API_BASE_URL}/services`);
@@ -69,7 +92,9 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({
       const allServices = await refreshRes.json();
       setServices(allServices.filter((s: Service) => s.userId === userId));
     } catch (err: any) {
-      throw new Error('Add service failed: ' + (err?.message || 'Unknown error'));
+      setError('Add service failed: ' + (err?.message || 'Unknown error'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -120,13 +145,67 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({
       {error && <div className="error-message">{error}</div>}
 
       {showAddService && (
-        <ServiceForm
-          onSubmit={handleAddServiceSubmit}
-          categories={categories}
-          loading={loading}
-          buttonText="Create Service"
-          onCancel={() => setShowAddService(false)}
-        />
+        <form onSubmit={handleAddServiceSubmit} className="add-service-form">
+          <h4>Create New Service</h4>
+          <div className="form-group">
+            <label>Service Name:</label>
+            <input 
+              type="text" 
+              value={newService.serviceName}
+              onChange={e => setNewService({...newService, serviceName: e.target.value})}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Description:</label>
+            <textarea 
+              value={newService.description}
+              onChange={e => setNewService({...newService, description: e.target.value})}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Price:</label>
+            <input 
+              type="text" 
+              value={newService.price}
+              onChange={e => setNewService({...newService, price: e.target.value})}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Category:</label>
+            <select
+              value={newService.categoryId}
+              onChange={e => setNewService({...newService, categoryId: e.target.value})}
+              required
+              className="category-select"
+            >
+              <option value="">-- Select a Category --</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.id}>
+                  {category.categoryName}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-actions">
+            <button 
+              type="submit" 
+              className="submit-btn" 
+              disabled={loading}
+            >
+              {loading ? 'Creating...' : 'Create Service'}
+            </button>
+            <button 
+              type="button"
+              className="cancel-btn"
+              onClick={() => setShowAddService(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       )}
 
       {services.length === 0 ? (

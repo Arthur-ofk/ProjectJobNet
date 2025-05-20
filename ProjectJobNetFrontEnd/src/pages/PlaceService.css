@@ -1,0 +1,26 @@
+.place-service-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+.place-service-header {
+  margin-bottom: 24px;
+}
+
+.place-service-header h2 {
+  color: #245ea0;
+  margin-bottom: 8px;
+}
+
+.place-service-header p {
+  color: #666;
+}
+
+.error-message {
+  color: #f44336;
+  background-color: #ffebee;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}

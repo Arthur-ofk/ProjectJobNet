@@ -4,7 +4,7 @@
   align-items: flex-start;
   background-color: var(--color-primary, #243447);
   color: #eaeaea;
-  padding: 40px 0 20px;
+  padding: 40px 24px 20px; /* Added horizontal padding */
   margin-top: 40px;
   flex-wrap: wrap;
   gap: 40px; /* more gap between sections */
@@ -19,13 +19,16 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  padding: 0 var(--spacing-6, 1.5rem); /* Added consistent padding */
+  padding: 0 16px; /* Consistent padding */
+  width: 100%;
 }
 
 .footer-content {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   gap: var(--spacing-8);
+  width: 100%; /* Make sure content takes full width */
+  padding: 0 8px; /* Added padding to prevent edge alignment */
 }
 
 @media (min-width: 640px) {
@@ -49,6 +52,8 @@
 .footer-section {
   min-width: 200px;
   flex: 1;
+  padding-left: 0; /* Remove any default padding */
+  margin-bottom: 16px; /* Add bottom margin for spacing */
 }
 
 .footer-section h5 {
@@ -245,6 +250,11 @@
 @media (max-width: 768px) {
   .footer-container {
     flex-direction: column;
+    padding: 0 var(--spacing-4, 1rem); /* Adjust padding for smaller screens */
+  }
+  
+  .footer-content {
+    padding: 0 8px; /* Smaller padding on mobile */
   }
   
   .footer-column {

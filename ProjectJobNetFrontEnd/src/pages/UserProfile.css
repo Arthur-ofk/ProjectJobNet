@@ -56,6 +56,54 @@
   flex-wrap: wrap;
 }
 
+/* Update tab styling to be more like tabs and less like buttons */
+.profile-tabs {
+  display: flex;
+  border-bottom: 2px solid #eee;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+.profile-tab {
+  padding: 12px 20px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.profile-tab:hover {
+  color: #245ea0;
+}
+
+.profile-tab.active {
+  color: #245ea0;
+  font-weight: 600;
+}
+
+.profile-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #245ea0;
+}
+
+.badge {
+  display: inline-block;
+  background-color: #f44336;
+  color: white;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 6px;
+}
+
 .profile-tabs button {
   border-radius: 8px;
   padding: 8px 16px;
@@ -1697,4 +1745,18 @@
   --light: #fff;
   --color-border: #eee;
   --transition-fast: 0.2s;
+}
+
+/* Blog creation button styling */
+.create-blog-btn {
+  background-color: #245ea0;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.create-blog-btn:hover {
+  background-color: #1c4b80;
 }

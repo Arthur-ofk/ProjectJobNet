@@ -15,9 +15,9 @@ namespace DAL.Models
         
         public string Industry { get; set; }
         
-        public string Website { get; set; }
+        public string? Website { get; set; }
         
-        public string Address { get; set; }
+        public string? Address { get; set; }
         
         // Profile image fields - storing directly in DB
         public byte[]? LogoImageData { get; set; }

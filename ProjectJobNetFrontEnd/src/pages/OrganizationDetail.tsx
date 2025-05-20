@@ -33,7 +33,7 @@ function OrganizationDetail() {
   useEffect(() => {
     if (user && organization) {
       // Check if user is a member of this organization
-      fetch(`${API_BASE_URL}/organization/${organization.id}/members`, {
+      fetch(`${API_BASE_URL}/Organization/${organization.id}/members`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.json())
