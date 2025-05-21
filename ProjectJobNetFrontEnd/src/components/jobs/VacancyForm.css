@@ -5,23 +5,34 @@
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 24px;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 .vacancy-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-bottom: 20px;
 }
 
 .form-group label {
   font-weight: 500;
   color: #333;
+  display: block;
+  margin-bottom: 8px;
 }
 
 .form-group input,
@@ -61,6 +72,10 @@
   display: flex;
   gap: 12px;
   margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 30px;
 }
 
 .submit-btn, .cancel-btn {
@@ -71,20 +86,32 @@
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
 .submit-btn {
   background-color: #4CAF50;
   color: white;
   flex: 1;
+  background-color: #245ea0;
+  color: white;
+  border: none;
 }
 
 .submit-btn:hover {
   background-color: #3d8b40;
+  background-color: #1a4979;
 }
 
 .submit-btn:disabled {
   background-color: #a5d6a7;
+  cursor: not-allowed;
+  background-color: #95b1d0;
   cursor: not-allowed;
 }
 
@@ -92,10 +119,14 @@
   background-color: #f44336;
   color: white;
   flex: 1;
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
 }
 
 .cancel-btn:hover {
   background-color: #d32f2f;
+  background-color: #eaeaea;
 }
 
 .error-message {
@@ -104,6 +135,12 @@
   padding: 12px;
   border-radius: 4px;
   margin-bottom: 16px;
+  background-color: #fdeded;
+  color: #d83030;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border-left: 4px solid #d83030;
 }
 
 /* Additional job-specific form styles */
@@ -111,17 +148,26 @@
   border-top: 1px solid #eee;
   padding-top: 16px;
   margin-top: 16px;
+  margin-top: 30px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
 }
 
 .job-details-section h4 {
   margin-bottom: 16px;
   color: #245ea0;
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 18px;
 }
 
 /* For the date inputs */
 .form-row {
   display: flex;
   gap: 16px;
+  display: flex;
+  gap: 20px;
 }
 
 .form-row .form-group {
@@ -132,6 +178,10 @@
   .form-row {
     flex-direction: column;
   }
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
 }
 
 /* For salary range */
@@ -139,6 +189,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .salary-range input {
@@ -148,4 +199,117 @@
 .salary-range .currency {
   font-size: 14px;
   color: #666;
+  color: #666;
+  padding: 0 8px;
+}
+
+.input-field,
+.textarea-field,
+.select-field {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.input-field:focus,
+.textarea-field:focus,
+.select-field:focus {
+  outline: none;
+  border-color: #245ea0;
+  box-shadow: 0 0 0 2px rgba(36, 94, 160, 0.1);
+}
+
+.textarea-field {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.form-section {
+  margin-top: 30px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.form-section h4 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 18px;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.salary-input {
+  flex: 1;
+}
+
+.range-separator {
+  color: #666;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #245ea0;
+  box-shadow: 0 0 0 2px rgba(36, 94, 160, 0.1);
+}
+
+textarea.form-control {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.input-group-text {
+  color: #666;
+  padding: 0 8px;
+}
+
+.btn {
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-primary {
+  background-color: #245ea0;
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #1a4979;
+}
+
+.btn-primary:disabled {
+  background-color: #95b1d0;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.btn-secondary:hover {
+  background-color: #eaeaea;
 }

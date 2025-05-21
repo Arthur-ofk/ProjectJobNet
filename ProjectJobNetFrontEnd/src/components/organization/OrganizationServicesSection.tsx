@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { API_BASE_URL } from '../../constants.ts';
-import InfoCard from '../../components/InfoCard.tsx';
-import './ServicesSection.css';
-import { useNavigate } from 'react-router-dom';
 
-type Service = {
+
+import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../constants.ts';
+import { Link } from 'react-router-dom';
+import './OrganizationServicesSection.css';
+
+interface Service {
   id: string;
   serviceName: string;
   description: string;
@@ -13,237 +14,110 @@ type Service = {
   downvotes?: number;
   userId: string;
   categoryId: string;
-};
+}
 
-type Category = {
+interface Category {
   id: string;
   categoryName: string;
-  description: string;
-};
+  description?: string;
+}
 
-type ServicesSectionProps = {
-  services: Service[];
-  categories: Category[];
-  token: string;
-  userId: string;
-  setServices: (services: Service[]) => void;
-};
+interface OrganizationServicesSectionProps {
+  organization: any;
+  token: string | null;
+}
 
-const ServicesSection: React.FC<ServicesSectionProps> = ({
-  services,
-  categories,
-  token,
-  userId,
-  setServices
+const OrganizationServicesSection: React.FC<OrganizationServicesSectionProps> = ({
+  organization,
+  token
 }) => {
-  const [showAddService, setShowAddService] = useState(false);
-  const [newService, setNewService] = useState({
-    serviceName: '',
-    description: '',
-    price: '',
-    categoryId: ''
-  });
-  const [loading, setLoading] = useState(false);
+  const [services, setServices] = useState<Service[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
 
-  const handleAddServiceSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newService.serviceName || !newService.description || !newService.price || !newService.categoryId) {
-      setError('All fields are required.');
-      return;
-    }
-    
-    if (isNaN(Number(newService.price))) {
-      setError('Price must be a number.');
-      return;
-    }
-    
+  useEffect(() => {
+    if (!organization?.id) return;
+
     setLoading(true);
     setError(null);
     
-    try {
-      const res = await fetch(`${API_BASE_URL}/services`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          userId: userId,
-          categoryId: newService.categoryId,
-          serviceName: newService.serviceName,
-          description: newService.description,
-          price: Number(newService.price),
-          upvotes: 0,
-          downvotes: 0
-        })
-      });
-      
-      if (!res.ok) throw new Error('Failed to add service');
-      
-      setShowAddService(false);
-      setNewService({ serviceName: '', description: '', price: '', categoryId: '' });
-      
-      // Refresh services
-      const refreshRes = await fetch(`${API_BASE_URL}/services`);
-      if (!refreshRes.ok) throw new Error('Failed to refresh services');
-      
-      const allServices = await refreshRes.json();
-      setServices(allServices.filter((s: Service) => s.userId === userId));
-    } catch (err: any) {
-      setError('Add service failed: ' + (err?.message || 'Unknown error'));
-    } finally {
-      setLoading(false);
+    // Create headers with token if available
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
-  };
-
-  const handleDeleteService = async (serviceId: string) => {
-    if (!window.confirm('Are you sure you want to delete this service?')) return;
     
-    try {
-      const res = await fetch(`${API_BASE_URL}/services/${serviceId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
+    // Fetch services for this organization
+    fetch(`${API_BASE_URL}/services?organizationId=${organization.id}`, { headers })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch services: ${res.status}`);
         }
+        return res.json();
+      })
+      .then(data => {
+        setServices(Array.isArray(data) ? data : []);
+        
+        // After getting services, fetch categories to display category names
+        return fetch(`${API_BASE_URL}/categories`, { headers });
+      })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch categories: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(categoryData => {
+        setCategories(Array.isArray(categoryData) ? categoryData : []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error loading organization services:", err);
+        setError(err.message || "Failed to load services");
+        setLoading(false);
       });
-      
-      if (!res.ok) throw new Error('Failed to delete service');
-      
-      // Update local state
-      setServices(services.filter(s => s.id !== serviceId));
-    } catch (err: any) {
-      setError('Delete failed: ' + (err?.message || 'Unknown error'));
-    }
+  }, [organization?.id, token]);
+
+  const getCategoryName = (categoryId: string) => {
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.categoryName : 'Uncategorized';
   };
 
-  // Update this function to show the form instead of navigating
-  const handleCreateService = () => {
-    // Toggle the form visibility instead of navigating
-    setShowAddService(true);
-    setError(null); // Clear any previous errors
-  };
-
-  const handleEditService = (service: any) => {
-    navigate(`/services/edit/${service.id}`, { state: { service } });
-  };
+  if (loading) return <div className="loading">Loading services...</div>;
+  if (error) return <div className="error-message">Error: {error}</div>;
 
   return (
-    <div className="services-section">
+    <div className="organization-services-section">
       <div className="section-header">
-        <h3>Your Services</h3>
-        <button 
-          className="create-service-btn"
-          onClick={handleCreateService}
-          disabled={loading}
-        >
-          Create Service
-        </button>
+        <h3>Services</h3>
+        {token && (
+          <Link to={`/createService?orgId=${organization.id}`} className="add-button">
+            Add New Service
+          </Link>
+        )}
       </div>
 
-      {error && <div className="error-message">{error}</div>}
-
-      {showAddService && (
-        <form onSubmit={handleAddServiceSubmit} className="add-service-form">
-          <h4>Create New Service</h4>
-          <div className="form-group">
-            <label>Service Name:</label>
-            <input 
-              type="text" 
-              value={newService.serviceName}
-              onChange={e => setNewService({...newService, serviceName: e.target.value})}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Description:</label>
-            <textarea 
-              value={newService.description}
-              onChange={e => setNewService({...newService, description: e.target.value})}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Price:</label>
-            <input 
-              type="text" 
-              value={newService.price}
-              onChange={e => setNewService({...newService, price: e.target.value})}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Category:</label>
-            <select
-              value={newService.categoryId}
-              onChange={e => setNewService({...newService, categoryId: e.target.value})}
-              required
-              className="category-select"
-            >
-              <option value="">-- Select a Category --</option>
-              {categories.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.categoryName}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-actions">
-            <button 
-              type="submit" 
-              className="submit-btn" 
-              disabled={loading}
-            >
-              {loading ? 'Creating...' : 'Create Service'}
-            </button>
-            <button 
-              type="button"
-              className="cancel-btn"
-              onClick={() => setShowAddService(false)}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
-
       {services.length === 0 ? (
-        <p className="empty-state">You haven't created any services yet.</p>
+        <p className="empty-state">No services available from this organization yet.</p>
       ) : (
-        <div className="services-list">
+        <div className="services-grid">
           {services.map(service => (
-            <div key={service.id} className="service-item">
-              <div className="service-info">
+            <div key={service.id} className="service-card">
+              <Link to={`/services/${service.id}`} className="service-link">
                 <h4>{service.serviceName}</h4>
-                <p className="service-description">{service.description}</p>
-                <p className="service-price">${service.price.toFixed(2)}</p>
-                <div className="service-category">
-                  {categories.find(c => c.id === service.categoryId)?.categoryName || 'Uncategorized'}
+                <div className="service-meta">
+                  <div className="service-price">${service.price.toFixed(2)}</div>
+                  <div className="service-category">{getCategoryName(service.categoryId)}</div>
                 </div>
-              </div>
-              <div className="service-actions">
-                <button
-                  className="edit-btn"
-                  onClick={() => handleEditService(service)}
-                  disabled={loading}
-                >
-                  Edit
-                </button>
-                <a
-                  href={`/services/${service.id}`}
-                  className="view-btn"
-                >
-                  View
-                </a>
-                <button
-                  className="delete-btn"
-                  onClick={() => handleDeleteService(service.id)}
-                  disabled={loading}
-                >
-                  Delete
-                </button>
-              </div>
+                <p className="service-description">{service.description}</p>
+                
+                <div className="service-stats">
+                  <span className="upvotes">
+                    <i className="icon-thumbs-up"></i> {service.upvotes || 0}
+                  </span>
+                </div>
+              </Link>
             </div>
           ))}
         </div>
@@ -252,4 +126,4 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({
   );
 };
 
-export default ServicesSection;
+export default OrganizationServicesSection;

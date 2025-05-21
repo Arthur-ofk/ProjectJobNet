@@ -1,0 +1,21 @@
+.place-vacancy-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.place-vacancy-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.place-vacancy-header h2 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+
+.place-vacancy-header p {
+  color: #666;
+  font-size: 16px;
+}

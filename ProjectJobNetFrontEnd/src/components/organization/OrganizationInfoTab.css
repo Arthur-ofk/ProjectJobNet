@@ -1,0 +1,41 @@
+.org-info {
+  padding: 10px 0;
+}
+
+.org-info h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.info-display {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-row {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.info-label {
+  width: 120px;
+  font-weight: 500;
+  color: #666;
+}
+
+.info-value {
+  flex-grow: 1;
+  color: #333;
+}
+
+.info-value a {
+  color: #245ea0;
+  text-decoration: none;
+}
+
+.info-value a:hover {
+  text-decoration: underline;
+}

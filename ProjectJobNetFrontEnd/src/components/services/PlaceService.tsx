@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { API_BASE_URL } from '../../constants.ts';
 import { useNavigate } from 'react-router-dom';
-import ServiceForm from '../../components/services/ServiceForm.tsx';
+import ServiceForm from './ServiceForm.tsx';
 import './PlaceService.css';
 
 function PlaceService() {

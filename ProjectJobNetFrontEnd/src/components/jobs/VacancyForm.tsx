@@ -62,10 +62,10 @@ const VacancyForm: React.FC<VacancyFormProps> = ({
   };
 
   return (
-    <div className="vacancy-form-container">
+    <div className="form-container vacancy-form-container">
       {error && <div className="error-message">{error}</div>}
       
-      <form onSubmit={handleSubmit} className="vacancy-form">
+      <form onSubmit={handleSubmit} className="standard-form vacancy-form">
         <div className="form-group">
           <label htmlFor="title">Job Title:</label>
           <input 
@@ -75,6 +75,8 @@ const VacancyForm: React.FC<VacancyFormProps> = ({
             value={formData.title}
             onChange={handleChange}
             required
+            placeholder="Enter job title"
+            className="form-control"
           />
         </div>
         
@@ -87,6 +89,8 @@ const VacancyForm: React.FC<VacancyFormProps> = ({
             onChange={handleChange}
             required
             rows={5}
+            placeholder="Describe the job role and responsibilities"
+            className="form-control"
           />
         </div>
         
@@ -98,18 +102,19 @@ const VacancyForm: React.FC<VacancyFormProps> = ({
             value={formData.categoryId}
             onChange={handleChange}
             required
-            className="category-select"
+            className="form-control"
           >
             <option value="">-- Select a Category --</option>
             {jobCategories.map(category => (
               <option key={category.id} value={category.id}>
-                {category.name}
+                {/* Handle both naming conventions */}
+                {category.name || category.categoryName || 'Unknown Category'}
               </option>
             ))}
           </select>
         </div>
         
-        <div className="job-details-section">
+        <div className="form-section">
           <h4>Job Details</h4>
           
           <div className="form-row">
@@ -122,6 +127,8 @@ const VacancyForm: React.FC<VacancyFormProps> = ({
                 value={formData.location}
                 onChange={handleChange}
                 required
+                placeholder="Job location"
+                className="form-control"
               />
             </div>
             
@@ -133,7 +140,7 @@ const VacancyForm: React.FC<VacancyFormProps> = ({
                 value={formData.employmentType}
                 onChange={handleChange}
                 required
-                className="category-select"
+                className="form-control"
               >
                 <option value="">-- Select Type --</option>
                 <option value="full-time">Full Time</option>
@@ -147,23 +154,25 @@ const VacancyForm: React.FC<VacancyFormProps> = ({
           
           <div className="form-group">
             <label>Salary Range:</label>
-            <div className="salary-range">
+            <div className="input-group salary-range">
               <input 
                 type="number" 
                 name="minSalary"
                 value={formData.minSalary}
                 onChange={handleChange}
                 placeholder="Minimum"
+                className="form-control salary-input"
               />
-              <span>-</span>
+              <span className="input-group-text">-</span>
               <input 
                 type="number" 
                 name="maxSalary"
                 value={formData.maxSalary}
                 onChange={handleChange}
                 placeholder="Maximum"
+                className="form-control salary-input"
               />
-              <span className="currency">USD</span>
+              <span className="input-group-text currency">USD</span>
             </div>
           </div>
         </div>
@@ -171,7 +180,7 @@ const VacancyForm: React.FC<VacancyFormProps> = ({
         <div className="form-actions">
           <button 
             type="submit" 
-            className="submit-btn" 
+            className="btn btn-primary" 
             disabled={loading}
           >
             {loading ? 'Processing...' : buttonText}
@@ -180,7 +189,7 @@ const VacancyForm: React.FC<VacancyFormProps> = ({
           {showCancelButton && onCancel && (
             <button 
               type="button"
-              className="cancel-btn"
+              className="btn btn-secondary"
               onClick={onCancel}
               disabled={loading}
             >

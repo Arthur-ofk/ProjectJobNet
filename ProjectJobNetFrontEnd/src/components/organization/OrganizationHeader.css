@@ -1,0 +1,66 @@
+.organization-header {
+  display: flex;
+  padding: 24px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.organization-avatar {
+  margin-right: 24px;
+  flex-shrink: 0;
+}
+
+.organization-info {
+  flex-grow: 1;
+}
+
+.organization-info h2 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.organization-industry {
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.organization-website {
+  color: #888;
+  font-size: 14px;
+}
+
+.organization-website a {
+  color: #245ea0;
+  text-decoration: none;
+}
+
+.organization-website a:hover {
+  text-decoration: underline;
+}
+
+.organization-actions {
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .organization-header {
+    flex-direction: column;
+    padding: 16px;
+  }
+  
+  .organization-avatar {
+    margin-right: 0;
+    margin-bottom: 16px;
+  }
+  
+  .organization-info {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+}

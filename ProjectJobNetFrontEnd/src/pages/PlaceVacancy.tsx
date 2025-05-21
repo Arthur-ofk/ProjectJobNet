@@ -3,89 +3,91 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store.ts';
 import { API_BASE_URL } from '../constants.ts';
 import { useNavigate } from 'react-router-dom';
+import VacancyForm from '../components/jobs/VacancyForm.tsx';
+import './PlaceVacancy.css';
 
 function PlaceVacancy() {
   const { token, user } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
-  const [form, setForm] = useState({ title: '', description: '', salary: '', location: '', categoryId: '' });
   const [error, setError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [jobCategories, setJobCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!token) {
       navigate('/login');
+      return;
     }
-  }, [token, navigate]);
-
-  useEffect(() => {
+    
+    // Load categories - switching to regular /categories endpoint
     async function loadCategories() {
       try {
+        // Use the general categories endpoint instead of jobcategories
         const res = await fetch(`${API_BASE_URL}/categories`);
         if (!res.ok) throw new Error('Failed to load categories');
         const data = await res.json();
-        setCategories(data);
-      } catch (err) {
+        
+        // Map the data to match the expected format for jobCategories
+        const formattedCategories = data.map((category: any) => ({
+          id: category.id,
+          name: category.categoryName || category.name
+        }));
+        
+        setJobCategories(formattedCategories);
+      } catch (err: any) {
         console.error('Failed to load categories', err);
+        setError(err.message || 'Failed to load job categories');
       }
     }
+    
     loadCategories();
-  }, []);
+  }, [token, navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!token) return;
+  const handleSubmit = async (jobData: any) => {
+    setLoading(true);
+    setError(null);
+    
     try {
       const res = await fetch(`${API_BASE_URL}/jobs`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ...form, userId: user.id })
+        headers: { 
+          'Content-Type': 'application/json', 
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ 
+          ...jobData,
+          userId: user.id,
+          status: 'open'
+        })
       });
-      if (!res.ok) throw new Error('Failed to place vacancy');
+      
+      if (!res.ok) throw new Error('Failed to create job vacancy');
       navigate('/vacancies');
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Failed to create job vacancy');
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (!token) return null;
+
   return (
-    <div style={{ maxWidth: 600, margin: '40px auto', background: '#fff', padding: 32, borderRadius: 16, boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
-      <h2>Place Vacancy</h2>
-      {error && <div style={{ color: 'red' }}>{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Title:</label>
-          <input type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required style={{ width: '100%', marginBottom: 12 }} />
-        </div>
-        <div>
-          <label>Description:</label>
-          <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required style={{ width: '100%', marginBottom: 12 }} />
-        </div>
-        <div>
-          <label>Salary:</label>
-          <input type="number" value={form.salary} onChange={e => setForm({ ...form, salary: e.target.value })} required style={{ width: '100%', marginBottom: 12 }} />
-        </div>
-        <div>
-          <label>Location:</label>
-          <input type="text" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} required style={{ width: '100%', marginBottom: 12 }} />
-        </div>
-        <div>
-          <label>Category:</label>
-          <select
-            value={form.categoryId}
-            onChange={e => setForm({ ...form, categoryId: e.target.value })}
-            required
-            style={{ width: '100%', marginBottom: 12 }}
-          >
-            <option value="">Select a Category</option>
-            {categories.map(category => (
-              <option key={category.id} value={category.id}>
-                { (category as any).categoryName || category.name }
-              </option>
-            ))}
-          </select>
-        </div>
-        <button type="submit" style={{ borderRadius: 8, padding: '8px 20px', background: '#245ea0', color: '#fff', border: 'none' }}>Place Vacancy</button>
-      </form>
+    <div className="place-vacancy-container">
+      <div className="place-vacancy-header">
+        <h2>Place Vacancy</h2>
+        <p>Create a new job opening by filling out the form below.</p>
+      </div>
+      
+      {error && <div className="error-message">{error}</div>}
+      
+      <VacancyForm
+        onSubmit={handleSubmit}
+        jobCategories={jobCategories}
+        loading={loading}
+        buttonText="Place Vacancy"
+        onCancel={() => navigate('/vacancies')}
+      />
     </div>
   );
 }

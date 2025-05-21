@@ -6,29 +6,8 @@ import { resetPosts, fetchPostsRequest, votePostRequest, savePostRequest } from 
 import './BlogStrip.css';
 import { API_BASE_URL } from '../constants.ts';
 
-const UpArrowIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M12 19V5M5 12l7-7 7 7" />
-  </svg>
-);
-
-const DownArrowIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M12 5v14M5 12l7 7 7-7" />
-  </svg>
-);
-
-const CommentIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-  </svg>
-);
-
-const BookmarkIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-  </svg>
-);
+// Import the BlogPostCard component
+import BlogPostCard from '../components/blog/BlogPostCard.tsx';
 
 const POSTS_PER_PAGE = 6;
 
@@ -189,62 +168,15 @@ function BlogStrip() {
       
       <div className="blog-strip">
         {posts.map(post => (
-          <div
+          <BlogPostCard
             key={post.id}
-            className="blog-card"
-            onClick={() => navigate(`/posts/${post.id}`)}
-          >
-            {post.imageData && (
-              <div className="blog-card-image">
-                <img 
-                  src={`data:${post.imageContentType || 'image/jpeg'};base64,${post.imageData}`}
-                  alt={post.title}
-                />
-              </div>
-            )}
-            <div className="blog-card-content">
-              <h4>{post.title}</h4>
-              <p>{post.content.substring(0, 100)}...</p>
-            </div>
-            <div className="blog-card-footer">
-              <div className="card-footer__actions">
-                <button 
-                  className={`icon-btn ${userVotes.get(post.id) === 'up' ? 'active-up' : ''}`}
-                  aria-label="Upvote"
-                  onClick={(e) => handleVote(e, post.id, true)}
-                >
-                  <UpArrowIcon />
-                </button>
-                <span className="score">
-                  {(post.upvotes || 0) - (post.downvotes || 0)}
-                </span>
-                <button 
-                  className={`icon-btn ${userVotes.get(post.id) === 'down' ? 'active-down' : ''}`}
-                  aria-label="Downvote"
-                  onClick={(e) => handleVote(e, post.id, false)}
-                >
-                  <DownArrowIcon />
-                </button>
-                <button 
-                  className="icon-btn"
-                  aria-label="Comment"
-                  onClick={(e) => handleComment(e, post.id)}
-                >
-                  <CommentIcon />
-                </button>
-                <button 
-                  className={`icon-btn ${savedPosts.has(post.id) ? 'saved' : ''}`}
-                  aria-label="Save"
-                  onClick={(e) => handleSave(e, post.id)}
-                >
-                  <BookmarkIcon />
-                </button>
-              </div>
-              <div className="blog-card-meta">
-                {new Date(post.createdAt).toLocaleDateString()}
-              </div>
-            </div>
-          </div>
+            post={post}
+            onVote={handleVote}
+            onSave={handleSave}
+            onComment={handleComment}
+            userVoteStatus={userVotes.get(post.id) as 'up' | 'down' | 'none' || 'none'}
+            isSaved={savedPosts.has(post.id)}
+          />
         ))}
       </div>
       

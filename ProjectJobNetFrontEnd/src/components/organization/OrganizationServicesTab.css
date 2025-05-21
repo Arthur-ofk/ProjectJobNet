@@ -1,0 +1,34 @@
+.org-services {
+  padding: 10px 0;
+}
+
+.org-services h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.create-btn {
+  margin-bottom: 20px;
+}
+
+.service-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.service-card h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #333;
+}
