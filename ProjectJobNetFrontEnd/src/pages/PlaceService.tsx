@@ -14,13 +14,11 @@ function PlaceService() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Redirect if not logged in
     if (!token) {
       navigate('/login');
       return;
     }
     
-    // Fetch categories
     const fetchCategories = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/categories`);
@@ -54,7 +52,6 @@ function PlaceService() {
       
       if (!res.ok) throw new Error('Failed to add service');
       
-      // Redirect to services page after successful creation
       navigate('/services');
     } catch (err: any) {
       setError(err.message || 'Failed to create service');
@@ -63,7 +60,7 @@ function PlaceService() {
     }
   };
 
-  if (!token) return null; // Avoid rendering if not logged in
+  if (!token) return null;
 
   return (
     <div className="place-service-container">

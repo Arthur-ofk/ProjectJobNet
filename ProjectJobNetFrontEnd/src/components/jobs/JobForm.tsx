@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store.ts';
-import { API_BASE_URL } from '../constants.ts';
+import { RootState } from '../../store';
+import { API_BASE_URL } from '../../constants.ts';
 import { useNavigate } from 'react-router-dom';
-import ServiceForm from '../components/services/ServiceForm.tsx';
+import ServiceForm from '../../components/services/ServiceForm.tsx';
 import './PlaceService.css';
 
 function PlaceService() {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import './ServiceForm.css';
 
 interface ServiceFormProps {
@@ -25,25 +25,20 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
   onCancel,
   showCancelButton = true
 }) => {
-  // Use useRef for persistent storage of initial data that doesn't trigger re-renders
   const initialDataRef = useRef(initialData);
   const [formData, setFormData] = useState({...initialDataRef.current});
   const [error, setError] = useState<string | null>(null);
-  
-  // REMOVE THE PROBLEMATIC useEffect THAT'S CAUSING THE LOOP
-  // The component will just use the initial data once at mount time
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    e.stopPropagation(); // Stop propagation to prevent parent elements from capturing the event
+    e.stopPropagation();
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    e.stopPropagation(); // Stop propagation
+    e.stopPropagation();
     
-    // Basic form validation
     if (!formData.serviceName || !formData.description || !formData.price || !formData.categoryId) {
       setError('All fields are required.');
       return;
@@ -66,7 +61,6 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     }
   };
 
-  // Add click handler to stop propagation on the form container
   const handleFormClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };

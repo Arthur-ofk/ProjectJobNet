@@ -314,7 +314,7 @@ detail-actions button:nth-child(2):hover {
   color: #b71c1c;
 }
 
-.detail-actions button:nth-child(5):hover {
+detail-actions button:nth-child(5):hover {
   background: #ffcccc;
   transform: translateY(-1px);
 }

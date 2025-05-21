@@ -62,7 +62,6 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({
       
       setShowAddService(false);
       
-      // Refresh services
       const refreshRes = await fetch(`${API_BASE_URL}/services`);
       if (!refreshRes.ok) throw new Error('Failed to refresh services');
       
@@ -86,18 +85,15 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({
       
       if (!res.ok) throw new Error('Failed to delete service');
       
-      // Update local state
       setServices(services.filter(s => s.id !== serviceId));
     } catch (err: any) {
       setError('Delete failed: ' + (err?.message || 'Unknown error'));
     }
   };
 
-  // Update this function to show the form instead of navigating
   const handleCreateService = () => {
-    // Toggle the form visibility instead of navigating
     setShowAddService(true);
-    setError(null); // Clear any previous errors
+    setError(null);
   };
 
   const handleEditService = (service: any) => {

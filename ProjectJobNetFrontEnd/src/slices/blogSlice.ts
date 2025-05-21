@@ -7,7 +7,7 @@ export type BlogPost = {
   upvotes: number;
   downvotes: number;
   comments: number;
-  likes: number;  // For backwards compatibility
+  likes: number;
   tags: string[];
   createdAt: string;
   userId: string;
@@ -39,7 +39,6 @@ const blogSlice = createSlice({
   name: 'blog',
   initialState,
   reducers: {
-    // List actions using skip/take
     fetchPostsRequest(state, action: PayloadAction<{ skip: number; take: number }>) {
       state.loading = true;
       state.error = null;
@@ -65,7 +64,6 @@ const blogSlice = createSlice({
       state.error = null;
       state.loading = false;
     },
-    // Detail actions
     fetchPostDetailRequest(state, action: PayloadAction<{ id: string }>) {
       state.loading = true;
       state.error = null;
@@ -83,13 +81,11 @@ const blogSlice = createSlice({
       state.error = null;
       state.loading = false;
     },
-    // Create post actions (payload is FormData)
     createPostRequest(state, action: PayloadAction<FormData>) {
       state.loading = true;
       state.error = null;
     },
     createPostSuccess(state, action: PayloadAction<BlogPost>) {
-      // Prepend new post
       state.posts = [action.payload, ...state.posts];
       state.loading = false;
     },
@@ -97,22 +93,18 @@ const blogSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
-    // Post voting actions
-    votePostRequest(state, action: PayloadAction<{ id: string, isUpvote: boolean }>){
+    votePostRequest(state, action: PayloadAction<{ id: string, isUpvote: boolean }>) {
       state.loading = true;
       state.error = null;
     },
-    votePostSuccess(state, action: PayloadAction<{ id: string, isUpvote: boolean, score?: number }>){
+    votePostSuccess(state, action: PayloadAction<{ id: string, isUpvote: boolean, score?: number }>) {
       state.loading = false;
-      // Update post votes in current posts array if it exists
       const post = state.posts.find(p => p.id === action.payload.id);
       if (post) {
-        // If score is provided by server, use it directly
         if (action.payload.score !== undefined) {
-          post.upvotes = action.payload.score;  // Set the upvotes to the score
-          post.downvotes = 0;  // Reset downvotes as we're using the score directly
+          post.upvotes = action.payload.score;
+          post.downvotes = 0;
         } else {
-          // Fallback to old behavior
           if (action.payload.isUpvote) {
             post.upvotes++;
           } else {
@@ -121,14 +113,11 @@ const blogSlice = createSlice({
         }
       }
       
-      // Update currentPost if that's what was voted on
       if (state.currentPost && state.currentPost.id === action.payload.id) {
-        // If score is provided, use it directly
         if (action.payload.score !== undefined) {
-          state.currentPost.upvotes = action.payload.score;  // Set the upvotes to the score
-          state.currentPost.downvotes = 0;  // Reset downvotes as we're using the score directly
+          state.currentPost.upvotes = action.payload.score;
+          state.currentPost.downvotes = 0;
         } else {
-          // Fallback to old behavior
           if (action.payload.isUpvote) {
             state.currentPost.upvotes++;
           } else {
@@ -137,45 +126,40 @@ const blogSlice = createSlice({
         }
       }
     },
-    votePostFailure(state, action: PayloadAction<string>){
+    votePostFailure(state, action: PayloadAction<string>) {
       state.loading = false;
       state.error = action.payload;
     },
-    
-    // Post saving actions
-    savePostRequest(state, action: PayloadAction<{ id: string }>){
+    savePostRequest(state, action: PayloadAction<{ id: string }>) {
       state.loading = true;
       state.error = null;
     },
-    savePostSuccess(state){
+    savePostSuccess(state) {
       state.loading = false;
     },
-    savePostFailure(state, action: PayloadAction<string>){
+    savePostFailure(state, action: PayloadAction<string>) {
       state.loading = false;
       state.error = action.payload;
     },
-    
-    // Post comments actions
-    fetchCommentsRequest(state, action: PayloadAction<{ postId: string }>){
+    fetchCommentsRequest(state, action: PayloadAction<{ postId: string }>) {
       state.loading = true;
       state.error = null;
     },
-    fetchCommentsSuccess(state, action: PayloadAction<{ postId: string, comments: any[] }>){
+    fetchCommentsSuccess(state, action: PayloadAction<{ postId: string, comments: any[] }>) {
       state.loading = false;
-      // We could store comments in the state if needed
     },
-    fetchCommentsFailure(state, action: PayloadAction<string>){
+    fetchCommentsFailure(state, action: PayloadAction<string>) {
       state.loading = false;
       state.error = action.payload;
     },
-    addCommentRequest(state, action: PayloadAction<{ postId: string, content: string }>){
+    addCommentRequest(state, action: PayloadAction<{ postId: string, content: string }>) {
       state.loading = true;
       state.error = null;
     },
-    addCommentSuccess(state){
+    addCommentSuccess(state) {
       state.loading = false;
     },
-    addCommentFailure(state, action: PayloadAction<string>){
+    addCommentFailure(state, action: PayloadAction<string>) {
       state.loading = false;
       state.error = action.payload;
     }

@@ -25,7 +25,6 @@ import {
 } from '../slices/blogSlice.ts';
 import { API_BASE_URL } from '../constants.ts';
 
-// Fetch posts using dynamic loading with skip and take.
 function* handleFetchPosts(action: ReturnType<typeof fetchPostsRequest>) {
   try {
     const { skip, take } = action.payload;
@@ -37,7 +36,6 @@ function* handleFetchPosts(action: ReturnType<typeof fetchPostsRequest>) {
     if (!res.ok) throw new Error('Failed to load BlogPost');
     const text: string = yield call([res, res.text]);
     const data = text ? JSON.parse(text) : [];
-    // Determine if there are more posts based on count.
     const hasMore = data.length === take;
     yield put(fetchPostsSuccess({ posts: data, skip, hasMore }));
   } catch (error: any) {
@@ -128,14 +126,12 @@ function* handleVotePost(action: ReturnType<typeof votePostRequest>) {
     
     if (!res.ok) throw new Error('Failed to vote on post');
     
-    // Parse the response to get the score
     const data = yield res.json();
     
-    // Pass the score in the success action
     yield put(votePostSuccess({ 
       id, 
       isUpvote,
-      score: data.score // Include the score from the server response
+      score: data.score
     }));
   } catch (err: any) {
     yield put(votePostFailure(err.message || 'Failed to vote on post'));
@@ -153,14 +149,12 @@ function* handleSavePost(action: ReturnType<typeof savePostRequest>) {
     const { id } = action.payload;
     const userId: string = yield select((s: any) => s.auth.user.id);
     
-    // Log the exact payload we're sending to help with debugging
     const savedBlogPost = {
       blogPostId: id,
       userId: userId
     };
     console.log('Saving post with payload:', savedBlogPost);
     
-    // Make the API request with proper headers and payload
     const res: Response = yield call(fetch, `${API_BASE_URL}/BlogPost/saved`, {
       method: 'POST',
       headers: { 
@@ -175,19 +169,16 @@ function* handleSavePost(action: ReturnType<typeof savePostRequest>) {
       return;
     }
     
-    // More detailed error handling to diagnose issues
     if (!res.ok) {
       const errorText = yield call([res, 'text']);
       const errorDetail = `Status: ${res.status}, Message: ${errorText}`;
       console.error('Save post error details:', errorDetail);
       
-      // Show more helpful error message to user
       throw new Error(`Failed to save post (${errorDetail}). Please try again.`);
     }
     
     yield put(savePostSuccess());
     
-    // Visual feedback that post was saved
     const savedNotice = document.createElement('div');
     savedNotice.textContent = 'Post saved successfully!';
     savedNotice.style.position = 'fixed';
@@ -208,7 +199,6 @@ function* handleSavePost(action: ReturnType<typeof savePostRequest>) {
     console.error("Save post error:", err);
     yield put(savePostFailure(err.message || 'Failed to save post'));
     
-    // Show error toast
     const errorToast = document.createElement('div');
     errorToast.textContent = err.message || 'Failed to save post';
     errorToast.style.position = 'fixed';
@@ -236,7 +226,6 @@ function* handleFetchComments(action: ReturnType<typeof fetchCommentsRequest>) {
     
     const comments = yield res.json();
     
-    // Fetch usernames for comments
     const commentsWithUsernames = yield call(async () => {
       return await Promise.all(comments.map(async (c: any) => {
         const name = await fetch(`${API_BASE_URL}/users/${c.userId}/username`)
@@ -274,7 +263,6 @@ function* handleAddComment(action: ReturnType<typeof addCommentRequest>) {
     if (!res.ok) throw new Error('Failed to add comment');
     
     yield put(addCommentSuccess());
-    // Re-fetch comments after adding a new one
     yield put(fetchCommentsRequest({ postId }));
   } catch (err: any) {
     yield put(addCommentFailure(err.message || 'Failed to add comment'));

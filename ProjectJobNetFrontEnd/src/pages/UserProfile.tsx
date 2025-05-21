@@ -14,10 +14,6 @@ import {
 import './UserProfile.css';
 import { resizeImage } from '../utils/imageUtils.ts';
 
-// Remove any BrowserRouter or Router imports if they exist
-// Only use Link, NavLink, useNavigate, etc. from react-router-dom
-
-// Import the separated components
 import OrganizationsList from '../components/profile/OrganizationsList.tsx';
 import ResumeSection from '../components/profile/ResumeSection.tsx';
 import ServicesSection from '../components/profile/ServicesSection.tsx';
@@ -27,7 +23,6 @@ import ProfileSettings from '../components/profile/ProfileSettings.tsx';
 import ProfilePictureUploader from '../components/ProfilePictureUploader.tsx';
 import OrganizationView from '../components/profile/OrganizationView.tsx';
 
-// Type definitions
 type Organization = {
   id: string;
   name: string;
@@ -89,7 +84,6 @@ type Order = {
 };
 
 function UserProfile() {
-  // Redux state
   const { user, token } = useSelector((state: RootState) => state.auth);
   const { 
     profileImageData, 
@@ -104,7 +98,6 @@ function UserProfile() {
   const notifications = useSelector((state: RootState) => state.notifications.items);
   const dispatch = useDispatch<AppDispatch>();
   
-  // Local state
   const [activeTab, setActiveTab] = useState<'info' | 'resumes' | 'services' | 'notifications' | 'orders' | 'saved' | 'organizations' | 'blogs'>('blogs');
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -129,19 +122,15 @@ function UserProfile() {
   const [orgActiveTab, setOrgActiveTab] = useState<'info' | 'members' | 'jobs' | 'services'>('info');
   const [isProfileMenuVisible, setIsProfileMenuVisible] = useState(false);
 
-  // Add these new state variables
   const [tempProfileImage, setTempProfileImage] = useState<File | null>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [isEditingImage, setIsEditingImage] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
 
-  // For image rendering, use local state to track the current image - KEEP ONLY THIS DECLARATION
   const [currentProfileImage, setCurrentProfileImage] = useState<string | null>(null);
 
-  // Initialize profile data when user data is available
   useEffect(() => {
     if (user) {
-      // Initialize edit form data
       setEditFormData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
@@ -150,7 +139,6 @@ function UserProfile() {
         phoneNumber: user.phoneNumber || ''
       });
       
-      // Initialize profile picture data
       dispatch(setProfilePictureData({
         imageData: user.profileImageData || null,
         contentType: user.profileImageContentType || null
@@ -158,11 +146,9 @@ function UserProfile() {
     }
   }, [user, dispatch]);
 
-  // Fetch data when component mounts
   useEffect(() => {
     if (!user || !token) return;
     
-    // Fetch resumes
     fetch(`${API_BASE_URL}/resumes/byUser/${user.id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -179,7 +165,6 @@ function UserProfile() {
         setResumes([]);
       });
       
-    // Fetch services
     fetch(`${API_BASE_URL}/services`)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
@@ -187,7 +172,6 @@ function UserProfile() {
       })
       .catch(() => setServices([]));
       
-    // Fetch blog posts
     fetch(`${API_BASE_URL}/BlogPost`)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
@@ -198,13 +182,11 @@ function UserProfile() {
       })
       .catch(() => setBlogPosts([]));
       
-    // Fetch categories
     fetch(`${API_BASE_URL}/categories`)
       .then(res => res.json())
       .then(data => setCategories(data))
       .catch(() => setCategories([]));
       
-    // Fetch orders
     fetch(`${API_BASE_URL}/order/author/${user.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -212,10 +194,8 @@ function UserProfile() {
       .then(setOrders)
       .catch(() => setOrders([]));
       
-    // Fetch notifications
     dispatch(fetchNotificationsRequest({ userId: user.id, token }));
     
-    // Fetch user organizations
     fetch(`${API_BASE_URL}/organization/user/${user.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -229,10 +209,8 @@ function UserProfile() {
       });
   }, [user, token, dispatch]);
 
-  // Fetch saved items when 'saved' tab is selected
   useEffect(() => {
     if (activeTab === 'saved' && token && user) {
-      // Fetch saved blog posts
       fetch(`${API_BASE_URL}/BlogPost/saved`, {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -240,7 +218,6 @@ function UserProfile() {
         .then(setSavedPosts)
         .catch(() => setSavedPosts([]));
 
-      // Fetch saved vacancies
       fetch(`${API_BASE_URL}/SavedJob/user/${user.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -251,7 +228,6 @@ function UserProfile() {
             return;
           }
           
-          // Only fetch the jobs that the user has actually saved
           const vacancies = await Promise.all(
             saves.map(async (save: any) => {
               const res = await fetch(`${API_BASE_URL}/jobs/${save.jobId}`);
@@ -263,7 +239,6 @@ function UserProfile() {
         })
         .catch(() => setSavedVacancies([]));
 
-      // Fetch saved services
       fetch(`${API_BASE_URL}/SavedService?userId=${user.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -273,13 +248,11 @@ function UserProfile() {
     }
   }, [activeTab, token, user]);
 
-  // Handle logout
   const handleLogout = () => {
     dispatch(logout());
     window.location.href = '/';
   };
 
-  // Handle switching between personal and business view
   const switchViewMode = (mode: 'personal' | 'business', org?: Organization) => {
     setViewMode(mode);
     if (mode === 'business' && org) {
@@ -289,45 +262,34 @@ function UserProfile() {
     }
   };
 
-  // Update the file change handler to create a preview first
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Clear the profile menu visibility for organization
     if (activeOrg) {
-      // We're in organization mode, handle differently
-      // Implementation for organization photo would go here
       console.log("Organization photo change");
       return;
     }
     
-    // Store the file for later upload - user profile mode
     setTempProfileImage(file);
     
-    // Create a preview URL
     const objectUrl = URL.createObjectURL(file);
     setPreviewImageUrl(objectUrl);
     
-    // Enter edit mode instead of uploading immediately
     setIsEditingImage(true);
   };
 
-  // Add a save handler to confirm the upload
   const handleSaveProfileImage = async () => {
     if (!tempProfileImage || !user) return;
     
     try {
-      // Resize the image before uploading
-      const resizedFile = await resizeImage(tempProfileImage, 800); // Max 800px width/height
+      const resizedFile = await resizeImage(tempProfileImage, 800);
       
-      // Dispatch with resized file
       dispatch(uploadProfilePictureRequest({
         file: resizedFile, 
         userId: user.id
       }));
       
-      // Clean up
       setIsEditingImage(false);
       setTempProfileImage(null);
       setIsProfileMenuVisible(false);
@@ -337,35 +299,28 @@ function UserProfile() {
         setPreviewImageUrl(null);
       }
       
-      // Force redux to notify components of the update
       dispatch(forceImageUpdate());
     } catch (error) {
       console.error('Error processing image:', error);
-      // Handle error
     }
   };
 
-  // Add a cancel handler to discard changes
   const handleCancelProfileImage = () => {
-    // Clean up the preview URL to free memory
     if (previewImageUrl) {
       URL.revokeObjectURL(previewImageUrl);
     }
     
-    // Reset states
     setPreviewImageUrl(null);
     setTempProfileImage(null);
     setIsEditingImage(false);
   };
 
-  // Toggle profile picture upload form
   const handleToggleUploadForm = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent event from bubbling up
+    e.stopPropagation();
     dispatch(toggleUploadForm());
   }, [dispatch]);
 
-  // Handle profile picture removal
   const handleRemovePhoto = () => {
     if (!user) return;
     
@@ -374,7 +329,6 @@ function UserProfile() {
     }
   };
 
-  // Handle form field changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setEditFormData(prev => ({
@@ -383,7 +337,6 @@ function UserProfile() {
     }));
   };
 
-  // Handle form submission
   const handleSubmitProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -404,7 +357,6 @@ function UserProfile() {
       
       if (!response.ok) throw new Error('Failed to update profile');
       
-      // Update local user data in Redux
       dispatch({ 
         type: 'auth/updateUserProfile', 
         payload: { 
@@ -413,10 +365,8 @@ function UserProfile() {
         } 
       });
       
-      // Exit edit mode
       setIsEditMode(false);
       
-      // Show success message
       alert('Profile updated successfully!');
       
     } catch (error) {
@@ -426,7 +376,6 @@ function UserProfile() {
   };
 
   const handleCancelEdit = useCallback(() => {
-    // Reset the form data to original values first
     if (user) {
       setEditFormData({
         firstName: user.firstName || '',
@@ -436,32 +385,26 @@ function UserProfile() {
         phoneNumber: user.phoneNumber || ''
       });
     }
-    // Then exit edit mode
     setIsEditMode(false);
   }, [user]);
 
-  // Improved toggle function for profile picture menu
   const toggleProfileMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     console.log("Toggle profile menu clicked!");
-    setIsProfileMenuVisible(prev => !prev); // Toggle the menu state
+    setIsProfileMenuVisible(prev => !prev);
   };
 
-  // Handle organization profile update
   const handleSubmitOrgUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!token || !activeOrg) return;
     
     try {
-      // Organization update logic would go here
       console.log('Organization update would happen here');
       
-      // Exit edit mode
       setIsEditMode(false);
       
-      // Show success message
       alert('Organization updated successfully!');
       
     } catch (error) {
@@ -470,21 +413,15 @@ function UserProfile() {
     }
   };
 
-  // Create separate organization photo handlers
   const handleOrgFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !activeOrg) return;
     
-    // Implementation for organization photo handling
     console.log("Organization photo change logic here");
     
-    // Example: preview implementation
     const objectUrl = URL.createObjectURL(file);
-    // Use a separate state for org images
-    // setOrgPreviewImageUrl(objectUrl);
   };
 
-  // Update local state whenever profile data changes
   useEffect(() => {
     if (profileImageData) {
       setCurrentProfileImage(`data:${profileImageContentType || 'image/jpeg'};base64,${profileImageData}`);
@@ -493,7 +430,6 @@ function UserProfile() {
     }
   }, [profileImageData, profileImageContentType]);
 
-  // Keep localStorage update effect
   useEffect(() => {
     if (profileImageData) {
       try {
@@ -510,7 +446,6 @@ function UserProfile() {
     }
   }, [profileImageData, profileImageContentType]);
 
-  // Fix the getProfileImageSrc function to return a string, not JSX
   const getProfileImageSrc = (): string => {
     if (isEditingImage && previewImageUrl) {
       return previewImageUrl;
@@ -527,9 +462,7 @@ function UserProfile() {
 
   return (
     <div className="profile-container">
-      {/* Profile header */}
       <div className="profile-header">
-        {/* Profile avatar section */}
         <div className="profile-avatar" onClick={(e) => e.stopPropagation()}>
           <div className="profile-picture-container">
             <div 
@@ -542,7 +475,7 @@ function UserProfile() {
                 src={getProfileImageSrc()} 
                 alt="Profile" 
                 className="profile-picture"
-                key={`profile-image-${Date.now()}`} // Force re-render with unique key
+                key={`profile-image-${Date.now()}`}
               />
               {!isEditingImage && (
                 <div className="profile-picture-edit-indicator">
@@ -551,7 +484,6 @@ function UserProfile() {
               )}
             </div>
             
-            {/* Profile picture menu with integrated save/cancel buttons for editing */}
             {isProfileMenuVisible && (
               <div className="profile-picture-menu">
                 {isUploading ? (
@@ -563,7 +495,6 @@ function UserProfile() {
                     <div className="spinner"></div> Deleting...
                   </div>
                 ) : isEditingImage ? (
-                  // Show save/cancel buttons when in edit mode
                   <>
                     <div className="menu-item">Preview mode</div>
                     <div className="menu-divider"></div>
@@ -583,7 +514,6 @@ function UserProfile() {
                     </div>
                   </>
                 ) : (
-                  // Show regular options when not in edit mode
                   <>
                     <label className="menu-item upload-btn">
                       {profileImageData ? 'Change Photo' : 'Add Photo'}
@@ -620,7 +550,6 @@ function UserProfile() {
           <p className="profile-username">@{user.userName}</p>
           <p className="profile-email">{user.email}</p>
 
-          {/* Organization selector - only shown if user has orgs */}
           {organizations.length > 0 && (
             <div className="view-selector">
               <span>View as: </span>
@@ -655,10 +584,8 @@ function UserProfile() {
         </div>
       </div>
 
-      {/* View mode specific tabs and content */}
       {viewMode === 'personal' ? (
         <>
-          {/* Personal tabs */}
           <div className="profile-tabs">
             {(['info', 'resumes', 'services', 'notifications', 'orders', 'saved', 'organizations', 'blogs'] as const).map(tab => (
               <div
@@ -674,7 +601,6 @@ function UserProfile() {
             ))}
           </div>
 
-          {/* Personal tab content */}
           <div className="tab-content">
             {activeTab === 'info' && (
               <div className="info-tab">
@@ -888,7 +814,6 @@ function UserProfile() {
           </div>
         </>
       ) : (
-        /* Business view mode */
         <>
           {activeOrg && (
             <OrganizationView

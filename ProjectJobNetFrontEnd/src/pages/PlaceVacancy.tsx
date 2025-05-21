@@ -11,18 +11,15 @@ function PlaceVacancy() {
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
 
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (!token) {
       navigate('/login');
     }
   }, [token, navigate]);
 
-  // Load available categories on mount
   useEffect(() => {
     async function loadCategories() {
       try {
-        // Updated endpoint URL without an extra slash since API_BASE_URL already includes it.
         const res = await fetch(`${API_BASE_URL}/categories`);
         if (!res.ok) throw new Error('Failed to load categories');
         const data = await res.json();
@@ -36,9 +33,8 @@ function PlaceVacancy() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return; // safety check
+    if (!token) return;
     try {
-      // Removed extra slash before 'jobs'
       const res = await fetch(`${API_BASE_URL}/jobs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },

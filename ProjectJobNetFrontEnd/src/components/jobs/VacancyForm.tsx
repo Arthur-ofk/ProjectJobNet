@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './VacancyForm.css';
 
 interface VacancyFormProps {
@@ -39,10 +39,6 @@ const VacancyForm: React.FC<VacancyFormProps> = ({
   const [formData, setFormData] = useState(initialData);
   const [error, setError] = useState<string | null>(null);
   
-  useEffect(() => {
-    setFormData(initialData);
-  }, [initialData]);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -51,7 +47,6 @@ const VacancyForm: React.FC<VacancyFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Form validation
     if (!formData.title || !formData.description || !formData.categoryId) {
       setError('Title, description, and category are required.');
       return;

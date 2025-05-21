@@ -39,7 +39,6 @@ type Review = {
   createdAt: string;
 };
 
-// A simple StarRating component
 const StarRating: React.FC<{ value: number; onChange: (val: number) => void }> = ({ value, onChange }) => {
   const stars = [1,2,3,4,5];
   return (
@@ -170,7 +169,6 @@ function ServiceDetail() {
       if (!res.ok) {
         if (res.status === 401) {
           setError('Your session has expired. Please login again.');
-          // Could also redirect to login page
         } else {
           setError('You can only vote once and only if you used the service.');
         }
@@ -179,7 +177,6 @@ function ServiceDetail() {
       
       setVoteStatus(isUpvote ? 'up' : 'down');
       
-      // Update the UI optimistically
       if (service) {
         if (isUpvote) {
           service.upvotes = (service.upvotes || 0) + 1;
@@ -189,7 +186,6 @@ function ServiceDetail() {
         setService({...service});
       }
       
-      // Also refresh the service data from server
       fetch(`${API_BASE_URL}/services/${id}`)
         .then(res => res.json())
         .then(data => setService(data));
