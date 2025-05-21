@@ -18,7 +18,7 @@ const OrganizationServicesTab: React.FC<OrganizationServicesTabProps> = ({ servi
       )}
       <div className="services-list">
         {services.length === 0 ? (
-          <p>No services offered by this organization.</p>
+          <p className="empty-state">No services offered by this organization.</p>
         ) : (
           <div className="cards-grid">
             {services.map((service: any) => (

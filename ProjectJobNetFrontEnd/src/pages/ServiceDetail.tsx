@@ -72,65 +72,100 @@ function ServiceDetail() {
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/services/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        setService(data);
-        setLoading(false);
-        if (data?.userId) {
-          fetch(`${API_BASE_URL}/users/${data.userId}`)
-            .then(res => res.json())
-            .then(user => setAuthor(user));
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch service details: ${res.status}`);
         }
+        return res.text(); // Read as text first
+      })
+      .then(text => {
+        if (text) {
+          const data = JSON.parse(text); // Parse only if text is not empty
+          setService(data);
+          setLoading(false);
+          if (data?.userId) {
+            fetch(`${API_BASE_URL}/users/${data.userId}`)
+              .then(res => {
+                if (!res.ok) {
+                  throw new Error(`Failed to fetch user details: ${res.status}`);
+                }
+                return res.text();
+              })
+              .then(userText => {
+                if (userText) {
+                  const user = JSON.parse(userText);
+                  setAuthor(user);
+                }
+              })
+              .catch(err => console.error(err));
+          }
+        } else {
+          setLoading(false);
+          console.error('Service details response was empty.');
+        }
+      })
+      .catch(err => {
+        setLoading(false);
+        console.error('Error fetching service details:', err);
       });
-    if (user && token && id) {
-      fetch(`${API_BASE_URL}/services/voteStatus?serviceId=${id}&userId=${user.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => res.ok ? res.json() : null)
-        .then(vote => {
-          if (vote && vote.voted && vote.isUpvote === true) setVoteStatus('up');
-          else if (vote && vote.voted && vote.isUpvote === false) setVoteStatus('down');
-          else setVoteStatus('none');
-        });
-    }
-    fetch(`${API_BASE_URL}/Review`)
-      .then(res => res.json())
-      .then(data => {
-        setReviews(data.filter((r: Review) => r.targetId === id));
-      });
-    if (token && user) {
-      fetch(`${API_BASE_URL}/services/${id}/vote`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(r => r.json())
-        .then(vote => setVoteStatus(vote?.isUpvote ? 'up' : 'down'))
-        .catch(() => setVoteStatus('none'));
-      fetch(`${API_BASE_URL}/savedService?serviceId=${id}&userId=${user.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(r => r.ok ? r.json() : false)
-        .then(setSaved)
-        .catch(() => setSaved(false));
-    }
-  }, [id, user, token]);
 
-  useEffect(() => {
     if (user && token && id) {
-      fetch(`${API_BASE_URL}/order?serviceId=${id}&customerId=${user.id}`, {
+      fetch(`${API_BASE_URL}/ServiceVote?serviceId=${id}&userId=${user.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-        .then(res => res.json())
-        .then(data => {
-          if (
-            data &&
-            Array.isArray(data) &&
-            data.some(
-              (order: any) =>
-                order.status &&
-                order.status.toLowerCase() === "finished"
-            )
-          ) {
-            setHasOrdered(true);
+        .then(res => res.ok ? res.text() : null)
+        .then(voteText => {
+          if (voteText) {
+            const vote = JSON.parse(voteText);
+            if (vote && vote.voted && vote.isUpvote === true) setVoteStatus('up');
+            else if (vote && vote.voted && vote.isUpvote === false) setVoteStatus('down');
+            else setVoteStatus('none');
+          }
+        })
+        .catch(err => console.error('Error fetching vote status:', err));
+    }
+
+    fetch(`${API_BASE_URL}/reviews?targetId=${id}`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch reviews: ${res.status}`);
+        }
+        return res.text();
+      })
+      .then(text => {
+        if (text) {
+          const data = JSON.parse(text);
+          setReviews(data);
+        }
+      })
+      .catch(err => console.error('Error fetching reviews:', err));
+
+    if (token && user) {
+      fetch(`${API_BASE_URL}/Order/author/${user.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`Failed to fetch orders: ${res.status}`);
+          }
+          return res.text();
+        })
+        .then(text => {
+          if (text) {
+            const data = JSON.parse(text);
+            if (
+              data &&
+              Array.isArray(data) &&
+              data.some(
+                (order: any) =>
+                  order.status &&
+                  order.status.toLowerCase() === "finished"
+              )
+            ) {
+              setHasOrdered(true);
+            } else {
+              setHasOrdered(false);
+            }
           } else {
             setHasOrdered(false);
           }
@@ -144,9 +179,14 @@ function ServiceDetail() {
       fetch(`${API_BASE_URL}/services/${id}/hasUsed?userId=${user.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`Failed to fetch usage status: ${res.statusText}`);
+          }
+          return res.json();
+        })
         .then(hasUsed => {
-           setHasOrdered(hasUsed);
+          setHasOrdered(hasUsed);
         })
         .catch(() => setHasOrdered(false));
     }

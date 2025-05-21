@@ -177,6 +177,7 @@ namespace ProjectJobNet.Controllers
         }
 
         [HttpGet("{id}/members")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<OrganizationUserDto>>> GetMembers(Guid id)
         {
             try
@@ -186,12 +187,12 @@ namespace ProjectJobNet.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest($"Error getting members: {ex.Message}");
             }
         }
 
         [HttpPost("members")]
-        public async Task<IActionResult> AddMember([FromBody] AddUserToOrganizationDto dto)
+        public async Task<IActionResult> AddMember([FromBody] AddUserDto dto)
         {
             try
             {
@@ -224,6 +225,30 @@ namespace ProjectJobNet.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost("{id}/addUser")]
+        [Authorize]
+        public async Task<IActionResult> AddUserToOrganization(Guid id, [FromBody] AddUserDto dto)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                    return Unauthorized("User ID not found in token");
+
+                var ownerId = Guid.Parse(userIdClaim.Value);
+                var isOwner = await _organizationService.IsOwnerAsync(id, ownerId);
+                if (!isOwner)
+                    return Forbid("Only the owner can add users to the organization");
+
+                await _organizationService.AddUserToOrganizationAsync( dto);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error adding user to organization: {ex.Message}");
             }
         }
 
@@ -306,6 +331,21 @@ namespace ProjectJobNet.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("{id}/details")]
+        [AllowAnonymous]
+        public async Task<ActionResult<OrganizationDetailsDto>> GetOrganizationDetails(Guid id)
+        {
+            try
+            {
+                var details = await _organizationService.GetOrganizationDetailsAsync(id);
+                return Ok(details);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error getting organization details: {ex.Message}");
             }
         }
     }

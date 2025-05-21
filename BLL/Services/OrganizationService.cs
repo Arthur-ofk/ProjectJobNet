@@ -1,6 +1,8 @@
 using AutoMapper;
 using BLL.Services.Abstractins;
 using BLL.Shared.Organization;
+using BLL.Shared.Service;
+using BLL.Shared.Job;
 using DAL.Abstractions;
 using DAL.Models;
 using System;
@@ -90,16 +92,17 @@ namespace BLL.Services
             return _mapper.Map<IEnumerable<OrganizationUserDto>>(members);
         }
 
-        public async Task AddUserToOrganizationAsync(AddUserToOrganizationDto dto)
+        public async Task AddUserToOrganizationAsync(AddUserDto dto)
         {
-            // Check if user is already a member
-            var existingMember = await _unitOfWork.OrganizationUserRepository
-                .GetByOrganizationAndUserIdAsync(dto.OrganizationId, dto.UserId);
+            var organization = await _unitOfWork.OrganizationRepository.GetByIdAsync(dto.OrganizationId);
+            if (organization == null)
+                throw new ArgumentException("Organization not found");
 
-            if (existingMember != null)
-                throw new ArgumentException("User is already a member of this organization");
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(dto.UserId);
+            if (user == null)
+                throw new ArgumentException("User not found");
 
-            var orgUser = new OrganizationUser
+            var organizationUser = new OrganizationUser
             {
                 UserId = dto.UserId,
                 OrganizationId = dto.OrganizationId,
@@ -107,7 +110,7 @@ namespace BLL.Services
                 JoinedAt = DateTime.UtcNow
             };
 
-            await _unitOfWork.OrganizationUserRepository.AddAsync(orgUser);
+            await _unitOfWork.OrganizationUserRepository.AddAsync(organizationUser);
             await _unitOfWork.CompleteAsync();
         }
 
@@ -143,6 +146,32 @@ namespace BLL.Services
             await _unitOfWork.CompleteAsync();
 
             return _mapper.Map<OrganizationUserDto>(member);
+        }
+
+        public async Task<bool> IsOwnerAsync(Guid organizationId, Guid userId)
+        {
+            var organization = await _unitOfWork.OrganizationRepository.GetByIdAsync(organizationId);
+            return organization != null && organization.OwnerUserId == userId;
+        }
+
+        public async Task<OrganizationDetailsDto> GetOrganizationDetailsAsync(Guid organizationId)
+        {
+            var organization = await _unitOfWork.OrganizationRepository.GetByIdAsync(organizationId);
+            if (organization == null)
+                return null;
+
+            var services = await _unitOfWork.ServiceRepository.GetServicesByOrganizationIdAsync(organizationId);
+            var jobs = await _unitOfWork.JobRepository.GetJobsByOrganizationIdAsync(organizationId);
+
+            return new OrganizationDetailsDto
+            {
+                Id = organization.Id,
+                Name = organization.Name,
+                Description = organization.Description,
+                OwnerUserId = organization.OwnerUserId,
+                Services = _mapper.Map<List<ServiceDto>>(services),
+                Jobs = _mapper.Map<List<JobDto>>(jobs)
+            };
         }
     }
 }

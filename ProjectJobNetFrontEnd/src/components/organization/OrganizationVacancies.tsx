@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { API_BASE_URL } from '../../constants.ts';
 import InfoCard from '../InfoCard.tsx';
 import { Link } from 'react-router-dom';
+import apiClient from '../../utils/apiClient';
+import './OrganizationVacancies.css';
 
 type Vacancy = {
   id: string;
@@ -27,27 +28,17 @@ const OrganizationVacancies: React.FC<OrganizationVacanciesProps> = ({ orgId, to
 
     setLoading(true);
     setError(null);
-    
-    const headers: HeadersInit = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
 
-    // Fetch vacancies/jobs associated with the organization
-    fetch(`${API_BASE_URL}/jobs/organization/${orgId}`, { headers })
+    apiClient.get(`/jobs/organization/${orgId}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined
+    })
       .then(res => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch vacancies: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then(data => {
-        setVacancies(Array.isArray(data) ? data : []);
+        setVacancies(Array.isArray(res.data) ? res.data : []);
         setLoading(false);
       })
       .catch(err => {
         console.error("Error loading organization vacancies:", err);
-        setError(err.message || "Failed to load vacancies");
+        setError(err.response?.data?.message || "Failed to load vacancies");
         setVacancies([]);
         setLoading(false);
       });
@@ -60,7 +51,7 @@ const OrganizationVacancies: React.FC<OrganizationVacanciesProps> = ({ orgId, to
     <div className="org-vacancies">
       <h3>Vacancies</h3>
       
-      <Link to={`/createVacancy?orgId=${orgId}`} className="add-button">
+      <Link to={`/createVacancy?orgId=${orgId}`} className="btn btn--primary add-button">
         Add New Vacancy
       </Link>
       

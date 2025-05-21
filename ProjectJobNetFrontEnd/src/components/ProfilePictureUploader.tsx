@@ -73,7 +73,7 @@ const ProfilePictureUploader: React.FC<ProfilePictureUploaderProps> = ({
       
       const endpoint = entityType === 'user' 
         ? `${API_BASE_URL}/users/${entityId}/profileimage`
-        : `${API_BASE_URL}/organizations/${entityId}/profileimage`;
+        : `${API_BASE_URL}/Organizations/${entityId}/profileimage`;
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -115,7 +115,7 @@ const ProfilePictureUploader: React.FC<ProfilePictureUploaderProps> = ({
     try {
       const endpoint = entityType === 'user' 
         ? `${API_BASE_URL}/users/${entityId}/profileimage`
-        : `${API_BASE_URL}/organizations/${entityId}/profileimage`;
+        : `${API_BASE_URL}/Organizations/${entityId}/profileimage`;
       
       const response = await fetch(endpoint, {
         method: 'DELETE',

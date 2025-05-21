@@ -9,7 +9,7 @@ namespace DAL.Abstractions
 {
     public interface IServiceRepository : IGenericRepository<Service> 
     { 
-    
+        Task<IEnumerable<Service>> GetServicesByOrganizationIdAsync(Guid organizationId);
     }
 
 }

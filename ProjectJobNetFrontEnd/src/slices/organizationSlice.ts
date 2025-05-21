@@ -12,6 +12,7 @@ export interface Organization {
   updatedAt: string;
   logoImageData?: string;
   logoImageContentType?: string;
+  userId: string; // Added userId property
 }
 
 interface OrganizationState {
@@ -22,6 +23,8 @@ interface OrganizationState {
   isUploading: boolean;
   uploadError: string | null;
   showUploadForm: boolean;
+  isDeleting: boolean;
+  deleteError: string | null;
 }
 
 const initialState: OrganizationState = {
@@ -31,7 +34,9 @@ const initialState: OrganizationState = {
   error: null,
   isUploading: false,
   uploadError: null,
-  showUploadForm: false
+  showUploadForm: false,
+  isDeleting: false,
+  deleteError: null
 };
 
 // Action creators for profile picture upload

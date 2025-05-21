@@ -14,6 +14,21 @@ interface OrganizationHeaderProps {
   setIsEditing: (isEdit: boolean) => void;
 }
 
+// Update OrganizationState to include isDeleting and deleteError
+interface OrganizationState {
+  showUploadForm: boolean;
+  isUploading: boolean;
+  uploadError: string | null;
+  isDeleting: boolean;
+  deleteError: string | null;
+}
+
+// Update AvatarUploaderProps to accept className
+interface AvatarUploaderProps {
+  className?: string;
+  // ...other props...
+}
+
 const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({
   organization,
   isEditing,
@@ -24,7 +39,7 @@ const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({
 }) => {
   const dispatch = useDispatch();
   const { showUploadForm, isUploading, uploadError, isDeleting, deleteError } = 
-    useSelector((state: RootState) => state.organization);
+    useSelector((state: RootState) => state.organization as OrganizationState & { isDeleting: boolean; deleteError: string | null });
   
   const handleToggleUploadForm = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent event from bubbling up
@@ -33,23 +48,22 @@ const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({
 
   return (
     <div className="organization-header">
-      <div className="organization-avatar">
-        <AvatarUploader 
-          imageData={organization.logoImageData}
-          imageContentType={organization.logoImageContentType}
-          name={organization.name}
-          isEditing={isEditing}
-          showUploadForm={showUploadForm}
-          isUploading={isUploading}
-          isDeleting={isDeleting}
-          uploadError={uploadError}
-          deleteError={deleteError}
-          onToggleUploadForm={handleToggleUploadForm}
-          onFileChange={handleFileChange}
-          onRemovePhoto={handleRemovePhoto}
-          avatarUrlFallback={`https://ui-avatars.com/api/?name=${encodeURIComponent(organization.name)}&size=150&background=245ea0&color=fff`}
-        />
-      </div>
+      <AvatarUploader 
+        imageData={organization.logoImageData}
+        imageContentType={organization.logoImageContentType}
+        name={organization.name}
+        isEditing={isEditing}
+        showUploadForm={showUploadForm}
+        isUploading={isUploading}
+        isDeleting={isDeleting}
+        uploadError={uploadError}
+        deleteError={deleteError}
+        onToggleUploadForm={handleToggleUploadForm}
+        onFileChange={handleFileChange}
+        onRemovePhoto={handleRemovePhoto}
+        avatarUrlFallback={`https://ui-avatars.com/api/?name=${encodeURIComponent(organization.name)}&size=150&background=245ea0&color=fff`}
+        className="avatar-uploader"
+      />
       
       <div className="organization-info">
         <h2>{organization.name}</h2>

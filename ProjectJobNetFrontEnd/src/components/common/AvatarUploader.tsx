@@ -2,6 +2,7 @@ import React from 'react';
 import './AvatarUploader.css';
 
 interface AvatarUploaderProps {
+  className?: string;
   imageData: string | null;
   imageContentType?: string | null;
   name?: string;
@@ -18,6 +19,7 @@ interface AvatarUploaderProps {
 }
 
 const AvatarUploader: React.FC<AvatarUploaderProps> = ({
+  className,
   imageData,
   imageContentType = 'image/jpeg',
   name = 'User',
@@ -38,7 +40,7 @@ const AvatarUploader: React.FC<AvatarUploaderProps> = ({
     : avatarUrlFallback || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=150&background=245ea0&color=fff`;
 
   return (
-    <div className="avatar-container">
+    <div className={`avatar-container ${className}`}>
       {!isEditing ? (
         <img 
           src={imageSrc} 

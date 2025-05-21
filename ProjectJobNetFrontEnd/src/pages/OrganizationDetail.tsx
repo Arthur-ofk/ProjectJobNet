@@ -19,6 +19,24 @@ import OrganizationForm from '../components/organization/OrganizationForm.tsx';
 import OrganizationMembers from '../components/organization/OrganizationMembers.tsx';
 import OrganizationServicesSection from '../components/organization/OrganizationServicesSection.tsx';
 
+// Correct import for Service type
+import { Service } from '../components/organization/OrganizationServicesSection';
+
+// Ensure userId is part of Organization type
+interface Organization {
+  id: string;
+  name: string;
+  userId: string; // Added userId property
+  // ...other properties...
+}
+
+// Ensure services are properly typed in OrganizationServicesSectionProps
+interface OrganizationServicesSectionProps {
+  services: Service[]; // Ensure services is properly defined
+  canEdit: boolean;
+  isTabView?: boolean;
+}
+
 function OrganizationDetail() {
   const { id } = useParams<{id:string}>();
   const dispatch = useDispatch();
@@ -41,8 +59,10 @@ function OrganizationDetail() {
   // Check if user can edit this organization
   useEffect(() => {
     if (user && organization) {
+      // Add userId to Organization type
+      const organizationWithUserId = { ...organization, userId: organization.userId || '' };
       // Check if user is a member of this organization
-      fetch(`${API_BASE_URL}/Organization/${organization.id}/members`, {
+      fetch(`${API_BASE_URL}/Organization/${organizationWithUserId.id}/members`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.json())
@@ -73,7 +93,7 @@ function OrganizationDetail() {
     }
     
     if (activeTab === 'services') {
-      fetch(`${API_BASE_URL}/services?organizationId=${organization.id}`)
+      fetch(`${API_BASE_URL}/services/organization/${organization.id}`)
         .then(res => res.json())
         .then(setServices)
         .catch(err => {

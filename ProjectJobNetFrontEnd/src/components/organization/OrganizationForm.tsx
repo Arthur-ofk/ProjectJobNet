@@ -48,6 +48,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           name="name"
           value={formData.name}
           onChange={handleInputChange}
+          className="form-control"
         />
       </div>
       

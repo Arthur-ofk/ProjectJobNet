@@ -196,7 +196,7 @@ function UserProfile() {
       
     dispatch(fetchNotificationsRequest({ userId: user.id, token }));
     
-    fetch(`${API_BASE_URL}/organization/user/${user.id}`, {
+    fetch(`${API_BASE_URL}/Organization/user/${user.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.ok ? res.json() : [])

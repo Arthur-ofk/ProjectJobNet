@@ -93,12 +93,12 @@ function* uploadProfilePictureSaga(action: ReturnType<typeof uploadProfilePictur
   }
 }
 
+// Properly type action.payload in deleteProfilePictureSaga
 function* deleteProfilePictureSaga(action: ReturnType<typeof deleteProfilePictureRequest>) {
   try {
-    const { userId } = action.payload;
-    // Ensure userId exists
+    const { userId } = action.payload as unknown as { userId: string };
     if (!userId) {
-      throw new Error('User ID is required');
+      throw new Error('User ID is required to delete profile picture.');
     }
     
     const token = yield select(state => state.auth.token);

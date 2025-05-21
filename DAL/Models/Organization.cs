@@ -26,6 +26,9 @@ namespace DAL.Models
         // Original URL field - keep for backward compatibility
         public string? LogoUrl { get; set; }
         
+        [Required]
+        public Guid OwnerUserId { get; set; }
+        
         public DateTime CreatedAt { get; set; }
         
         public DateTime UpdatedAt { get; set; }

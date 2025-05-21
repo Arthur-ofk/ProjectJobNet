@@ -9,6 +9,6 @@ namespace DAL.Abstractions
 {
     public interface IJobRepository : IGenericRepository<Job>
     {
-    
+        Task<IEnumerable<Job>> GetJobsByOrganizationIdAsync(Guid organizationId);
     }
 }

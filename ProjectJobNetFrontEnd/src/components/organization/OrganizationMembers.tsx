@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { API_BASE_URL } from '../../constants.ts';
 import { Link } from 'react-router-dom';
 import SafeImage from '../SafeImage.tsx';
+import apiClient from '../../utils/apiClient.ts';
 
 type Member = {
   id: string;
@@ -37,49 +38,15 @@ const OrganizationMembers: React.FC<OrganizationMembersProps> = ({ orgId, token,
     setLoading(true);
     setError(null);
 
-    // Fetch organization members with user details
-    fetch(`${API_BASE_URL}/organization/${orgId}/members`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+    apiClient.get(`/Organization/${orgId}/members`, {
+      headers: { Authorization: `Bearer ${token}` }
     })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch members: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then(data => {
-        // If we get an array of member IDs, fetch the details for each
-        if (Array.isArray(data) && data.length > 0) {
-          // If the members don't include user details, fetch them
-          if (!data[0].user) {
-            const memberPromises = data.map(async (member: any) => {
-              try {
-                const userRes = await fetch(`${API_BASE_URL}/users/${member.userId}`);
-                if (!userRes.ok) return member;
-                const user = await userRes.json();
-                return { ...member, user };
-              } catch (err) {
-                console.error(`Failed to fetch user data for ${member.userId}:`, err);
-                return member;
-              }
-            });
-            
-            return Promise.all(memberPromises);
-          }
-          return data;
-        }
-        return [];
-      })
-      .then(membersWithDetails => {
-        setMembers(membersWithDetails);
-        setLoading(false);
-      })
+      .then(res => setMembers(res.data))
       .catch(err => {
-        console.error("Error loading organization members:", err);
-        setError(err.message || "Failed to load members");
-        setMembers([]);
-        setLoading(false);
-      });
+        console.error("Error fetching members:", err);
+        setError(err.response?.data?.message || "Failed to fetch members");
+      })
+      .finally(() => setLoading(false));
   }, [orgId, token]);
 
   const handleAddMember = async (e: React.FormEvent) => {

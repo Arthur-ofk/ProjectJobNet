@@ -14,8 +14,10 @@ namespace BLL.Services.Abstractins
         Task UpdateOrganizationAsync(Guid id, UpdateOrganizationDto dto);
         Task DeleteOrganizationAsync(Guid id);
         Task<IEnumerable<OrganizationUserDto>> GetOrganizationMembersAsync(Guid organizationId);
-        Task AddUserToOrganizationAsync(AddUserToOrganizationDto dto);
+        Task AddUserToOrganizationAsync(AddUserDto dto);
         Task RemoveUserFromOrganizationAsync(Guid organizationId, Guid userId);
         Task<OrganizationUserDto> UpdateUserRoleAsync(Guid organizationId, Guid userId, string role);
+        Task<bool> IsOwnerAsync(Guid organizationId, Guid userId);
+        Task<OrganizationDetailsDto> GetOrganizationDetailsAsync(Guid organizationId);
     }
 }

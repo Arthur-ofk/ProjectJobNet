@@ -1,11 +1,10 @@
-
-
 import React, { useState, useEffect } from 'react';
-import { API_BASE_URL } from '../../constants.ts';
 import { Link } from 'react-router-dom';
 import './OrganizationServicesSection.css';
+import apiClient from '../../utils/apiClient.ts';
 
-interface Service {
+// Export Service type
+export interface Service {
   id: string;
   serviceName: string;
   description: string;
@@ -25,59 +24,66 @@ interface Category {
 interface OrganizationServicesSectionProps {
   organization: any;
   token: string | null;
+  services?: Service[]; // Added services property
+  canEdit: boolean; // Added canEdit property
 }
+
+const ServiceCard: React.FC<{ service: Service; getCategoryName: (id: string) => string }> = ({ service, getCategoryName }) => (
+  <div className="service-card">
+    <Link to={`/services/${service.id}`} className="service-link">
+      <h4>{service.serviceName}</h4>
+      <div className="service-meta">
+        <div className="service-price">${service.price.toFixed(2)}</div>
+        <div className="service-category">{getCategoryName(service.categoryId)}</div>
+      </div>
+      <p className="service-description">{service.description}</p>
+      <div className="service-stats">
+        <span className="upvotes">
+          <i className="icon-thumbs-up"></i> {service.upvotes || 0}
+        </span>
+      </div>
+    </Link>
+  </div>
+);
 
 const OrganizationServicesSection: React.FC<OrganizationServicesSectionProps> = ({
   organization,
-  token
+  token,
+  services: propServices, // Use propServices if provided
+  canEdit // Added canEdit property
 }) => {
-  const [services, setServices] = useState<Service[]>([]);
+  const [services, setServices] = useState<Service[]>(propServices || []); // Initialize with propServices if available
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!organization?.id) return;
+    if (!propServices && organization?.id && token) {
+      setLoading(true);
+      setError(null);
 
-    setLoading(true);
-    setError(null);
-    
-    // Create headers with token if available
-    const headers: HeadersInit = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      apiClient
+        .get(`/services/organization/${organization.id}`)
+        .then((response) => setServices(response.data))
+        .catch((error) => {
+          console.error("Failed to fetch services:", error);
+          setError("Failed to fetch services");
+        })
+        .finally(() => setLoading(false));
     }
-    
-    // Fetch services for this organization
-    fetch(`${API_BASE_URL}/services?organizationId=${organization.id}`, { headers })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch services: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then(data => {
-        setServices(Array.isArray(data) ? data : []);
-        
-        // After getting services, fetch categories to display category names
-        return fetch(`${API_BASE_URL}/categories`, { headers });
-      })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch categories: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then(categoryData => {
-        setCategories(Array.isArray(categoryData) ? categoryData : []);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Error loading organization services:", err);
-        setError(err.message || "Failed to load services");
-        setLoading(false);
-      });
-  }, [organization?.id, token]);
+  }, [organization?.id, token, propServices]); // Only fetch if propServices is not provided
+
+  useEffect(() => {
+    if (organization?.id) {
+      apiClient
+        .get('/categories')
+        .then((res) => setCategories(Array.isArray(res.data) ? res.data : []))
+        .catch((err) => {
+          console.error("Error loading categories:", err);
+          setError("Failed to load categories");
+        });
+    }
+  }, [organization?.id]);
 
   const getCategoryName = (categoryId: string) => {
     const category = categories.find(cat => cat.id === categoryId);
@@ -91,8 +97,8 @@ const OrganizationServicesSection: React.FC<OrganizationServicesSectionProps> = 
     <div className="organization-services-section">
       <div className="section-header">
         <h3>Services</h3>
-        {token && (
-          <Link to={`/createService?orgId=${organization.id}`} className="add-button">
+        {canEdit && token && (
+          <Link to={`/createService?orgId=${organization.id}`} className="btn btn--primary">
             Add New Service
           </Link>
         )}
@@ -103,22 +109,7 @@ const OrganizationServicesSection: React.FC<OrganizationServicesSectionProps> = 
       ) : (
         <div className="services-grid">
           {services.map(service => (
-            <div key={service.id} className="service-card">
-              <Link to={`/services/${service.id}`} className="service-link">
-                <h4>{service.serviceName}</h4>
-                <div className="service-meta">
-                  <div className="service-price">${service.price.toFixed(2)}</div>
-                  <div className="service-category">{getCategoryName(service.categoryId)}</div>
-                </div>
-                <p className="service-description">{service.description}</p>
-                
-                <div className="service-stats">
-                  <span className="upvotes">
-                    <i className="icon-thumbs-up"></i> {service.upvotes || 0}
-                  </span>
-                </div>
-              </Link>
-            </div>
+            <ServiceCard key={service.id} service={service} getCategoryName={getCategoryName} />
           ))}
         </div>
       )}

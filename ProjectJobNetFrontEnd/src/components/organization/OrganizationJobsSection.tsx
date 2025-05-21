@@ -2,11 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../../constants.ts';
 import VacancyForm from '../jobs/VacancyForm.tsx';
 import './OrganizationJobsSection.css';
+import apiClient from '../../utils/apiClient';
 
 type OrganizationJobsSectionProps = {
   organization: any;
   token: string;
 };
+
+const JobList: React.FC<{ jobs: any[]; jobCategories: any[] }> = ({ jobs, jobCategories }) => (
+  <div className="jobs-list">
+    {jobs.map(job => (
+      <div key={job.id} className="job-item">
+        <div className="job-info">
+          <h4>{job.title}</h4>
+          <p className="job-description">{job.description}</p>
+          <p className="job-category">
+            {jobCategories.find(c => c.id === job.categoryId)?.name || 'Uncategorized'}
+          </p>
+        </div>
+      </div>
+    ))}
+  </div>
+);
 
 const OrganizationJobsSection: React.FC<OrganizationJobsSectionProps> = ({
   organization,
@@ -21,12 +38,11 @@ const OrganizationJobsSection: React.FC<OrganizationJobsSectionProps> = ({
   useEffect(() => {
     const fetchOrganizationJobs = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/jobs/organization/${organization.id}`);
-        if (!response.ok) throw new Error('Failed to fetch jobs');
-        const data = await response.json();
-        setJobs(data);
-      } catch (err: any) {
+        const response = await apiClient.get(`/jobs/organization/${organization.id}`);
+        setJobs(response.data);
+      } catch (err) {
         console.error('Error loading jobs:', err);
+        setError(err.response?.data?.message || 'Failed to fetch jobs');
       }
     };
 
@@ -36,12 +52,11 @@ const OrganizationJobsSection: React.FC<OrganizationJobsSectionProps> = ({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/jobcategories`);
-        if (!response.ok) throw new Error('Failed to fetch job categories');
-        const data = await response.json();
-        setJobCategories(data);
-      } catch (err: any) {
+        const response = await apiClient.get('/jobcategories');
+        setJobCategories(response.data);
+      } catch (err) {
         console.error('Error loading job categories:', err);
+        setError(err.response?.data?.message || 'Failed to fetch job categories');
       }
     };
 
@@ -53,35 +68,17 @@ const OrganizationJobsSection: React.FC<OrganizationJobsSectionProps> = ({
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/jobs`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...jobData,
-          organizationId: organization.id,
-        })
+      await apiClient.post('/jobs', {
+        ...jobData,
+        organizationId: organization.id,
       });
 
-      if (!response.ok) throw new Error('Failed to create job');
-
-      const fetchOrganizationJobs = async () => {
-        try {
-          const response = await fetch(`${API_BASE_URL}/jobs/organization/${organization.id}`);
-          if (!response.ok) throw new Error('Failed to fetch jobs');
-          const data = await response.json();
-          setJobs(data);
-        } catch (err: any) {
-          console.error('Error loading jobs:', err);
-        }
-      };
-
-      fetchOrganizationJobs();
+      const response = await apiClient.get(`/jobs/organization/${organization.id}`);
+      setJobs(response.data);
       setShowJobForm(false);
-    } catch (err: any) {
-      setError(err.message || 'Error creating job posting');
+    } catch (err) {
+      console.error('Error creating job posting:', err);
+      setError(err.response?.data?.message || 'Error creating job posting');
     } finally {
       setLoading(false);
     }
@@ -92,7 +89,7 @@ const OrganizationJobsSection: React.FC<OrganizationJobsSectionProps> = ({
       <div className="section-header">
         <h3>Job Openings</h3>
         <button 
-          className="create-job-btn"
+          className="btn btn--primary create-job-btn"
           onClick={() => setShowJobForm(true)}
         >
           Create Job Opening
@@ -115,19 +112,7 @@ const OrganizationJobsSection: React.FC<OrganizationJobsSectionProps> = ({
       {jobs.length === 0 ? (
         <p className="empty-state">No job openings available.</p>
       ) : (
-        <div className="jobs-list">
-          {jobs.map(job => (
-            <div key={job.id} className="job-item">
-              <div className="job-info">
-                <h4>{job.title}</h4>
-                <p className="job-description">{job.description}</p>
-                <p className="job-category">
-                  {jobCategories.find(c => c.id === job.categoryId)?.name || 'Uncategorized'}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <JobList jobs={jobs} jobCategories={jobCategories} />
       )}
     </div>
   );
